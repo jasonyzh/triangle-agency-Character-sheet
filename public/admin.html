@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统管理 // TRIANGLE AGENCY</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --deep-bg: #1a252f;
+            --bg-pattern: radial-gradient(#2c3e50 1px, transparent 1px);
+            
+            --pure-white: #ffffff;
+            --signal-red: #c0392b;
+            --text-dark: #2c3e50;
+        }
+        body { 
+            font-family: "Roboto Mono", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+            background-color: var(--deep-bg);
+            background-image: var(--bg-pattern);
+            background-size: 20px 20px;
+            margin: 0; padding: 20px; color: var(--text-dark); 
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        
+        header { 
+            display: flex; justify-content: space-between; align-items: flex-end; 
+            margin-bottom: 30px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); 
+        }
+        
+        .brand-logo { display: flex; flex-direction: column; line-height: 0.9; font-weight: 900; text-transform: uppercase; }
+        .brand-logo .top { font-size: 20px; letter-spacing: 2px; color: white; }
+        .brand-logo .btm { font-size: 12px; letter-spacing: 3px; color: var(--signal-red); }
+        .page-title { font-size: 12px; color: #7f8c8d; margin-top: 5px; text-transform: uppercase; letter-spacing: 1px; }
+
+        .btn-logout { background: rgba(255,255,255,0.1); color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; transition: 0.2s; }
+        .btn-logout:hover { background: var(--signal-red); }
+
+        .add-panel { 
+            background: var(--pure-white); 
+            padding: 20px; 
+            border-radius: 6px; 
+            margin-bottom: 25px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex; gap: 10px; flex-wrap: wrap;
+            border-left: 5px solid var(--signal-red);
+        }
+        
+        .add-panel input { 
+            padding: 10px; border: 2px solid #ecf0f1; background: #fdfdfd; color: var(--text-dark);
+            border-radius: 4px; flex: 1; min-width: 120px; font-weight: bold;
+        }
+        .add-panel input:focus { border-color: var(--signal-red); outline: none; background: white; }
+        
+        .btn-add { 
+            background: var(--signal-red); color: white; border: none; 
+            padding: 0 20px; border-radius: 4px; cursor: pointer; font-weight: bold; 
+            text-transform: uppercase; font-size: 12px; box-shadow: 0 2px 5px rgba(192, 57, 43, 0.3);
+        }
+        .btn-add:hover { background: #e74c3c; transform: translateY(-1px); }
+        
+        .user-list { display: grid; gap: 12px; }
+        .user-card { 
+            background: var(--pure-white);
+            padding: 15px; border-radius: 6px; 
+            display: flex; align-items: center; justify-content: space-between; 
+            border: 1px solid #ecf0f1;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .u-info { flex: 1; }
+        .u-name { font-weight: bold; font-size: 16px; color: var(--text-dark); display: flex; align-items: center; gap: 10px; }
+        .u-meta { font-size: 12px; color: #7f8c8d; margin-top: 5px; }
+        .u-pass { font-family: monospace; color: var(--signal-red); background: #fceceb; padding: 2px 6px; border-radius: 3px; border: 1px solid #fadbd8; }
+        
+        .action-btns { display: flex; gap: 8px; }
+        .btn-base { border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+        
+        .btn-edit { background: #ecf0f1; color: var(--text-dark); }
+        .btn-edit:hover { background: #bdc3c7; }
+        
+        .btn-del { background: #fceceb; color: var(--signal-red); }
+        .btn-del:hover { background: var(--signal-red); color: white; }
+        
+        .admin-tag { background: var(--signal-red); color: white; padding: 2px 6px; border-radius: 2px; font-size: 10px; letter-spacing: 1px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <div class="brand-logo">
+                <span class="top">TRIANGLE</span>
+                <span class="btm">AGENCY</span>
+            </div>
+            <div class="page-title">// 人员管理控制台</div>
+        </div>
+        <div style="display:flex; gap:10px;">
+            <button class="btn-logout" onclick="location.href='monitor.html'" style="background:var(--pure-white); color:var(--signal-red);">
+                <i class="fas fa-eye"></i> 监控
+            </button>
+            <button class="btn-logout" onclick="logout()"><i class="fas fa-power-off"></i></button>
+        </div>
+    </header>
+
+    <div class="add-panel">
+        <input type="text" id="newName" placeholder="员工姓名">
+        <input type="text" id="newUser" placeholder="登录账号">
+        <input type="text" id="newPass" placeholder="登录密码">
+        <button class="btn-add" onclick="addUser()"><i class="fas fa-plus"></i> 入职登记</button>
+    </div>
+
+    <div id="list" class="user-list"></div>
+</div>
+
+<script>
+    const isAdmin = localStorage.getItem('ta_is_admin');
+    if (isAdmin !== 'true') { window.location.href = 'login.html'; }
+
+    async function loadUsers() {
+        try {
+            const res = await fetch('/api/users');
+            const users = await res.json();
+            const container = document.getElementById('list');
+            container.innerHTML = '';
+
+            users.forEach(u => {
+                const el = document.createElement('div');
+                el.className = 'user-card';
+                
+                const delBtn = u.isAdmin 
+                    ? `<span style="font-size:10px;color:#aaa;padding:0 10px;">SYSTEM ADMIN</span>` 
+                    : `<button class="btn-base btn-del" onclick="delUser(${u.id}, '${u.name}')">删除</button>`;
+
+                const editBtn = `<button class="btn-base btn-edit" onclick="changePass(${u.id}, '${u.username}')">改密</button>`;
+
+                el.innerHTML = `
+                    <div class="u-info">
+                        <span class="u-name">${u.name} ${u.isAdmin ? '<span class="admin-tag">ADMIN</span>' : ''}</span>
+                        <div class="u-meta">
+                            ID: ${u.username} | KEY: <span class="u-pass">${u.password}</span> | DOCS: ${u.charCount}
+                        </div>
+                    </div>
+                    <div class="action-btns">${editBtn}${delBtn}</div>
+                `;
+                container.appendChild(el);
+            });
+        } catch(e) { alert('连接错误'); }
+    }
+
+    async function changePass(id, username) {
+        const newPass = prompt(`请输入用户 [${username}] 的新密码:`);
+        if (newPass === null || newPass.trim() === "") return;
+        
+        const res = await fetch(`/api/users/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: newPass })
+        });
+        const data = await res.json();
+        if (data.success) { alert("密码已更新"); loadUsers(); }
+    }
+
+    async function addUser() {
+        const name = document.getElementById('newName').value;
+        const user = document.getElementById('newUser').value;
+        const pass = document.getElementById('newPass').value;
+        if(!user || !pass) return alert('账号和密码必填');
+
+        const res = await fetch('/api/users', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ username: user, password: pass, name: name })
+        });
+        const data = await res.json();
+        if(data.success) {
+            document.getElementById('newName').value = '';
+            document.getElementById('newUser').value = '';
+            document.getElementById('newPass').value = '';
+            loadUsers();
+        } else { alert(data.message); }
+    }
+
+    async function delUser(id, name) {
+        if(!confirm(`警告：删除用户 [${name}] 将会同时销毁该用户下的所有角色档案！\n\n确定继续吗？`)) return;
+        const res = await fetch(`/api/users/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if(data.success) loadUsers();
+    }
+
+    function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+    loadUsers();
+</script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全局监控 // TRIANGLE AGENCY</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --deep-bg: #1a252f;
+            --bg-pattern: radial-gradient(#2c3e50 1px, transparent 1px);
+
+            --pure-white: #ffffff;
+            --signal-red: #c0392b;
+            --text-dark: #2c3e50;
+        }
+        body { 
+            font-family: "Roboto Mono", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+            background-color: var(--deep-bg);
+            background-image: var(--bg-pattern);
+            background-size: 20px 20px;
+            margin: 0; padding: 20px; color: var(--pure-white); 
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        
+        header { 
+            display: flex; justify-content: space-between; align-items: flex-end; 
+            margin-bottom: 30px; padding-bottom: 15px; border-bottom: 2px solid var(--signal-red); 
+        }
+        
+        .brand-logo { display: flex; flex-direction: column; line-height: 0.9; font-weight: 900; text-transform: uppercase; }
+        .brand-logo .top { font-size: 18px; letter-spacing: 2px; color: white; }
+        .brand-logo .btm { font-size: 12px; letter-spacing: 3px; color: var(--signal-red); }
+        .monitor-title { font-family: monospace; color: var(--signal-red); margin-top: 5px; }
+
+        .btn-back { 
+            background: rgba(255,255,255,0.1); color: #aaa; border: 1px solid rgba(255,255,255,0.2);
+            padding: 8px 16px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px; text-decoration: none; font-size: 12px; text-transform: uppercase;
+        }
+        .btn-back:hover { background: rgba(255,255,255,0.2); color: white; }
+
+        .user-group {
+            background: var(--pure-white);
+            color: var(--text-dark);
+            border-radius: 4px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--signal-red);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        
+        .ug-header {
+            display: flex; align-items: center; gap: 15px;
+            margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;
+        }
+        .ug-avatar { 
+            width: 36px; height: 36px; background: var(--signal-red);
+            color: white; 
+            border-radius: 4px; display: flex; align-items: center; justify-content: center; 
+            font-weight: bold; font-size: 16px;
+        }
+        .ug-info h3 { margin: 0; font-size: 16px; letter-spacing: 1px; color: #000; }
+        .ug-info span { font-size: 11px; color: #7f8c8d; font-family: monospace; }
+        .admin-badge { background: #f39c12; color: #fff; font-size: 9px; padding: 2px 5px; border-radius: 2px; margin-left: 5px; vertical-align: middle; }
+
+        .char-list {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;
+        }
+        
+        .char-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: block;
+            color: var(--text-dark);
+        }
+        
+        .char-item:hover {
+            background: #fff;
+            border-color: var(--signal-red);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .ci-name { display: block; font-weight: bold; font-size: 14px; margin-bottom: 4px; }
+        .ci-func { display: block; font-size: 10px; color: #95a5a6; font-family: monospace; text-transform: uppercase; }
+
+        .empty-files { font-size: 12px; color: #bdc3c7; font-style: italic; font-family: monospace; padding-left: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <div class="brand-logo">
+                <span class="top">TRIANGLE</span>
+                <span class="btm">AGENCY</span>
+            </div>
+            <div class="monitor-title">// 监视_终端</div>
+        </div>
+        <a href="admin.html" class="btn-back"><i class="fas fa-chevron-left"></i> 控制台</a>
+    </header>
+
+    <div id="monitor-content">
+        <div style="text-align:center; color:#7f8c8d; margin-top:50px; font-family:monospace;">
+            <i class="fas fa-circle-notch fa-spin"></i> FETCHING DATA...
+        </div>
+    </div>
+</div>
+
+<script>
+    const isAdmin = localStorage.getItem('ta_is_admin');
+    if (isAdmin !== 'true') {
+        alert('权限拒绝：仅限管理员访问');
+        window.location.href = 'login.html';
+    }
+
+    async function loadMonitorData() {
+        try {
+            const res = await fetch('/api/admin/monitor');
+            const data = await res.json();
+            const container = document.getElementById('monitor-content');
+            container.innerHTML = '';
+
+            data.forEach(u => {
+                const group = document.createElement('div');
+                group.className = 'user-group';
+                
+                let charsHtml = '';
+                if (u.characters.length > 0) {
+                    charsHtml = `<div class="char-list">` + 
+                    u.characters.map(c => `
+                        <a href="sheet.html?id=${c.id}&readonly=true" class="char-item">
+                            <span class="ci-name">${c.name}</span>
+                            <span class="ci-func">${c.func}</span>
+                        </a>
+                    `).join('') + 
+                    `</div>`;
+                } else {
+                    charsHtml = `<div class="empty-files">NO_ACTIVE_FILES</div>`;
+                }
+
+                group.innerHTML = `
+                    <div class="ug-header">
+                        <div class="ug-avatar">${u.userName.charAt(0).toUpperCase()}</div>
+                        <div class="ug-info">
+                            <h3>${u.userName} ${u.isAdmin ? '<span class="admin-badge">ADMIN</span>' : ''}</h3>
+                            <span>ID: ${u.userAccount}</span>
+                        </div>
+                    </div>
+                    ${charsHtml}
+                `;
+                container.appendChild(group);
+            });
+
+        } catch(e) {
+            console.error(e);
+            alert('数据加载失败');
+        }
+    }
+
+    loadMonitorData();
+</script>
+</body>
+</html>

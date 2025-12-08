@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>三角机构 // 身份验证</title>
+    <!-- 引入 Font Awesome 图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- 引入 Google Fonts: Noto Sans SC (中文) 和 Roboto Mono (代码风英文) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --deep-bg: #0b1120;
+            --card-white: #f8fafc;
+            --agency-red: #d50000;
+            --agency-black: #0f172a;
+            --text-gray: #64748b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            /* 字体栈更新：优先使用等宽字体显示英文，中文使用思源黑体，备选微软雅黑 */
+            font-family: "Roboto Mono", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+            background-color: var(--deep-bg);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1200px;
+            margin: 0;
+        }
+
+        #bg-canvas {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%; z-index: 0;
+        }
+
+        /* === 3D 容器 === */
+        .badge-container {
+            position: relative;
+            z-index: 10;
+            width: 280px; 
+            height: 460px;
+            perspective: 1500px;
+            transition: 
+                width 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
+                height 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: width, height;
+        }
+
+        /* === 翻转全屏状态 === */
+        .badge-container.expanded {
+            width: 100vw !important;
+            height: 100vh !important;
+            max-width: none !important;
+            max-height: none !important;
+            margin: 0;
+            z-index: 9999;
+            transform: none !important;
+        }
+
+        .badge-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .badge-inner.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: border-radius 0.4s ease;
+        }
+
+        .badge-container.expanded .card-face {
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        /* === 正面样式 === */
+        .card-face.front {
+            background: var(--card-white);
+            box-shadow: 
+                0 25px 50px rgba(0,0,0,0.6), 
+                0 0 0 1px rgba(255,255,255,0.1) inset;
+            display: flex;
+            flex-direction: column;
+            /* 缺口保持较宽，适配大卡扣 */
+            clip-path: polygon(
+                0% 0%, 
+                28% 0%, 28% 6%, 72% 6%, 72% 0%, 
+                100% 0%, 
+                100% 100%, 
+                0% 100%
+            );
+        }
+        
+        .badge-container.expanded .card-face.front {
+            clip-path: none;
+        }
+
+        /* === 背面样式 === */
+        .card-face.back {
+            background-color: #ffffff;
+            transform: rotateY(180deg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+            position: relative;
+        }
+
+        .card-face.back::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: 
+                linear-gradient(rgba(15, 23, 42, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(15, 23, 42, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            z-index: 0;
+        }
+
+        .circuit-deco {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 300px; height: 300px;
+            transform: translate(-50%, -50%);
+            border: 2px solid rgba(15, 23, 42, 0.05);
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.5s ease 0.5s, transform 20s linear;
+            pointer-events: none;
+        }
+        .circuit-deco::after {
+            content: ''; position: absolute;
+            top: 50%; left: 50%;
+            width: 200px; height: 173px;
+            background: transparent;
+            border: 2px solid rgba(15, 23, 42, 0.08);
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            transform: translate(-50%, -50%);
+        }
+        
+        .badge-container.expanded .circuit-deco {
+            opacity: 1;
+            transform: translate(-50%, -50%) rotate(360deg);
+        }
+
+        .loading-text {
+            margin-top: 20px; 
+            font-family: "Noto Sans SC", sans-serif;
+            color: var(--agency-black); 
+            font-weight: 900; 
+            z-index: 2; 
+            font-size: 16px; 
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* === 顶部挂绳装饰 (保持原样) === */
+        .header-stripe {
+            height: 8px;
+            background: var(--agency-black);
+            width: 100%;
+            margin-top: 12px;
+        }
+
+        /* === 挂绳卡扣 (加大版，位置下移) === */
+        .lanyard-clip {
+            position: absolute; 
+            top: -8px; /* 调整位置：向下移动，贴近卡片 */
+            left: 50%; 
+            transform: translateX(-50%);
+            width: 110px; 
+            height: 24px; 
+            background: #1e293b; 
+            border-radius: 6px;
+            z-index: 5; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            transition: opacity 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+        }
+        /* 挂绳带子 (变细) */
+        .lanyard-clip::before {
+            content: ''; 
+            position: absolute; 
+            top: -100vh; 
+            left: 50%; 
+            transform: translateX(-50%);
+            width: 20px; /* 调整宽度：从 32px 减小到 20px */
+            height: 100vh; 
+            background: linear-gradient(90deg, #0f172a, #334155, #0f172a);
+        }
+        /* 卡扣内部细节 */
+        .lanyard-clip::after {
+            content: '';
+            width: 70px;
+            height: 6px;
+            background: rgba(0,0,0,0.4);
+            margin-bottom: 6px;
+            border-radius: 3px;
+        }
+
+        .watermark {
+            position: absolute;
+            top: 55%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 150px;
+            color: rgba(0,0,0,0.04);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .content-area {
+            padding: 15px 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 1;
+        }
+
+        .triangle-frame {
+            width: 90px;
+            height: 78px;
+            background: var(--agency-red);
+            clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 12px; 
+            box-shadow: 0 8px 15px rgba(213, 0, 0, 0.3);
+            transition: transform 0.3s;
+        }
+        .triangle-frame i { font-size: 34px; color: white; transition: all 0.3s; }
+        .badge-container:hover .triangle-frame { transform: scale(1.05); }
+
+        .org-title {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+            line-height: 0.85;
+        }
+        .org-title h1 {
+            font-family: "Roboto Mono", sans-serif;
+            font-size: 24px; font-weight: 900; color: var(--agency-black);
+            letter-spacing: 2px; margin: 0; text-transform: uppercase;
+            display: block;
+        }
+        .org-title span {
+            font-family: "Roboto Mono", sans-serif;
+            font-size: 24px; color: var(--agency-red); letter-spacing: 2px;
+            text-transform: uppercase; font-weight: 900; display: block;
+        }
+        .org-title h2 {
+            font-family: "Noto Sans SC", sans-serif;
+            font-size: 10px; color: var(--text-gray); letter-spacing: 4px;
+            text-transform: uppercase; font-weight: 700; display: block; margin-top: 8px;
+        }
+
+        .form-group { width: 100%; margin-bottom: 15px; }
+        .form-group label {
+            font-family: "Noto Sans SC", sans-serif;
+            font-size: 9px; color: var(--text-gray); font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 3px;
+        }
+        .form-group input {
+            width: 100%; background: transparent; border: none;
+            border-bottom: 2px solid #cbd5e1; padding: 5px 0;
+            font-family: "Roboto Mono", monospace; font-size: 14px; font-weight: bold;
+            color: var(--agency-black); outline: none; transition: all 0.3s;
+        }
+        .form-group input:focus { border-bottom-color: var(--agency-red); }
+        .form-group input::placeholder { font-family: "Noto Sans SC", sans-serif; font-weight: normal; opacity: 0.5; font-size: 12px; }
+
+        .btn-verify {
+            margin-top: 8px; background: var(--agency-red); color: white;
+            border: none; padding: 12px 0; font-size: 12px; font-weight: 900;
+            letter-spacing: 2px; text-transform: uppercase; cursor: pointer;
+            transition: all 0.2s; width: 100%; border-radius: 4px;
+            box-shadow: 0 4px 10px rgba(213, 0, 0, 0.2);
+            font-family: "Noto Sans SC", sans-serif;
+        }
+        .btn-verify:hover { background: #b71c1c; transform: translateY(-1px); }
+        
+        .footer-scan {
+            margin-top: auto; width: 100%; padding: 12px;
+            background: #f1f5f9; border-top: 1px solid #e2e8f0;
+            position: relative; overflow: hidden;
+        }
+        .barcode {
+            height: 25px; width: 100%;
+            background: repeating-linear-gradient(90deg, #334155 0, #334155 2px, transparent 2px, transparent 4px);
+            opacity: 0.6;
+        }
+        .laser-line {
+            position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+            background: var(--agency-red); box-shadow: 0 0 8px var(--agency-red);
+            animation: scan 2.5s infinite ease-in-out; opacity: 0.8;
+        }
+        @keyframes scan {
+            0% { top: 0; opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { top: 100%; opacity: 0; }
+        }
+
+        .status-msg {
+            font-size: 10px; color: var(--agency-red); margin-top: 10px;
+            font-weight: bold; height: 12px; text-align: center; opacity: 0; 
+            font-family: "Noto Sans SC", sans-serif;
+        }
+        .status-msg.show { opacity: 1; }
+
+        @media (max-width: 400px) {
+            .badge-container { width: 80vw; max-width: 280px; height: 460px; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="badge-container" id="badgeContainer">
+        <div class="lanyard-clip" id="lanyard"></div>
+        
+        <div class="badge-inner" id="badgeInner">
+            
+            <!-- 正面 -->
+            <div class="card-face front">
+                <div class="header-stripe"></div>
+                <div class="watermark"><i class="fas fa-play"></i></div>
+
+                <div class="content-area">
+                    <div class="triangle-frame" id="photo-frame">
+                        <i class="fas fa-user-secret"></i>
+                    </div>
+
+                    <div class="org-title">
+                        <h1>TRIANGLE</h1>
+                        <span>AGENCY</span>
+                        <h2>终端授权</h2>
+                    </div>
+
+                    <div class="form-group">
+                        <label>特工ID</label>
+                        <input type="text" id="user" autocomplete="off" placeholder="AGENT_ID">
+                    </div>
+
+                    <div class="form-group">
+                        <label>验证码</label>
+                        <input type="password" id="pass" placeholder="••••••••">
+                    </div>
+
+                    <button class="btn-verify" onclick="login()">接入终端</button>
+                    <div class="status-msg" id="msg">拒绝访问</div>
+                </div>
+
+                <div class="footer-scan">
+                    <div class="barcode"></div>
+                    <div class="laser-line"></div>
+                    <div style="text-align:center; font-size:8px; font-weight:bold; color:#94a3b8; margin-top:4px; font-family: 'Roboto Mono', monospace;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 背面 (纯白 + 极简电路) -->
+            <div class="card-face back">
+                <div class="circuit-deco"></div>
+                <i class="fas fa-circle-notch fa-spin" style="color: var(--agency-black); font-size: 40px; z-index: 2;"></i>
+                <div class="loading-text">
+                    接入终端中...
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const container = document.getElementById('badgeContainer');
+        const inner = document.getElementById('badgeInner');
+        const lanyard = document.getElementById('lanyard');
+        
+        let tiltX = 0, tiltY = 0;
+        let initialBeta = null;
+        let isSensorEnabled = false;
+
+        function updateTilt() {
+            if (!container.classList.contains('expanded')) {
+                container.style.transform = `rotateY(${tiltX}deg) rotateX(${tiltY}deg)`;
+            }
+        }
+
+        // 桌面端
+        if (!(/Mobi|Android/i.test(navigator.userAgent))) {
+            document.addEventListener('mousemove', (e) => {
+                tiltX = (window.innerWidth / 2 - e.pageX) / 60; 
+                tiltY = (window.innerHeight / 2 - e.pageY) / 60;
+                requestAnimationFrame(updateTilt);
+            });
+        }
+
+        // 移动端处理
+        function handleOrientation(e) {
+            let x = e.gamma; 
+            let y = e.beta;
+
+            if (!initialBeta) {
+                initialBeta = y; 
+                if (initialBeta < 10) initialBeta = 45;
+            }
+
+            tiltX = x / 1.5; 
+            if (tiltX > 20) tiltX = 20; if (tiltX < -20) tiltX = -20;
+
+            tiltY = -(y - initialBeta); 
+            if (tiltY > 20) tiltY = 20; if (tiltY < -20) tiltY = -20;
+
+            requestAnimationFrame(updateTilt);
+        }
+
+        function requestSensorPermission() {
+            if (isSensorEnabled) return;
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission()
+                    .then(response => {
+                        if (response === 'granted') {
+                            window.addEventListener('deviceorientation', handleOrientation);
+                            isSensorEnabled = true;
+                        }
+                    })
+                    .catch(console.error);
+            } else {
+                window.addEventListener('deviceorientation', handleOrientation);
+                isSensorEnabled = true;
+            }
+        }
+        document.body.addEventListener('click', requestSensorPermission, { once: true });
+        document.body.addEventListener('touchstart', requestSensorPermission, { once: true });
+
+        // 背景粒子
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height, particles = [];
+        const particleCount = 70;
+        
+        function resize() { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; }
+        class Particle {
+            constructor() { 
+                this.x = Math.random() * width; this.y = Math.random() * height; 
+                this.vx = (Math.random() - 0.5) * 0.4; this.vy = (Math.random() - 0.5) * 0.4; 
+                this.size = Math.random() * 2 + 0.5; 
+            }
+            update() { 
+                this.x += this.vx; this.y += this.vy; 
+                if (this.x < 0 || this.x > width) this.vx *= -1; 
+                if (this.y < 0 || this.y > height) this.vy *= -1; 
+            }
+            draw() { 
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)'; 
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); 
+            }
+        }
+        function initParticles() { particles = []; for (let i = 0; i < particleCount; i++) particles.push(new Particle()); }
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dist = Math.hypot(particles[i].x - particles[j].x, particles[i].y - particles[j].y);
+                    if (dist < 130) {
+                        ctx.beginPath(); ctx.strokeStyle = `rgba(255, 255, 255, ${0.1 - dist/130 * 0.1})`;
+                        ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y); ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+        window.addEventListener('resize', () => { resize(); initParticles(); });
+        resize(); initParticles(); animate();
+
+        // 交互
+        const userIn = document.getElementById('user');
+        const icon = document.querySelector('.triangle-frame i');
+        userIn.addEventListener('input', (e) => {
+            icon.className = e.target.value.length > 0 ? 'fas fa-user-check' : 'fas fa-user-secret';
+        });
+
+        // 登录
+        async function login() {
+            const u = document.getElementById('user').value;
+            const p = document.getElementById('pass').value;
+            const msg = document.getElementById('msg');
+            const btn = document.querySelector('.btn-verify');
+            
+            const originalText = btn.innerText;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 验证中...';
+            btn.style.opacity = '0.8';
+            msg.classList.remove('show');
+
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: u, password: p })
+                });
+                const data = await res.json();
+                
+                if(data.success) {
+                    btn.innerHTML = '允许访问';
+                    btn.style.background = '#15803d'; // Green
+                    localStorage.setItem('ta_uid', data.userId);
+                    if (data.isAdmin) localStorage.setItem('ta_is_admin', 'true');
+                    else localStorage.removeItem('ta_is_admin');
+
+                    // 动画序列
+                    setTimeout(() => {
+                        window.scrollTo(0, 0); // 复位
+                        inner.classList.add('flipped');
+                        lanyard.style.opacity = '0';
+                        
+                        setTimeout(() => {
+                            container.classList.add('expanded');
+                            setTimeout(() => {
+                                window.location.href = data.isAdmin ? 'admin.html' : 'dashboard.html';
+                            }, 800);
+                        }, 600); 
+                    }, 500);
+
+                } else {
+                    btn.innerHTML = '非法授权';
+                    btn.style.background = '#0f172a';
+                    msg.innerText = data.message || "ID 或 密钥错误";
+                    msg.classList.add('show');
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.style.background = '';
+                        btn.style.opacity = '1';
+                    }, 1500);
+                }
+            } catch(e) {
+                msg.innerText = "服务器连接失败";
+                msg.classList.add('show');
+                btn.innerHTML = originalText;
+                btn.style.opacity = '1';
+            }
+        }
+        
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Enter") login();
+        });
+    </script>
+</body>
+</html>

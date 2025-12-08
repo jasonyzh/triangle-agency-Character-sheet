@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>档案库 // TRIANGLE AGENCY</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --deep-bg: #1a252f;
+            --bg-pattern: radial-gradient(#2c3e50 1px, transparent 1px);
+            
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+            --signal-red: #c0392b;
+            --border-color: #ecf0f1;
+
+            --c-anom: #0284c7; 
+            --c-real: #ea580c; 
+            --c-func: #dc2626; 
+        }
+        
+        body { 
+            font-family: "Roboto Mono", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+            background-color: var(--deep-bg);
+            background-image: var(--bg-pattern);
+            background-size: 20px 20px;
+            margin: 0; 
+            padding: 20px; 
+            color: var(--text-main);
+            min-height: 100vh;
+        }
+
+        .container { max-width: 900px; margin: 0 auto; }
+        
+        header { 
+            display: flex; justify-content: space-between; align-items: flex-end; 
+            margin-bottom: 40px; padding-bottom: 20px;
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+        }
+        
+        .brand-logo {
+            display: flex; flex-direction: column; line-height: 0.9;
+            font-weight: 900; font-style: italic; text-transform: uppercase;
+        }
+        .brand-logo .top { font-size: 24px; letter-spacing: 2px; color: #fff; }
+        .brand-logo .btm { font-size: 14px; letter-spacing: 4px; color: var(--signal-red); margin-left: 2px; }
+
+        .btn-group { display: flex; gap: 12px; }
+        
+        .btn { 
+            padding: 10px 18px; border-radius: 4px; cursor: pointer; border: none; 
+            font-weight: bold; font-size: 13px; display: inline-flex; align-items: center; 
+            gap: 8px; transition: all 0.2s; text-transform: uppercase; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .btn-new { background: var(--signal-red); color: white; }
+        .btn-new:hover { background: #e74c3c; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(192, 57, 43, 0.3); }
+        .btn-logout { background: #fff; color: #555; }
+        .btn-logout:hover { background: #f0f0f0; }
+        
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            gap: 20px; 
+        }
+        
+        /* === 卡片样式 === */
+        .char-card { 
+            background-color: var(--card-bg);
+            padding: 20px; 
+            border-radius: 6px; 
+            border-top: 4px solid var(--signal-red);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+            
+            position: relative; 
+            overflow: hidden; 
+            isolation: isolate;
+            
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 动态背景碎片 */
+        .char-card::before, .char-card::after {
+            content: ''; position: absolute; z-index: -1; pointer-events: none;
+            opacity: 0.12; transform-origin: center;
+        }
+        .char-card::before {
+            background: #cbd5e1; width: 400px; height: 400px;
+            top: calc(-120px + 220px * var(--r1)); left: calc(-120px + 220px * var(--r2));
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            animation: float-shard calc(25s + 10s * var(--r3)) infinite linear;
+        }
+        .char-card::after {
+            background: var(--signal-red); width: 280px; height: 280px; opacity: 0.08;
+            top: calc(40% + 100px * var(--r2)); right: calc(-60px + 120px * var(--r1));
+            clip-path: polygon(0 0, 100% 50%, 0 100%);
+            animation: float-shard calc(30s + 15s * var(--r1)) infinite reverse linear;
+        }
+
+        .char-card:hover { 
+            transform: translateY(-5px) scale(1.02); 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
+        /* 点击激活状态 */
+        .char-card.accessing {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 2px var(--signal-red), 0 0 20px var(--signal-red);
+            border-top-color: transparent; 
+        }
+
+        @keyframes float-shard {
+            0% { transform: rotate(0deg) translate(0, 0); }
+            50% { transform: rotate(180deg) translate(20px, 20px); }
+            100% { transform: rotate(360deg) translate(0, 0); }
+        }
+
+        .card-content-wrapper {
+            flex-grow: 1; display: flex; flex-direction: column;
+            justify-content: center; cursor: pointer; padding: 10px 0; z-index: 2; 
+        }
+        
+        .card-header {
+            margin-bottom: 20px; padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .c-name { 
+            font-size: 22px; font-weight: 800; color: var(--text-main); letter-spacing: 0.5px;
+        }
+
+        .info-group { display: flex; flex-direction: column; gap: 12px; }
+
+        /* 半透明磨砂信息块 */
+        .info-field {
+            display: flex; flex-direction: column; padding: 10px 14px; border-radius: 4px;
+            background: rgba(241, 245, 249, 0.65); 
+            backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+            border-left: 4px solid #ccc;
+            transition: all 0.3s ease;
+            border-top: 1px solid rgba(255,255,255,0.5);
+            border-right: 1px solid rgba(255,255,255,0.5);
+            border-bottom: 1px solid rgba(255,255,255,0.5);
+        }
+        .info-field:hover { background: rgba(241, 245, 249, 0.9); transform: translateX(2px); }
+
+        .if-anom { border-left-color: var(--c-anom); } .if-anom .field-label { color: var(--c-anom); }
+        .if-real { border-left-color: var(--c-real); } .if-real .field-label { color: var(--c-real); }
+        .if-func { border-left-color: var(--c-func); } .if-func .field-label { color: var(--c-func); }
+
+        .field-label {
+            font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px;
+            font-weight: 800; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; opacity: 0.9;
+        }
+        .field-label i { font-size: 12px; width: 14px; text-align: center; }
+        .field-val {
+            font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            color: var(--text-main); font-family: "Noto Sans SC", sans-serif; letter-spacing: 0.5px;
+        }
+
+        /* 动画 */
+        @keyframes flicker { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .anim-flicker { animation: flicker 2s infinite steps(5); }
+        @keyframes breathe { 0%, 100% { opacity: 0.6; transform: scale(1); } 50% { opacity: 1; transform: scale(1.1); } }
+        .anim-breathe { animation: breathe 3s infinite ease-in-out; }
+        @keyframes floatPulse { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+        .anim-float { animation: floatPulse 2.5s infinite ease-in-out; }
+
+        .c-actions { 
+            padding-top: 15px; border-top: 1px dashed var(--border-color);
+            text-align: right; margin-top: auto; position: relative; z-index: 2;
+        }
+        .btn-del { 
+            color: var(--text-sub); background: none; border: none; 
+            font-size: 11px; cursor: pointer; padding: 5px; transition: color 0.2s;
+        }
+        .btn-del:hover { color: var(--signal-red); text-decoration: underline; }
+
+        .empty-state {
+            grid-column: 1 / -1; text-align: center; background: rgba(255,255,255,0.05);
+            color: rgba(255,255,255,0.4); padding: 60px 0; font-size: 14px;
+            border-radius: 8px; border: 2px dashed rgba(255,255,255,0.1);
+        }
+
+        /* === 页面过渡遮罩 (文档展开效果) === */
+        #transition-overlay {
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100vw; height: 100vh;
+            background: #0f172a; 
+            z-index: 9999;
+            pointer-events: none;
+            
+            /* 初始状态：中间一条线 */
+            clip-path: inset(50% 0 50% 0);
+            
+            /* 修改点：时间从 0.6s 延长到 1.2s，更慢更沉重 */
+            transition: clip-path 0.8s cubic-bezier(0.8, 0, 0.2, 1);
+            
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        
+        #transition-overlay.active {
+            pointer-events: all;
+            clip-path: inset(0 0 0 0);
+        }
+
+        /* 装饰线 */
+        #transition-overlay::before {
+            content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 2px;
+            background: var(--signal-red); z-index: 100;
+            box-shadow: 0 0 15px var(--signal-red);
+            opacity: 0; transition: opacity 0.2s;
+        }
+        /* 修改点：线条动画也跟随延长到 1.2s */
+        #transition-overlay.active::before {
+            opacity: 1;
+            animation: line-fade 0.8s forwards;
+        }
+        @keyframes line-fade { 
+            0% { opacity: 1; transform: scaleX(0.1); } 
+            50% { opacity: 1; transform: scaleX(1); } 
+            100% { opacity: 0; transform: scaleX(1); } 
+        }
+
+        .loader-content {
+            text-align: center; color: var(--signal-red);
+            opacity: 0; transform: scale(0.9);
+            /* 修改点：延迟稍微加长，配合变慢的展开 */
+            transition: all 0.4s ease 0.2s; 
+        }
+        #transition-overlay.active .loader-content {
+            opacity: 1; transform: scale(1);
+        }
+
+        .loader-icon { font-size: 40px; margin-bottom: 20px; }
+        
+        .loader-text {
+            font-family: "Noto Sans SC", sans-serif;
+            font-size: 16px; letter-spacing: 2px;
+            font-weight: 900;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .dots::after {
+            content: '';
+            width: 1.5em; 
+            text-align: left;
+            display: inline-block;
+            animation: dot-steps 1.5s infinite steps(4, end);
+        }
+
+        @keyframes dot-steps {
+            0%, 20% { content: ''; }
+            40% { content: '.'; }
+            60% { content: '..'; }
+            80%, 100% { content: '...'; }
+        }
+
+    </style>
+</head>
+<body>
+    
+    <!-- 过渡遮罩层 -->
+    <div id="transition-overlay">
+        <div class="loader-content">
+            <i class="fas fa-circle-notch fa-spin loader-icon"></i>
+            <div class="loader-text">
+                访问终端中<span class="dots"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <header>
+            <div class="brand-logo">
+                <span class="top">TRIANGLE</span>
+                <span class="btm">AGENCY</span>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i></button>
+                <button class="btn btn-new" onclick="createNew()"><i class="fas fa-plus"></i> 新建档案</button>
+            </div>
+        </header>
+        <div id="list" class="grid"></div>
+    </div>
+
+    <script>
+        const uid = localStorage.getItem('ta_uid');
+        if(!uid) window.location.href = 'login.html';
+
+        async function loadList() {
+            try {
+                const res = await fetch(`/api/characters?userId=${uid}`);
+                const list = await res.json();
+                const container = document.getElementById('list');
+                container.innerHTML = '';
+                
+                if(list.length === 0) {
+                    container.innerHTML = `<div class="empty-state">暂无数据 // 请建立新档案</div>`;
+                    return;
+                }
+
+                list.forEach(c => {
+                    const el = document.createElement('div');
+                    el.className = 'char-card';
+                    
+                    el.style.setProperty('--r1', Math.random());
+                    el.style.setProperty('--r2', Math.random());
+                    el.style.setProperty('--r3', Math.random());
+                    
+                    el.innerHTML = `
+                        <div class="card-content-wrapper" onclick="openSheet(event, '${c.id}')">
+                            <div class="card-header">
+                                <span class="c-name">${c.name}</span>
+                            </div>
+                            <div class="info-group">
+                                <div class="info-field if-anom">
+                                    <span class="field-label">
+                                        <i class="fas fa-bolt anim-flicker"></i> 异常 // ANOMALY
+                                    </span>
+                                    <span class="field-val">${c.anom}</span>
+                                </div>
+                                <div class="info-field if-real">
+                                    <span class="field-label">
+                                        <i class="fas fa-fingerprint anim-breathe"></i> 现实 // REALITY
+                                    </span>
+                                    <span class="field-val">${c.real}</span>
+                                </div>
+								<div class="info-field if-func">
+                                    <span class="field-label">
+                                        <i class="fas fa-briefcase anim-float"></i> 职能 // COMPETENCY
+                                    </span>
+                                    <span class="field-val">${c.func}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="c-actions">
+                            <button class="btn-del" onclick="delChar(event, '${c.id}')">销毁档案</button>
+                        </div>
+                    `;
+                    container.appendChild(el);
+                });
+            } catch(e) { console.error(e); }
+        }
+
+        function openSheet(event, id) {
+            event.preventDefault(); 
+            
+            const card = event.currentTarget.closest('.char-card');
+            if(card) {
+                card.classList.add('accessing');
+            }
+
+            const overlay = document.getElementById('transition-overlay');
+            overlay.classList.add('active');
+
+            // 修改点：延迟从 800ms 延长到 1600ms，等待动画充分展示
+            setTimeout(() => {
+                window.location.href = `sheet.html?id=${id}`;
+            }, 1200); 
+        }
+
+        async function createNew() {
+            const btn = document.querySelector('.btn-new');
+            const original = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 处理中';
+            try {
+                const res = await fetch('/api/character', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ userId: uid })
+                });
+                const data = await res.json();
+                if(data.success) {
+                    const overlay = document.getElementById('transition-overlay');
+                    overlay.classList.add('active');
+                    // 同样延长
+                    setTimeout(() => {
+                        window.location.href = `sheet.html?id=${data.id}`;
+                    }, 1200);
+                }
+            } catch(e) { btn.innerHTML = original; }
+        }
+        
+        async function delChar(event, id) {
+            event.stopPropagation();
+            if(!confirm('警告：此操作不可逆。\n确定要销毁这份档案吗？')) return;
+            await fetch(`/api/character/${id}`, { method: 'DELETE' });
+            loadList();
+        }
+
+        function logout() {
+            localStorage.removeItem('ta_uid');
+            window.location.href = 'login.html';
+        }
+        loadList();
+    </script>
+</body>
+</html>
