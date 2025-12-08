@@ -1,860 +1,275 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <title>职员档案 // TRIANGLE AGENCY</title>
-    
-    <!-- PWA设置：添加到主屏幕后可全屏隐藏地址栏 -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#1a252f">
-    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统管理 // TRIANGLE AGENCY</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         :root {
             --deep-bg: #1a252f;
             --bg-pattern: radial-gradient(#2c3e50 1px, transparent 1px);
-            --panel-bg: #ffffff;
-            --input-bg: #f8f9fa;
-            --text-main: #2c3e50;
-            --text-dim: #95a5a6;
-            --border-color: #e0e0e0;
-            --signal-red: #c0392b;
-            --accent: #2980b9;
-            --reality: #f39c12;
-            --functional: #c0392b;
             
-            /* 导航栏高度 */
-            --nav-height: 60px;
-            /* 底部安全距离 (iPhone X+) */
-            --safe-bottom: env(safe-area-inset-bottom);
+            --pure-white: #ffffff;
+            --signal-red: #c0392b;
+            --text-dark: #2c3e50;
+            --placeholder: #95a5a6;
         }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        
-        body {
+        body { 
             font-family: "Roboto Mono", "Noto Sans SC", "Microsoft YaHei", sans-serif;
             background-color: var(--deep-bg);
             background-image: var(--bg-pattern);
             background-size: 20px 20px;
-            color: var(--text-main);
-            overflow: hidden; 
-            /* 核心修改：使用 dvh 适应动态高度，减去地址栏 */
-            height: 100dvh; 
-            width: 100vw;
-            position: relative;
+            margin: 0; padding: 20px; color: var(--text-dark); 
         }
-
-        /* === 布局容器 === */
-        .container { 
-            max-width: 900px; margin: 0 auto; 
-            display: flex; flex-direction: column; 
-            height: 100%; 
-            padding: 15px;
-            /* 底部留出空间，防止内容贴底 */
-            padding-bottom: 0; 
-        }
-
-        .top-nav { 
-            display: flex; align-items: center; justify-content: space-between; 
-            margin: 0 0 10px; 
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 10px;
-            color: white; 
-            flex-shrink: 0; 
+        .container { max-width: 800px; margin: 0 auto; }
+        
+        header { 
+            display: flex; justify-content: space-between; align-items: flex-end; 
+            margin-bottom: 30px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); 
         }
         
-        .brand-logo-sm { display: flex; flex-direction: column; line-height: 0.9; font-weight: 800; font-style: italic; }
-        .brand-logo-sm span:first-child { font-size: 14px; color: white; }
-        .brand-logo-sm span:last-child { font-size: 8px; color: var(--signal-red); letter-spacing: 2px; }
+        .brand-logo { display: flex; flex-direction: column; line-height: 0.9; font-weight: 900; text-transform: uppercase; }
+        .brand-logo .top { font-size: 20px; letter-spacing: 2px; color: white; }
+        .brand-logo .btm { font-size: 12px; letter-spacing: 3px; color: var(--signal-red); }
+        .page-title { font-size: 12px; color: #7f8c8d; margin-top: 5px; text-transform: uppercase; letter-spacing: 1px; }
 
-        .btn-back { background: none; border: none; font-size: 14px; color: rgba(255,255,255,0.7); cursor: pointer; display: flex; align-items: center; gap: 5px; }
-        .btn-back:hover { color: white; }
-        
-        h1 { margin: 0; font-size: 16px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; text-align: right; flex: 1; display:flex; flex-direction:column; align-items:flex-end; color: white; }
-        h1 span.sub { font-size: 10px; color: rgba(255,255,255,0.5); font-weight: normal; }
+        .btn-logout { background: rgba(255,255,255,0.1); color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; transition: 0.2s; }
+        .btn-logout:hover { background: var(--signal-red); }
 
-        .offline-tag, .readonly-tag { background: #34495e; color: #bdc3c7; padding: 2px 6px; border-radius: 3px; font-size: 10px; margin-left: 5px; display: none; }
-        .offline-mode .offline-tag { display: inline-block; }
-        .offline-mode .btn-back, .offline-mode .btn-save-server { display: none; }
-        
-        body.readonly-mode .readonly-tag { display: inline-block; background: var(--signal-red); color: white; }
-        body.readonly-mode .btn-save, body.readonly-mode .btn-add, body.readonly-mode .btn-del, body.readonly-mode .save-area { display: none !important; }
-        body.readonly-mode input, body.readonly-mode textarea, body.readonly-mode .rich-editor { pointer-events: none; background: transparent; border-color: transparent; color: #555; }
-        
-        /* === 滑动区域相关 === */
-        .swiper-container {
-            flex-grow: 1;
-            width: 100%;
-            overflow: hidden; 
-            position: relative;
-        }
-
-        .swiper-wrapper {
-            display: flex;
-            width: 400%; 
-            height: 100%;
-            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-        }
-
-        .tab-view { 
-            width: 25%; 
-            height: 100%;
-            overflow-y: auto; 
-            display: block !important; 
-            padding-right: 5px; 
-            
-            /* 核心修改：大幅增加底部内边距 */
-            /* 导航栏高度 + 安全距离 + 额外缓冲，确保最下面的按钮能被推上来 */
-            padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 60px);
-            
-            -ms-overflow-style: none;  
-            scrollbar-width: none;  
-        }
-        .tab-view::-webkit-scrollbar {
-            display: none;
-        }
-
-        /* === 面板/卡片样式 === */
-        .panel, .card {
-            background: var(--panel-bg); 
-            border-radius: 6px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+        /* --- 新增/登记面板 --- */
+        .add-panel { 
+            background: var(--pure-white); 
             padding: 20px; 
-            margin-bottom: 16px;
-            border: 1px solid var(--border-color);
-            position: relative;
-            overflow: hidden; 
-            z-index: 1;
-        }
-
-        /* === 动态三角背景碎片 === */
-        .panel::before, .card::before,
-        .panel::after, .card::after {
-            content: '';
-            position: absolute;
-            z-index: -1; 
-            pointer-events: none;
-            opacity: 0.05; 
-            transform-origin: center;
-        }
-        .panel::before, .card::before {
-            background: #2c3e50;
-            width: 200px; height: 200px;
-            top: calc(-50px + 100px * var(--r1, 0.5)); 
-            left: calc(-50px + 100px * var(--r2, 0.5));
-            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-            animation: float-shard calc(25s + 10s * var(--r3, 0.5)) infinite linear;
-        }
-        .panel::after, .card::after {
-            background: var(--signal-red);
-            width: 150px; height: 150px;
-            opacity: 0.03;
-            bottom: calc(-30px + 50px * var(--r2, 0.5)); 
-            right: calc(-30px + 50px * var(--r1, 0.5));
-            clip-path: polygon(0 0, 100% 50%, 0 100%);
-            animation: float-shard calc(30s + 15s * var(--r1, 0.5)) infinite reverse linear;
-        }
-
-        input, textarea, .rich-editor, h2, label, button, .attr-row, .track-sec, .perm-group, .perm-note, .row-2 {
-            position: relative; z-index: 2;
-        }
-        
-        .card { padding-top: 35px; border-left: 4px solid #ccc; } 
-
-        @keyframes float-shard {
-            0% { transform: rotate(0deg) translate(0, 0); }
-            50% { transform: rotate(180deg) translate(20px, 20px); }
-            100% { transform: rotate(360deg) translate(0, 0); }
-        }
-
-        h2 { 
-            font-size: 14px; color: var(--text-main); 
-            border-bottom: 2px solid var(--signal-red);
-            padding-bottom: 8px; margin-bottom: 15px; 
-            display: flex; align-items: center; gap: 8px; 
-            text-transform: uppercase; font-weight: 800; letter-spacing: 1px;
-        }
-        h2 i { color: var(--signal-red); }
-
-        label { display: block; font-weight: 700; font-size: 11px; margin: 12px 0 6px; color: var(--text-dim); letter-spacing: 0.5px; text-transform: uppercase; }
-        
-        input[type="text"], textarea, .rich-editor {
-            width: 100%; padding: 10px 12px; 
-            border: 1px solid #dcdcdc;
-            background: var(--input-bg); 
-            border-radius: 4px; 
-            font-size: 14px; 
-            color: var(--text-main); 
-            transition: all 0.2s;
-            font-family: inherit;
-        }
-        input:focus, textarea:focus, .rich-editor:focus { outline: none; border-color: var(--signal-red); background: #fff; box-shadow: 0 0 0 2px rgba(192, 57, 43, 0.1); }
-        .rich-editor { min-height: 60px; white-space: pre-wrap; }
-        .rich-editor:empty:before { content: attr(placeholder); color: #bdc3c7; font-style: italic; }
-
-        .small-input { width: 45px !important; padding: 5px !important; text-align: center; flex-shrink: 0; margin: 0 5px; }
-		
-        .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .perm-group input { margin-bottom: 8px; }
-        .perm-note { background: #f0f2f5; padding: 10px; border-radius: 4px; font-size: 12px; color: #666; margin-top: 10px; border-left: 3px solid #ccc; }
-        
-        @media(min-width: 768px) { .char-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; margin-bottom: 20px; } .char-layout .panel { height: 100%; margin-bottom: 0; } }
-
-        .attr-row { display: flex; align-items: center; margin-bottom: 12px; border-bottom: 1px dashed var(--border-color); padding-bottom: 8px; gap: 8px; }
-        .attr-label { flex: 0 0 50px; background: #333; color: white; text-align: center; border-radius: 3px; font-size: 10px; padding: 4px 0; font-weight: bold; }
-        .attr-input { flex: 0 0 36px; text-align: center; font-weight: bold; padding: 4px; background: white; border: 1px solid #ccc; color: var(--signal-red); }
-        .attr-dots-container { flex: 1; display: flex; justify-content: center; }
-        .attr-dots { display: flex; gap: 4px; }
-        
-        .dot { width: 16px; height: 16px; border: 1px solid #bdc3c7; border-radius: 50%; cursor: pointer; flex-shrink: 0; transition: all 0.2s; background: #fff; }
-        .dot.active { background: #333; border-color: #333; }
-        .dot.marked { background: var(--signal-red); border-color: var(--signal-red); }
-
- /* 1. 默认样式（手机端逻辑）：强制一行四列，自动填满 */
-        .track-header { 
-            display: grid; 
-            grid-template-columns: repeat(4, 1fr); /* 强制4等分列 */
-            gap: 8px; 
+            border-radius: 6px; 
             margin-bottom: 20px; 
-            align-items: end;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex; gap: 10px; flex-wrap: wrap;
+            border-left: 5px solid var(--signal-red);
         }
         
-        .track-stat { 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            width: 100%; 
+        .add-panel input { 
+            padding: 10px; border: 2px solid #ecf0f1; background: #fdfdfd; color: var(--text-dark);
+            border-radius: 4px; flex: 1; min-width: 120px; font-weight: bold;
         }
+        .add-panel input:focus { border-color: var(--signal-red); outline: none; background: white; }
         
-        .track-stat label { 
-            margin: 0 0 6px; 
-            font-size: 10px; 
-            text-align: center; 
-            color: var(--text-dim); 
-            white-space: nowrap; 
-        }
-        
-        .track-stat input { 
-            width: 100%; /* 手机上占满网格宽度 */
-            min-width: 0;
-            padding: 8px 0 !important; 
-            text-align: center; 
-            font-weight: bold; 
-            font-size: 16px; 
-            background: white; 
-            border-radius: 4px;
-        }
-
-        /* 2. 电脑端样式（屏幕宽度 > 768px）：固定宽度，居中排列 */
-        @media (min-width: 768px) {
-            .track-header {
-                display: flex; /* 改回 Flex 布局 */
-                justify-content: center; /* 居中对齐 */
-                gap: 25px; /* 增加间距 */
-            }
-
-            .track-stat {
-                width: auto; /* 不再强制占满 */
-            }
-
-            .track-stat input {
-                width: 80px !important; /* 强制固定宽度，防止拉太长 */
-            }
-        }
-        /* === 修改结束 === */
-        
-        .p-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; max-width: 340px; margin: 0 auto 5px; }
-        .p-cell { aspect-ratio: 1; border: 1px solid #bdc3c7; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #999; cursor: pointer; background: white; }
-        
-        .c-func { color: var(--functional); } .f-cell.active { background: var(--functional); border-color: var(--functional); color: white; }
-        .c-real { color: var(--reality); } .r-cell.active { background: var(--reality); border-color: var(--reality); color: white; }
-        .c-anom { color: var(--accent); } .a-cell.active { background: var(--accent); border-color: var(--accent); color: white; }
-        .p-cell.ignored { background: #95a5a6; border-color: #7f8c8d; color: white; }
-        .p-cell.ignored span { opacity: 0.7; }
-        
-        .track-rule { font-size: 11px; color: #7f8c8d; padding: 6px 0; border-top: 1px dotted var(--border-color); margin-top: 8px; }
-
-        .mod-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; color: white; }
-        .mod-header h2 { border: none; margin: 0; padding: 0; color: white; border-bottom: none; }
-        
-        .btn-add { background: white; border: none; padding: 5px 15px; border-radius: 20px; color: var(--signal-red); font-size: 11px; cursor: pointer; transition: 0.2s; font-weight: bold; text-transform: uppercase; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .btn-add:hover { background: #f0f0f0; }
-        
-        .btn-del { 
-            position: absolute; top: 10px; right: 10px; 
-            background: #fdf0ef; color: #e74c3c; 
-            width: 24px; height: 24px; border-radius: 50%; border: none; cursor: pointer; font-size: 14px; line-height: 1; display:flex; align-items:center; justify-content:center;
-            z-index: 5;
-        }
-        .btn-del:hover { background: var(--signal-red); color: white; }
-
-        .bd-anom { border-left-color: var(--accent); }
-        .bd-real { border-left-color: var(--reality); }
-        .bd-func { border-left-color: var(--functional); }
-        
-        .sq-dots { display: flex; gap: 4px; }
-        .sq-dot { width: 14px; height: 14px; border: 1px solid #bdc3c7; border-radius: 2px; cursor: pointer; background: white; }
-        .sq-dot.active { background: var(--accent); border-color: var(--accent); }
-
-        .rel-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 8px 0; flex-wrap: nowrap; }
-        .r-dots { display: flex; gap: 4px; flex: 1; overflow-x: auto; scrollbar-width: none; align-items: center; }
-
-        .chk-btn { flex-shrink: 0; cursor: pointer; font-size: 11px; display: flex; align-items: center; user-select: none; }
-        .chk-btn input { display: none; }
-        .chk-btn span { padding: 4px 10px; background: #eee; color: #777; border-radius: 4px; transition: all 0.2s; font-weight: bold; border: 1px solid transparent; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
-        .chk-btn input:checked + span { background: var(--signal-red); color: white; border-color: var(--signal-red); }
-        .chk-btn input:checked + span::before { content: '\f00c'; font-family: "Font Awesome 6 Free"; font-weight: 900; }
-        .chk-btn span::after { content: "未激活"; }
-        .chk-btn input:checked + span::after { content: "已激活"; }
-        .chk-btn.chk-trained span::after { content: "未训练"; }
-        .chk-btn.chk-trained input:checked + span::after { content: "已训练"; }
-
-        .save-area { text-align: center; margin: 30px 0; display:flex; gap:15px; justify-content:center; position: relative; z-index: 2; }
-        
-        .btn-save { 
+        .btn-add { 
             background: var(--signal-red); color: white; border: none; 
-            padding: 12px 30px; border-radius: 4px; font-size: 13px; font-weight: bold; cursor: pointer; 
-            box-shadow: 0 4px 10px rgba(192, 57, 43, 0.4); display: flex; align-items: center; gap: 8px; 
-            text-transform: uppercase; letter-spacing: 1px;
+            padding: 0 20px; border-radius: 4px; cursor: pointer; font-weight: bold; 
+            text-transform: uppercase; font-size: 12px; box-shadow: 0 2px 5px rgba(192, 57, 43, 0.3);
         }
-        .btn-export { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; }
-        .btn-export:hover { border-color: white; background: rgba(255,255,255,0.1); }
+        .btn-add:hover { background: #e74c3c; transform: translateY(-1px); }
         
-        /* === 底部导航栏优化 === */
-        .nav-bar { 
-            position: fixed; 
-            bottom: 0; left: 0; 
-            width: 100%; 
-            /* 适配 iPhone X 等设备 */
-            height: calc(var(--nav-height) + var(--safe-bottom)); 
-            background: white; 
-            border-top: 1px solid #ddd; 
-            display: flex; 
-            z-index: 1000; 
-            /* 内容不上移，利用 padding 填充底部 */
-            padding-bottom: var(--safe-bottom);
+        /* --- 搜索框样式 --- */
+        .search-wrapper {
+            position: relative;
+            margin-bottom: 20px;
         }
-        .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #95a5a6; font-size: 10px; cursor: pointer; transition: 0.2s; }
-        .nav-btn i { font-size: 18px; margin-bottom: 4px; }
-        .nav-btn.active { color: var(--signal-red); }
-        .nav-btn.active i { transform: translateY(-2px); }
-		/* === 底部导航栏图标颜色定制 === */
-        /* 档案 (深绿色) */
-        .nav-btn.n-char.active {
-            color: #16a085; /* 一个清晰的深绿色 */
+        .search-wrapper i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--placeholder);
         }
+        .search-input {
+            width: 100%;
+            padding: 12px 10px 12px 40px; /* 左侧留出图标位置 */
+            background: rgba(0,0,0,0.2);
+            border: 1px solid #576574;
+            border-radius: 4px;
+            color: white;
+            font-family: inherit;
+            box-sizing: border-box; /* 确保padding不撑大宽度 */
+        }
+        .search-input:focus { outline: none; border-color: var(--signal-red); background: rgba(0,0,0,0.4); }
+        .search-input::placeholder { color: var(--placeholder); font-style: italic; }
 
-        /* 异常 (蓝色 - 复用变量) */
-        .nav-btn.n-anom.active {
-            color: var(--accent);
+        /* --- 列表样式 --- */
+        .user-list { display: grid; gap: 12px; }
+        .user-card { 
+            background: var(--pure-white);
+            padding: 15px; border-radius: 6px; 
+            display: flex; align-items: center; justify-content: space-between; 
+            border: 1px solid #ecf0f1;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            animation: fadeIn 0.3s ease;
         }
-
-        /* 关系 (黄色 - 复用变量) */
-        .nav-btn.n-real.active {
-            color: var(--reality);
-        }
-
-        /* 物品 (维持红色) */
-        .nav-btn.n-item.active {
-            color: var(--signal-red);
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         
-        #status-msg { 
-            position: fixed; top: 20px; left:50%; transform:translateX(-50%); 
-            background: var(--signal-red); color: white; padding: 8px 20px; 
-            border-radius: 4px; font-size: 12px; display:none; z-index:2000; 
-            box-shadow: 0 5px 20px rgba(0,0,0,0.5); font-weight: bold; letter-spacing: 1px;
-        }
-		/* === 电脑端翻页箭头样式 === */
-		.nav-arrow {
-			position: fixed;
-			top: 50%;
-			transform: translateY(-50%);
-			font-size: 60px; /* 图标大小 */
-			color: var(--signal-red); /* 默认红色 */
-			cursor: pointer;
-			z-index: 900;
-			padding: 20px;
-			display: none; /* 默认隐藏（手机端） */
-			transition: all 0.2s ease;
-			opacity: 0.8;
-			/* 避免选中文字 */
-			user-select: none; 
-		}
+        .u-info { flex: 1; }
+        .u-name { font-weight: bold; font-size: 16px; color: var(--text-dark); display: flex; align-items: center; gap: 10px; }
+        .u-meta { font-size: 12px; color: #7f8c8d; margin-top: 5px; }
+        .u-pass { font-family: monospace; color: var(--signal-red); background: #fceceb; padding: 2px 6px; border-radius: 3px; border: 1px solid #fadbd8; }
+        
+        .action-btns { display: flex; gap: 8px; }
+        .btn-base { border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+        
+        .btn-edit { background: #ecf0f1; color: var(--text-dark); }
+        .btn-edit:hover { background: #bdc3c7; }
+        
+        .btn-del { background: #fceceb; color: var(--signal-red); }
+        .btn-del:hover { background: var(--signal-red); color: white; }
+        
+        .admin-tag { background: var(--signal-red); color: white; padding: 2px 6px; border-radius: 2px; font-size: 10px; letter-spacing: 1px; }
 
-		.nav-arrow:hover {
-			transform: translateY(-50%) scale(1.1); /* 悬停放大 */
-			opacity: 1;
-			text-shadow: 0 0 10px rgba(192, 57, 43, 0.4);
-		}
-
-		.arrow-left { 
-			/* 屏幕中心 - (框架半宽 450px) - (间距+图标宽 80px) */
-			left: calc(50% - 450px - 80px); 
-		}
-		
-		.arrow-right { 
-			/* 清除原来的 right 属性 */
-			right: auto; 
-			/* 屏幕中心 + (框架半宽 450px) + (间距 20px) */
-			left: calc(50% + 450px + 20px); 
-		}
-
-		/* 不可翻页时的灰色状态 */
-		.nav-arrow.disabled {
-			color: #555; /* 灰色 */
-			cursor: default;
-			opacity: 0.3;
-			pointer-events: none; /* 禁止点击 */
-		}
-
-		/* 仅在屏幕宽度大于 1000px 时显示（即电脑端） */
-		@media (min-width: 1150px) {
-			.nav-arrow { display: block; }
-		}
-		/* 覆盖掉之前写的 min-width: 1000px */
-		@media (max-width: 1149px) {
-			.nav-arrow { display: none !important; }
-		}
-		
+        .no-result { text-align: center; color: #7f8c8d; font-style: italic; font-size: 14px; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-<div id="status-msg"><i class="fas fa-save"></i> DATA_SAVED</div>
-
 <div class="container">
-    <div class="top-nav">
-        <button class="btn-back" onclick="goBack()"><i class="fas fa-chevron-left"></i> 返回</button>
-        <div class="brand-logo-sm">
-            <span>TRIANGLE</span>
-            <span>AGENCY</span>
+    <header>
+        <div>
+            <div class="brand-logo">
+                <span class="top">TRIANGLE</span>
+                <span class="btm">AGENCY</span>
+            </div>
+            <div class="page-title">// 人员管理控制台</div>
         </div>
-        <h1>
-            职员档案 
-            <span class="sub"><span class="offline-tag">OFFLINE</span><span class="readonly-tag">READ-ONLY</span></span>
-        </h1>
+        <div style="display:flex; gap:10px;">
+            <button class="btn-logout" onclick="location.href='monitor.html'" style="background:var(--pure-white); color:var(--signal-red);">
+                <i class="fas fa-eye"></i> 监控
+            </button>
+            <button class="btn-logout" onclick="logout()"><i class="fas fa-power-off"></i></button>
+        </div>
+    </header>
+
+    <!-- 入职登记面板 -->
+    <div class="add-panel">
+        <input type="text" id="newName" placeholder="职员姓名">
+        <input type="text" id="newUser" placeholder="登录账号">
+        <input type="text" id="newPass" placeholder="登录密码">
+        <button class="btn-add" onclick="addUser()"><i class="fas fa-plus"></i> 入职登记</button>
     </div>
 
-    <!-- 滑动容器结构 -->
-    <div class="swiper-container" id="swiperContainer">
-        <div class="swiper-wrapper" id="swiperWrapper">
-            
-            <!-- 1. 角色页面 -->
-            <div id="view-char" class="tab-view">
-                <div class="char-layout">
-                    <div class="panel"><h2><i class="fas fa-shield-alt"></i> 资质保证</h2><div id="attrs-list"></div></div>
-                    <div class="panel">
-                        <h2><i class="fas fa-id-card"></i> 基础信息</h2>
-                        <label>玩家姓名</label><input type="text" id="pName" placeholder="输入姓名">
-                        <div class="row-2"><div><label>异常能力</label><input type="text" id="pAnom"></div><div><label>现实身份</label><input type="text" id="pReal"></div></div>
-                        <label>机构职能</label><input type="text" id="pFunc">
-                        <label>现实触发器</label><div class="rich-editor" id="pTrig1" contenteditable="true" placeholder="GM可随时触发此项"></div>
-                        <label>过载解除</label><div class="rich-editor" id="pTrig2" contenteditable="true" placeholder="如何解除过载"></div>
-                        <label>首要指令</label><div class="rich-editor" id="pTrig3" contenteditable="true" placeholder="如果你……，则获得1点申诫"></div>
-                        <label>许可行为</label><div class="perm-group"><input type="text" id="perm1" placeholder="许可行为 1"><input type="text" id="perm2" placeholder="许可行为 2"><input type="text" id="perm3" placeholder="许可行为 3"></div>
-                        <div class="perm-note">如果你在单次任务中完成全部 3 项，将获得 3 点额外嘉奖。</div>
-                    </div>
-                </div>
-                <div class="panel">
-                    <h2><i class="fas fa-chart-bar"></i> 进度追踪</h2>
-                    <div class="track-header">
-                        <div class="track-stat"><label>MVP</label><input type="text" id="pComm" placeholder="0"></div>
-                        <div class="track-stat"><label>嘉奖</label><input type="text" id="mvpCount" placeholder="0"></div>
-                        <div class="track-stat"><label>申诫</label><input type="text" id="watchCount" placeholder="0"></div>
-                        <div class="track-stat"><label>察看期</label><input type="text" id="pRep" placeholder="0"></div>
-                    </div>
-                    <div class="track-sec"><h3 class="c-func" style="font-size:12px; margin:5px 0;">职能</h3><div class="track-row"><div class="p-grid"><div class="p-cell f-cell" data-idx="1"></div><div class="p-cell f-cell" data-idx="2"></div><div class="p-cell f-cell" data-idx="3"><span>A3</span></div><div class="p-cell f-cell" data-idx="4"></div><div class="p-cell f-cell" data-idx="5"></div><div class="p-cell f-cell" data-idx="6"><span>D4</span></div><div class="p-cell f-cell" data-idx="7"></div><div class="p-cell f-cell" data-idx="8"></div><div class="p-cell f-cell" data-idx="9"><span>G3</span></div><div class="p-cell f-cell" data-idx="10"></div></div><div class="p-grid"><div class="p-cell f-cell" data-idx="11"></div><div class="p-cell f-cell" data-idx="12"><span>J3</span></div><div class="p-cell f-cell" data-idx="13"></div><div class="p-cell f-cell" data-idx="14"></div><div class="p-cell f-cell" data-idx="15"><span>N3</span></div><div class="p-cell f-cell" data-idx="16"></div><div class="p-cell f-cell" data-idx="17"></div><div class="p-cell f-cell" data-idx="18"><span>Q3</span></div><div class="p-cell f-cell" data-idx="19"></div><div class="p-cell f-cell" data-idx="20"></div></div><div class="p-grid"><div class="p-cell f-cell" data-idx="21"><span>T3</span></div><div class="p-cell f-cell" data-idx="22"></div><div class="p-cell f-cell" data-idx="23"></div><div class="p-cell f-cell" data-idx="24"><span>W8</span></div><div class="p-cell f-cell" data-idx="25"></div><div class="p-cell f-cell" data-idx="26"></div><div class="p-cell f-cell" data-idx="27"><span>Y2</span></div><div class="p-cell f-cell" data-idx="28"></div><div class="p-cell f-cell" data-idx="29"></div><div class="p-cell f-cell" data-idx="30"></div></div></div><div class="track-rule">当你获得任务MVP时，在你的职能记录条上标记1格，且无需从其他记录条上移除一格。</div><div class="track-rule">每当你在职能记录条上标记一格时，将任意一项资质的"资质保证上限"提升1点，最高不超过9点。<div class="track-rule"></div></div></div>
-                    <div class="track-sec"><h3 class="c-real" style="font-size:12px; margin:5px 0;">现实</h3><div class="track-row"><div class="p-grid"><div class="p-cell r-cell" data-idx="1"><span>C4</span></div><div class="p-cell r-cell" data-idx="2"></div><div class="p-cell r-cell" data-idx="3"></div><div class="p-cell r-cell" data-idx="4"><span>L11</span></div><div class="p-cell r-cell" data-idx="5"></div><div class="p-cell r-cell" data-idx="6"></div><div class="p-cell r-cell" data-idx="7"></div><div class="p-cell r-cell" data-idx="8"><span>E2</span></div><div class="p-cell r-cell" data-idx="9"></div><div class="p-cell r-cell" data-idx="10"><span>O4</span></div></div><div class="p-grid"><div class="p-cell r-cell" data-idx="11"></div><div class="p-cell r-cell" data-idx="12"><span>J3</span></div><div class="p-cell r-cell" data-idx="13"></div><div class="p-cell r-cell" data-idx="14"><span>T6</span></div><div class="p-cell r-cell" data-idx="15"></div><div class="p-cell r-cell" data-idx="16"><span>V2</span></div><div class="p-cell r-cell" data-idx="17"></div><div class="p-cell r-cell" data-idx="18"></div><div class="p-cell r-cell" data-idx="19"></div><div class="p-cell r-cell" data-idx="20"><span>X3</span></div></div><div class="p-grid"><div class="p-cell r-cell" data-idx="21"></div><div class="p-cell r-cell" data-idx="22"><span>H5</span></div><div class="p-cell r-cell" data-idx="23"></div><div class="p-cell r-cell" data-idx="24"></div><div class="p-cell r-cell" data-idx="25"></div><div class="p-cell r-cell" data-idx="26"></div><div class="p-cell r-cell" data-idx="27"><span>E3</span></div><div class="p-cell r-cell" data-idx="28"></div><div class="p-cell r-cell" data-idx="29"></div><div class="p-cell r-cell" data-idx="30"></div></div></div><div class="track-rule">当你既未获得任务MVP也未进入察看期时，你可以将你与任意一段关系的连结提升1点。</div><div class="track-rule">每当你在现实记录条上标记一格时，将你与任意一段"关系"的"连结"提升1点，然后对关系网内的每段关系重复此操作。<div class="track-rule"></div></div></div>
-                    <div class="track-sec"><h3 class="c-anom" style="font-size:12px; margin:5px 0;">异常</h3><div class="track-row"><div class="p-grid"><div class="p-cell a-cell" data-idx="1"><span>H4</span></div><div class="p-cell a-cell" data-idx="2"><span>H3</span></div><div class="p-cell a-cell" data-idx="3"></div><div class="p-cell a-cell" data-idx="4"></div><div class="p-cell a-cell" data-idx="5"><span>U2</span></div><div class="p-cell a-cell" data-idx="6"></div><div class="p-cell a-cell" data-idx="7"><span>X2</span></div><div class="p-cell a-cell" data-idx="8"></div><div class="p-cell a-cell" data-idx="9"></div><div class="p-cell a-cell" data-idx="10"></div></div><div class="p-grid"><div class="p-cell a-cell" data-idx="11"><span>N1</span></div><div class="p-cell a-cell" data-idx="12"></div><div class="p-cell a-cell" data-idx="13"><span>Q2</span></div><div class="p-cell a-cell" data-idx="14"></div><div class="p-cell a-cell" data-idx="15"></div><div class="p-cell a-cell" data-idx="16"></div><div class="p-cell a-cell" data-idx="17"><span>L10</span></div><div class="p-cell a-cell" data-idx="18"></div><div class="p-cell a-cell" data-idx="19"><span>G8</span></div><div class="p-cell a-cell" data-idx="20"></div></div><div class="p-grid"><div class="p-cell a-cell" data-idx="21"></div><div class="p-cell a-cell" data-idx="22"></div><div class="p-cell a-cell" data-idx="23"><span>A7</span></div><div class="p-cell a-cell" data-idx="24"></div><div class="p-cell a-cell" data-idx="25"></div><div class="p-cell a-cell" data-idx="26"></div><div class="p-cell a-cell" data-idx="27"></div><div class="p-cell a-cell" data-idx="28"></div><div class="p-cell a-cell" data-idx="29"></div><div class="p-cell a-cell" data-idx="30"></div></div></div><div class="track-rule">当你进入察看期时，在你的异常记录条上标记1格，且无需从其他记录条上移除一格。</div><div class="track-rule">每当你在异常记录条上标记一格时，选择一项：</div><div class="track-rule">➤练习：在任意一项异常能力上标记"熟练"。</div><div class="track-rule">➤广为人知：从一项异常能力中移除"熟练"标记，并向你的团队提出该能力的问题。在获得最多票数的答案轨道上做标记，然后获得所有已解锁的能力。</div></div>
-                </div>
-                <div class="panel"><h2><i class="fas fa-file-contract"></i> 欢迎你，特工！</h2><div style="margin-bottom:12px;"><label>1. 你是如何与你的异常接触的？</label><div class="rich-editor" id="q1" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>2. 机构是如何找到你的？</label><div class="rich-editor" id="q2" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>3. 你的能力有独特的外在视觉表现吗？</label><div class="rich-editor" id="q3" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>4. 你喝咖啡有什么偏好？</label><div class="rich-editor" id="q4" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>5. 请描述你过往的工作经历</label><div class="rich-editor" id="q5" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>6. 你对Adobe、Excel和Google套件的熟悉程度如何？</label><div class="rich-editor" id="q6" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>7. 在协作工作环境中，你能做出什么贡献？</label><div class="rich-editor" id="q7" contenteditable="true"></div></div></div>
-				<!-- 新增：备注/笔记模块 -->
-                <div class="panel">
-                    <h2><i class="fas fa-sticky-note"></i> 备注/笔记</h2>
-                    <label>标题</label>
-                    <input type="text" id="noteTitle" style="margin-bottom: 12px; font-weight: bold;">
-                    <label>内容</label>
-                    <div class="rich-editor" id="noteBody" contenteditable="true" placeholder="摘要..."></div>
-                </div>
-                <div class="save-area"><button class="btn-save btn-save-server" onclick="saveData()"><i class="fas fa-cloud-upload-alt"></i> 上传终端</button><button class="btn-save btn-export" onclick="exportOffline()"><i class="fas fa-download"></i> 离线另存</button></div>
-            </div>
-
-            <!-- 2. 异常能力 -->
-            <div id="view-anom" class="tab-view">
-                <div class="mod-header"><h2>异常能力</h2><button class="btn-add" onclick="addAnom()"><i class="fas fa-plus"></i> 添加</button></div>
-                <div id="list-anom"></div>
-                <div class="save-area"><button class="btn-save btn-save-server" onclick="saveData()"><i class="fas fa-cloud-upload-alt"></i> 上传终端</button><button class="btn-save btn-export" onclick="exportOffline()"><i class="fas fa-download"></i> 离线另存</button></div>
-            </div>
-
-            <!-- 3. 关系 -->
-            <div id="view-real" class="tab-view">
-                <div class="mod-header"><h2>关系网</h2><button class="btn-add" onclick="addReal()"><i class="fas fa-plus"></i> 添加</button></div>
-                <div id="list-real"></div>
-                <div class="save-area"><button class="btn-save btn-save-server" onclick="saveData()"><i class="fas fa-cloud-upload-alt"></i> 上传终端</button><button class="btn-save btn-export" onclick="exportOffline()"><i class="fas fa-download"></i> 离线另存</button></div>
-            </div>
-
-            <!-- 4. 物品 -->
-            <div id="view-item" class="tab-view">
-                <div class="mod-header"><h2>申领物/福利</h2><button class="btn-add" onclick="addItem()"><i class="fas fa-plus"></i> 添加</button></div>
-                <div id="list-item"></div>
-                <div class="save-area"><button class="btn-save btn-save-server" onclick="saveData()"><i class="fas fa-cloud-upload-alt"></i> 上传终端</button><button class="btn-save btn-export" onclick="exportOffline()"><i class="fas fa-download"></i> 离线另存</button></div>
-            </div>
-
-        </div>
+    <!-- 搜索框 -->
+    <div class="search-wrapper">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" class="search-input" placeholder="SEARCH... [输入姓名进行检索]" autocomplete="off">
     </div>
-</div>
 
-<div class="nav-bar">
-    <div class="nav-btn active n-char" onclick="switchView('view-char', this)"><i class="fas fa-id-badge"></i><span>档案</span></div>
-    <div class="nav-btn n-anom" onclick="switchView('view-anom', this)"><i class="fas fa-bolt"></i><span>异常</span></div>
-    <div class="nav-btn n-real" onclick="switchView('view-real', this)"><i class="fas fa-heart"></i><span>关系</span></div>
-    <div class="nav-btn n-item" onclick="switchView('view-item', this)"><i class="fas fa-box-open"></i><span>物品</span></div>
+    <div id="list" class="user-list"></div>
 </div>
-
-<script id="__SAVED_DATA__" type="application/json"></script>
 
 <script>
-    const params = new URLSearchParams(window.location.search);
-    const charId = params.get('id');
-    const isReadOnly = params.get('readonly') === 'true';
-    // === 电脑端鼠标滚轮修复 ===
-    document.addEventListener('wheel', (e) => {
-        const activeView = document.querySelectorAll('.tab-view')[currentTab];
-        if (activeView && !activeView.contains(e.target)) {
-            activeView.scrollTop += e.deltaY;
-        }
-    }, { passive: true });
+    const isAdmin = localStorage.getItem('ta_is_admin');
+    if (isAdmin !== 'true') { window.location.href = 'login.html'; }
 
-// === 电脑端两侧点击翻页 (修正版) ===
-    document.addEventListener('click', (e) => {
-        // 1. 获取关键元素
-        const contentContainer = document.querySelector('.container');
-        const navBar = document.querySelector('.nav-bar');
-        
-        // 2. 排除逻辑：以下情况不执行背景翻页
-        // - 屏幕太窄（手机端）
-        // - 点击在内容容器内部
-        // - 点击在底部导航栏内部 (修复由于导航栏在容器外导致的冲突)
-        // - 点击在翻页箭头按钮上
-        if (window.innerWidth <= 930 || 
-            contentContainer.contains(e.target) || 
-            (navBar && navBar.contains(e.target)) ||
-            e.target.closest('.nav-arrow')) {
+    // 全局变量存储所有用户
+    let allUsersData = [];
+
+    // 加载数据
+    async function loadUsers() {
+        try {
+            const res = await fetch('/api/users');
+            allUsersData = await res.json();
+            
+            // 初始渲染所有数据
+            renderList(allUsersData);
+        } catch(e) { 
+            console.error(e);
+            alert('连接错误'); 
+        }
+    }
+
+    // 渲染列表函数 (核心逻辑抽取)
+    function renderList(users) {
+        const container = document.getElementById('list');
+        container.innerHTML = '';
+
+        if (users.length === 0) {
+            container.innerHTML = '<div class="no-result">NO MATCHING RECORDS FOUND</div>';
             return;
         }
 
-        // 3. 判断点击位置进行翻页
-        const clickX = e.clientX;
-        const center = window.innerWidth / 2;
+        users.forEach(u => {
+            const el = document.createElement('div');
+            el.className = 'user-card';
+            
+            const delBtn = u.isAdmin 
+                ? `<span style="font-size:10px;color:#aaa;padding:0 10px;">SYSTEM ADMIN</span>` 
+                : `<button class="btn-base btn-del" onclick="delUser(${u.id}, '${u.name}')">删除</button>`;
 
-        if (clickX < center) {
-            // 点击左半边 -> 上一页
-            if (currentTab > 0) {
-                currentTab--;
-                updateSwiper();
-            }
-        } else {
-            // 点击右半边 -> 下一页
-            if (currentTab < tabOrder.length - 1) {
-                currentTab++;
-                updateSwiper();
-            }
-        }
-    });
-	
-    // === 滑动切换逻辑 ===
-    let currentTab = 0;
-    const tabOrder = ['view-char', 'view-anom', 'view-real', 'view-item'];
-    const swiperWrapper = document.getElementById('swiperWrapper');
-    const navBtns = document.querySelectorAll('.nav-btn');
+            const editBtn = `<button class="btn-base btn-edit" onclick="changePass(${u.id}, '${u.username}')">改密</button>`;
 
-    function switchView(id, btn) {
-        const idx = tabOrder.indexOf(id);
-        if(idx !== -1) {
-            currentTab = idx;
-            updateSwiper();
-        }
-    }
-	
-	function moveTab(direction) {
-        const next = currentTab + direction;
-        if (next >= 0 && next < tabOrder.length) {
-            currentTab = next;
-            updateSwiper();
-        }
-    }
-	
-	function updateSwiper() {
-        // 1. 执行原有的滑动逻辑
-        swiperWrapper.style.transform = `translateX(-${currentTab * 25}%)`;
-        navBtns.forEach((b, i) => {
-            if(i === currentTab) b.classList.add('active');
-            else b.classList.remove('active');
+            el.innerHTML = `
+                <div class="u-info">
+                    <span class="u-name">${u.name} ${u.isAdmin ? '<span class="admin-tag">ADMIN</span>' : ''}</span>
+                    <div class="u-meta">
+                        ID: ${u.username} | KEY: <span class="u-pass">${u.password}</span> | DOCS: ${u.charCount || 0}
+                    </div>
+                </div>
+                <div class="action-btns">${editBtn}${delBtn}</div>
+            `;
+            container.appendChild(el);
         });
-        document.querySelectorAll('.tab-view')[currentTab].scrollTop = 0;
-
-        // 2. 更新电脑端箭头状态 (新增逻辑)
-        const leftArrow = document.querySelector('.arrow-left');
-        const rightArrow = document.querySelector('.arrow-right');
-        
-        if (leftArrow && rightArrow) {
-            // 如果是第一页(0)，左箭头变灰
-            if (currentTab === 0) leftArrow.classList.add('disabled');
-            else leftArrow.classList.remove('disabled');
-
-            // 如果是最后一页，右箭头变灰
-            if (currentTab === tabOrder.length - 1) rightArrow.classList.add('disabled');
-            else rightArrow.classList.remove('disabled');
-        }
     }
 
-    // 触摸滑动检测
-    let touchStartX = 0;
-    let touchStartY = 0; 
-	let isSwipingDisabled = false; // <<< 新增：用于禁用滑动的状态标记
-    const minSwipe = 60;
-    const container = document.getElementById('swiperContainer');
-
-	container.addEventListener('touchstart', e => { 
-        const target = e.target;
-        // 检查触摸是否开始于一个输入框、文本域或可编辑元素
-        if (target.tagName.toLowerCase() === 'input' || target.tagName.toLowerCase() === 'textarea' || target.isContentEditable) {
-            // 如果是，则禁用本次滑动手势
-            isSwipingDisabled = true;
-        } else {
-            // 否则，正常记录滑动起始点
-            isSwipingDisabled = false;
-            touchStartX = e.changedTouches[0].screenX; 
-            touchStartY = e.changedTouches[0].screenY;
-        }
-    }, {passive: true});
-    
-	container.addEventListener('touchend', e => { 
-        // 如果本次触摸的滑动被禁用了，则直接返回，不执行任何操作
-        if (isSwipingDisabled) {
+    // 搜索监听
+    document.getElementById('searchInput').addEventListener('input', function(e) {
+        const term = e.target.value.toLowerCase().trim();
+        
+        if (!term) {
+            renderList(allUsersData);
             return;
         }
-        
-        const touchEndX = e.changedTouches[0].screenX;
-        const touchEndY = e.changedTouches[0].screenY;
-        handleSwipe(touchEndX, touchEndY);
-    }, {passive: true});
 
-    function handleSwipe(endX, endY) {
-        const diffX = endX - touchStartX;
-        const diffY = endY - touchStartY;
-        
-        // 关键逻辑：水平距离必须大于阈值，且大于垂直距离
-        if(Math.abs(diffX) > minSwipe && Math.abs(diffX) > Math.abs(diffY)) {
-            if(diffX < 0) {
-                // 左滑 -> 下一页
-                if(currentTab < tabOrder.length - 1) { currentTab++; updateSwiper(); }
-            } else {
-                // 右滑 -> 上一页
-                if(currentTab > 0) { currentTab--; updateSwiper(); }
-            }
-        }
-    }
+        // 同时检索 姓名(name) 和 账号(username)
+        const filtered = allUsersData.filter(u => 
+            (u.name && u.name.toLowerCase().includes(term)) || 
+            (u.username && u.username.toLowerCase().includes(term))
+        );
 
-    // === 注入随机动画变量 ===
-    function setRandomVars(el) {
-        el.style.setProperty('--r1', Math.random());
-        el.style.setProperty('--r2', Math.random());
-        el.style.setProperty('--r3', Math.random());
-    }
-
-    // 初始化已有的静态 Panel
-    document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('.panel').forEach(setRandomVars);
-		updateSwiper();
+        renderList(filtered);
     });
 
-    if (isReadOnly) {
-        document.body.classList.add('readonly-mode');
-        document.addEventListener('DOMContentLoaded', () => {
-             document.querySelectorAll('[contenteditable]').forEach(el => el.setAttribute('contenteditable', 'false'));
+    // 业务逻辑保持不变
+    async function changePass(id, username) {
+        const newPass = prompt(`请输入用户 [${username}] 的新密码:`);
+        if (newPass === null || newPass.trim() === "") return;
+        
+        const res = await fetch(`/api/users/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: newPass })
         });
+        const data = await res.json();
+        if (data.success) { alert("密码已更新"); loadUsers(); }
     }
 
-    async function goBack() {
-        if (isReadOnly || document.body.classList.contains('offline-mode')) {
-             if (isReadOnly) { window.location.href = 'monitor.html'; return; }
-             window.location.href = 'dashboard.html'; return;
-        }
-        const btn = document.querySelector('.btn-back');
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 保存中';
-        try { await saveData(true); } catch(e) { console.error("Auto-save failed:", e); }
-        window.location.href = 'dashboard.html';
-    }
+    async function addUser() {
+        const name = document.getElementById('newName').value;
+        const user = document.getElementById('newUser').value;
+        const pass = document.getElementById('newPass').value;
+        if(!user || !pass) return alert('账号和密码必填');
 
-    const ATTRS = ['专注','欺瞒','活力','共情','主动','坚毅','气场','专业','诡秘'];
-    function initAttrs() {
-        const c = document.getElementById('attrs-list'); c.innerHTML = '';
-        ATTRS.forEach(attr => {
-            const div = document.createElement('div'); div.className = 'attr-row';
-            div.innerHTML = `<div class="attr-label">${attr}</div><input type="text" class="attr-input" data-attr="${attr}" value="0"><div class="attr-dots-container"><div class="attr-dots" data-attr="${attr}">${Array(9).fill(0).map((_,i)=>`<div class="dot" data-i="${i+1}"></div>`).join('')}</div></div>`;
-            c.appendChild(div);
-            const input = div.querySelector('input');
-            input.oninput = (e) => renderDots(attr, e.target.value);
-            div.querySelectorAll('.dot').forEach(d => { d.onclick = () => { if(isReadOnly) return; const max = parseInt(input.value) || 0; const idx = parseInt(d.dataset.i); if (idx > max) return; if (d.classList.contains('marked')) { d.classList.remove('marked'); d.classList.add('active'); } else { d.classList.remove('active'); d.classList.add('marked'); } } });
+        const res = await fetch('/api/users', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ username: user, password: pass, name: name })
         });
+        const data = await res.json();
+        if(data.success) {
+            document.getElementById('newName').value = '';
+            document.getElementById('newUser').value = '';
+            document.getElementById('newPass').value = '';
+            loadUsers();
+        } else { alert(data.message); }
     }
 
-    function renderDots(attr, val) {
-        const v = parseInt(val) || 0;
-        document.querySelectorAll(`.attr-dots[data-attr="${attr}"] .dot`).forEach((d, i) => { if (i < v) { if (!d.classList.contains('marked')) d.classList.add('active'); } else { d.classList.remove('active', 'marked'); } });
+    async function delUser(id, name) {
+        if(!confirm(`警告：删除用户 [${name}] 将会同时销毁该用户下的所有角色档案！\n\n确定继续吗？`)) return;
+        const res = await fetch(`/api/users/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if(data.success) loadUsers();
     }
 
-    function createDelBtn() { return `<button class="btn-del" onclick="if(confirm('确定删除?')) this.parentElement.remove()">×</button>`; }
-
-    function addAnom(d=null) {
-        const div = document.createElement('div'); div.className = 'card bd-anom';
-        div.innerHTML = `${createDelBtn()}<div class="row-2" style="margin-bottom:10px"><input type="text" class="f-name" placeholder="能力名称"><input type="text" class="f-trig" placeholder="触发器"></div><input type="text" class="f-qual" placeholder="资质" style="margin-bottom:10px"><label class="c-anom">成功时</label><div class="rich-editor f-succ" contenteditable="true"></div><label style="color:#c0392b;margin-top:8px">失败时</label><div class="rich-editor f-fail" contenteditable="true"></div><div style="background:#f9f9f9;padding:10px;border-radius:6px;margin-top:10px;border:1px solid #eee"><div style="display:flex;align-items:center;margin-bottom:6px;gap:10px"><input type="text" class="f-tdesc" placeholder="问题" style="flex:1;margin-bottom:0"><label class="chk-btn chk-trained"><input type="checkbox" class="f-chk"><span></span></label></div><div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><input type="text" class="f-t1" placeholder="答案1" style="flex:1"><input type="text" class="small-input f-t1-val"><div class="sq-dots d1">${get3Sq()}</div></div><div style="display:flex;gap:8px;align-items:center"><input type="text" class="f-t2" placeholder="答案2" style="flex:1"><input type="text" class="small-input f-t2-val"><div class="sq-dots d2">${get3Sq()}</div></div></div>`;
-        setupSq(div); if(d) fillAnom(div, d); 
-        setRandomVars(div); // 随机化背景
-        document.getElementById('list-anom').appendChild(div);
-        if(isReadOnly) { div.querySelectorAll('[contenteditable]').forEach(e=>e.setAttribute('contenteditable','false')); }
-    }
-    function addReal(d=null) {
-        const div = document.createElement('div'); div.className = 'card bd-real';
-        div.innerHTML = `${createDelBtn()}<div class="row-2" style="margin-bottom:10px"><input type="text" class="f-name" placeholder="姓名"><input type="text" class="f-actor" placeholder="扮演者"></div><div class="rich-editor f-desc" contenteditable="true" placeholder="描述" style="margin-bottom:10px"></div><label>连结进度</label><div class="rel-row"><div class="sq-dots r-dots">${get9Dots()}</div><label class="chk-btn"><input type="checkbox" class="f-act"><span></span></label></div><label>连结加成</label><div class="rich-editor f-conn" contenteditable="true"></div>`;
-        setupRDots(div); if(d) fillReal(div, d); 
-        setRandomVars(div); // 随机化背景
-        document.getElementById('list-real').appendChild(div);
-        if(isReadOnly) { div.querySelectorAll('[contenteditable]').forEach(e=>e.setAttribute('contenteditable','false')); }
-    }
-    function addItem(d=null) {
-        const div = document.createElement('div'); div.className = 'card bd-func';
-        div.innerHTML = `${createDelBtn()}<div class="row-2" style="margin-bottom:10px"><input type="text" class="f-item" placeholder="物品名称"><input type="text" class="f-pd" placeholder="页面/PD码"></div><label>效果</label><div class="rich-editor f-eff" contenteditable="true"></div>`;
-        if(d) { div.querySelector('.f-item').value = d.item; div.querySelector('.f-pd').value = d.pd; div.querySelector('.f-eff').innerHTML = d.eff; }
-        setRandomVars(div); // 随机化背景
-        document.getElementById('list-item').appendChild(div);
-        if(isReadOnly) { div.querySelectorAll('[contenteditable]').forEach(e=>e.setAttribute('contenteditable','false')); }
-    }
-
-    function get3Sq() { return ` <div class="sq-dot"></div><div class="sq-dot"></div><div class="sq-dot"></div> `; }
-    function get9Dots() { return Array(9).fill(0).map((_,i)=>`<div class="dot" data-i="${i+1}"></div>`).join(''); }
-    function setupSq(div) { div.querySelectorAll('.sq-dot').forEach(d=>d.onclick=()=> { if(!isReadOnly) d.classList.toggle('active'); }); }
-    function setupRDots(div) { const dots = div.querySelectorAll('.r-dots .dot'); dots.forEach(d => { d.onclick = () => { if(isReadOnly) return; const idx = parseInt(d.dataset.i); dots.forEach((dd, i) => { if(i < idx) dd.classList.add('active'); else dd.classList.remove('active'); }); } }); }
+    function logout() { localStorage.clear(); window.location.href = 'login.html'; }
     
-    function fillAnom(div, d) { 
-        div.querySelector('.f-name').value=d.name; div.querySelector('.f-trig').value=d.trig; div.querySelector('.f-qual').value=d.qual; div.querySelector('.f-succ').innerHTML=d.succ; div.querySelector('.f-fail').innerHTML=d.fail; div.querySelector('.f-chk').checked=d.chk; div.querySelector('.f-tdesc').value=d.tdesc; 
-        div.querySelector('.f-t1').value=d.t1; 
-        div.querySelector('.f-t2').value=d.t2; 
-        if(d.t1v) div.querySelector('.f-t1-val').value=d.t1v; 
-        if(d.t2v) div.querySelector('.f-t2-val').value=d.t2v;
-        div.querySelectorAll('.d1 .sq-dot').forEach((e,i)=>{if(d.p1[i])e.classList.add('active')}); div.querySelectorAll('.d2 .sq-dot').forEach((e,i)=>{if(d.p2[i])e.classList.add('active')}); 
-    }
-    function fillReal(div, d) { div.querySelector('.f-name').value=d.name; div.querySelector('.f-actor').value=d.actor; div.querySelector('.f-desc').innerHTML=d.desc; div.querySelector('.f-act').checked=d.act; div.querySelector('.f-conn').innerHTML=d.conn; div.querySelectorAll('.r-dots .dot').forEach((e,i)=>{if(i<d.lvl)e.classList.add('active')}); }
-    
-    // === [MODIFIED] Progress Cell Click Logic ===
-    document.querySelectorAll('.p-cell').forEach(c => {
-        // Left-click handler
-        c.addEventListener('click', () => {
-            if (isReadOnly) return;
-            if (c.classList.contains('active')) {
-                c.classList.remove('active');
-                c.classList.add('ignored');
-            } else if (c.classList.contains('ignored')) {
-                c.classList.remove('ignored');
-            } else {
-                c.classList.add('active');
-            }
-        });
-
-        // Right-click handler
-        c.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            if (isReadOnly) return;
-            c.classList.remove('active');
-            c.classList.add('ignored');
-        });
-    });
-
-    function populateData(data) {
-        ['pName','pAnom','pReal','pFunc','pTrig1','pTrig2','pTrig3','perm1','perm2','perm3','pComm','pRep','mvpCount','watchCount', 'noteTitle', 'noteBody'].forEach(id => { 
-            const el = document.getElementById(id); if(data[id] && el) { if(el.tagName === 'DIV') el.innerHTML = data[id]; else el.value = data[id]; }
-        });
-        if(data.qs) data.qs.forEach((h,i) => { const q = document.getElementById(`q${i+1}`); if(q) q.innerHTML = h; });
-        if(data.attrs) { for(let k in data.attrs) { const row = document.querySelector(`.attr-input[data-attr="${k}"]`); if(row) { row.value = data.attrs[k].v; renderDots(k, data.attrs[k].v); const dots = row.parentElement.querySelectorAll('.dot'); data.attrs[k].m.forEach(idx => { if(dots[idx-1]) { dots[idx-1].classList.remove('active'); dots[idx-1].classList.add('marked'); } }); } } }
-        document.getElementById('list-anom').innerHTML=''; document.getElementById('list-real').innerHTML=''; document.getElementById('list-item').innerHTML='';
-        (data.anoms||[]).forEach(x=>addAnom(x)); (data.reals||[]).forEach(x=>addReal(x)); (data.items||[]).forEach(x=>addItem(x));
-        if(!document.getElementById('list-anom').children.length) addAnom(); if(!document.getElementById('list-real').children.length) addReal(); if(!document.getElementById('list-item').children.length) addItem();
-        
-        // Restore active and ignored states
-        (data.pf||[]).forEach(i=>document.querySelector(`.f-cell[data-idx="${i}"]`)?.classList.add('active')); 
-        (data.pr||[]).forEach(i=>document.querySelector(`.r-cell[data-idx="${i}"]`)?.classList.add('active')); 
-        (data.pa||[]).forEach(i=>document.querySelector(`.a-cell[data-idx="${i}"]`)?.classList.add('active'));
-        (data.pf_ign||[]).forEach(i=>document.querySelector(`.f-cell[data-idx="${i}"]`)?.classList.add('ignored'));
-        (data.pr_ign||[]).forEach(i=>document.querySelector(`.r-cell[data-idx="${i}"]`)?.classList.add('ignored'));
-        (data.pa_ign||[]).forEach(i=>document.querySelector(`.a-cell[data-idx="${i}"]`)?.classList.add('ignored'));
-    }
-
-    document.addEventListener('DOMContentLoaded', async () => {
-        initAttrs();
-        const offlineDataEl = document.getElementById('__SAVED_DATA__');
-        if(offlineDataEl && offlineDataEl.textContent.trim().length > 2) {
-            document.body.classList.add('offline-mode');
-            populateData(JSON.parse(offlineDataEl.textContent));
-        } else {
-            if(!charId) { window.location.href='dashboard.html'; return; }
-            try { const res = await fetch(`/api/character/${charId}`); const data = await res.json(); populateData(data); } catch(e) { if(!document.getElementById('list-anom').children.length) addAnom(); if(!document.getElementById('list-real').children.length) addReal(); if(!document.getElementById('list-item').children.length) addItem(); }
-        }
-    });
-
-    function gatherData() {
-		const d = {
-           pName: document.getElementById('pName').value, pAnom: document.getElementById('pAnom').value, pReal: document.getElementById('pReal').value, pFunc: document.getElementById('pFunc').value, 
-           pTrig1: document.getElementById('pTrig1').innerHTML, pTrig2: document.getElementById('pTrig2').innerHTML, pTrig3: document.getElementById('pTrig3').innerHTML,
-           perm1: document.getElementById('perm1').value, perm2: document.getElementById('perm2').value, perm3: document.getElementById('perm3').value,
-           pComm: document.getElementById('pComm').value, pRep: document.getElementById('pRep').value, mvpCount: document.getElementById('mvpCount').value, watchCount: document.getElementById('watchCount').value,
-           noteTitle: document.getElementById('noteTitle').value, noteBody: document.getElementById('noteBody').innerHTML, 
-           qs: [], attrs: {}, anoms: [], reals: [], items: [], 
-           pf: [], pr: [], pa: [],
-           pf_ign: [], pr_ign: [], pa_ign: []
-       };
-       for(let i=1; i<=7; i++) d.qs.push(document.getElementById(`q${i}`).innerHTML);
-       ATTRS.forEach(a => { const row = document.querySelector(`.attr-input[data-attr="${a}"]`).parentElement; const m = []; row.querySelectorAll('.dot.marked').forEach(dt => m.push(parseInt(dt.dataset.i))); d.attrs[a] = { v: row.querySelector('input').value, m: m }; });
-       document.querySelectorAll('#list-anom .card').forEach(c => { d.anoms.push({ 
-           name: c.querySelector('.f-name').value, trig: c.querySelector('.f-trig').value, qual: c.querySelector('.f-qual').value, succ: c.querySelector('.f-succ').innerHTML, fail: c.querySelector('.f-fail').innerHTML, chk: c.querySelector('.f-chk').checked, tdesc: c.querySelector('.f-tdesc').value, 
-           t1: c.querySelector('.f-t1').value, t1v: c.querySelector('.f-t1-val').value,
-           t2: c.querySelector('.f-t2').value, t2v: c.querySelector('.f-t2-val').value,
-           p1: Array.from(c.querySelectorAll('.d1 .sq-dot')).map(e=>e.classList.contains('active')), p2: Array.from(c.querySelectorAll('.d2 .sq-dot')).map(e=>e.classList.contains('active')) 
-       }); });
-       document.querySelectorAll('#list-real .card').forEach(c => { let l = 0; c.querySelectorAll('.r-dots .dot').forEach((e,i)=>{if(e.classList.contains('active')) l=i+1}); d.reals.push({ name: c.querySelector('.f-name').value, actor: c.querySelector('.f-actor').value, desc: c.querySelector('.f-desc').innerHTML, act: c.querySelector('.f-act').checked, conn: c.querySelector('.f-conn').innerHTML, lvl: l }); });
-       document.querySelectorAll('#list-item .card').forEach(c => { d.items.push({ item: c.querySelector('.f-item').value, pd: c.querySelector('.f-pd').value, eff: c.querySelector('.f-eff').innerHTML }); });
-       
-       // Gather active and ignored states
-       document.querySelectorAll('.f-cell.active').forEach(e=>d.pf.push(parseInt(e.dataset.idx))); 
-       document.querySelectorAll('.r-cell.active').forEach(e=>d.pr.push(parseInt(e.dataset.idx))); 
-       document.querySelectorAll('.a-cell.active').forEach(e=>d.pa.push(parseInt(e.dataset.idx)));
-       document.querySelectorAll('.f-cell.ignored').forEach(e=>d.pf_ign.push(parseInt(e.dataset.idx)));
-       document.querySelectorAll('.r-cell.ignored').forEach(e=>d.pr_ign.push(parseInt(e.dataset.idx)));
-       document.querySelectorAll('.a-cell.ignored').forEach(e=>d.pa_ign.push(parseInt(e.dataset.idx)));
-       
-       return d;
-    }
-
-    async function saveData(silent = false) {
-        if (isReadOnly) return;
-        const d = gatherData();
-        const res = await fetch(`/api/character/${charId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(d) });
-        if(res.ok) { if(!silent) { const msg = document.getElementById('status-msg'); msg.style.display='block'; setTimeout(()=>msg.style.display='none', 2000); } } else { alert('保存失败'); }
-    }
-
-    function exportOffline() {
-        const d = gatherData();
-        let html = document.documentElement.outerHTML;
-        html = html.replace(/<script id="__SAVED_DATA__" type="application\/json">.*?<\/script>/s, `<script id="__SAVED_DATA__" type="application/json">${JSON.stringify(d)}<\/script>`);
-        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([html], {type: 'text/html'}));
-        a.download = `${d.pName || '角色'}_离线备份.html`; a.click();
-    }
+    // 初始化
+    loadUsers();
 </script>
-<!-- 电脑端左右翻页箭头 -->
-<div class="nav-arrow arrow-left" onclick="moveTab(-1)"><i class="fas fa-caret-left"></i></div>
-<div class="nav-arrow arrow-right" onclick="moveTab(1)"><i class="fas fa-caret-right"></i></div>
 </body>
 </html>
