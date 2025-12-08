@@ -32,13 +32,8 @@ node server.js
 密码：admin
 
 #### 提示：默认管理员账号定义在 server.js 第 28 行：
-db.run('INSERT INTO users VALUES (?, ?, ?, ?, ?)', [999, 'admin', 'admin', '管理员', 1]);
-如需修改默认账号，请直接编辑该行中的 admin 字段。
+db.run('INSERT INTO users VALUES (?, ?, ?, ?, ?)', [999, 'admin', 'admin', '管理员', 1]);  
+
+如需修改默认账号，请直接编辑该行中的 admin 字段。  
+
 删除data文件中database.db再执行node server.js
-
-
-
-
-
-
-
