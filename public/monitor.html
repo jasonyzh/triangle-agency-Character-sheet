@@ -13,6 +13,7 @@
             --pure-white: #ffffff;
             --signal-red: #c0392b;
             --text-dark: #2c3e50;
+            --muted-gray: #7f8c8d;
         }
         body { 
             font-family: "Roboto Mono", "Noto Sans SC", "Microsoft YaHei", sans-serif;
@@ -25,7 +26,7 @@
         
         header { 
             display: flex; justify-content: space-between; align-items: flex-end; 
-            margin-bottom: 30px; padding-bottom: 15px; border-bottom: 2px solid var(--signal-red); 
+            margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--signal-red); 
         }
         
         .brand-logo { display: flex; flex-direction: column; line-height: 0.9; font-weight: 900; text-transform: uppercase; }
@@ -39,6 +40,30 @@
         }
         .btn-back:hover { background: rgba(255,255,255,0.2); color: white; }
 
+        /* --- 新增：搜索框样式 --- */
+        .search-container {
+            margin-bottom: 25px;
+            background: rgba(0,0,0,0.2);
+            padding: 10px 15px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid #34495e;
+        }
+        .search-container i { color: var(--signal-red); font-size: 14px; }
+        .search-input {
+            background: transparent;
+            border: none;
+            color: var(--pure-white);
+            font-family: "Roboto Mono", monospace;
+            font-size: 14px;
+            width: 100%;
+            outline: none;
+        }
+        .search-input::placeholder { color: #576574; font-style: italic; }
+        /* ---------------------- */
+
         .user-group {
             background: var(--pure-white);
             color: var(--text-dark);
@@ -47,8 +72,11 @@
             margin-bottom: 20px;
             border-left: 5px solid var(--signal-red);
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            animation: fadeIn 0.3s ease-out;
         }
         
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
         .ug-header {
             display: flex; align-items: center; gap: 15px;
             margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;
@@ -90,6 +118,8 @@
         .ci-func { display: block; font-size: 10px; color: #95a5a6; font-family: monospace; text-transform: uppercase; }
 
         .empty-files { font-size: 12px; color: #bdc3c7; font-style: italic; font-family: monospace; padding-left: 10px; }
+        
+        .no-result { text-align: center; color: #7f8c8d; padding: 20px; font-family: monospace; }
     </style>
 </head>
 <body>
@@ -106,6 +136,12 @@
         <a href="admin.html" class="btn-back"><i class="fas fa-chevron-left"></i> 控制台</a>
     </header>
 
+    <!-- 新增：搜索栏 -->
+    <div class="search-container">
+        <i class="fas fa-search"></i>
+        <input type="text" id="user-search" class="search-input" placeholder="SEARCH... [输入姓名进行检索]..." autocomplete="off">
+    </div>
+
     <div id="monitor-content">
         <div style="text-align:center; color:#7f8c8d; margin-top:50px; font-family:monospace;">
             <i class="fas fa-circle-notch fa-spin"></i> FETCHING DATA...
@@ -120,47 +156,84 @@
         window.location.href = 'login.html';
     }
 
+    // 全局变量存储所有用户数据
+    let allUsersData = [];
+
+    // 渲染函数：接收一个用户数组并显示
+    function renderUsers(users) {
+        const container = document.getElementById('monitor-content');
+        container.innerHTML = '';
+
+        if (users.length === 0) {
+            container.innerHTML = `<div class="no-result">NO_MATCHING_OPERATORS_FOUND</div>`;
+            return;
+        }
+
+        users.forEach(u => {
+            const group = document.createElement('div');
+            group.className = 'user-group';
+            
+            let charsHtml = '';
+            if (u.characters && u.characters.length > 0) {
+                charsHtml = `<div class="char-list">` + 
+                u.characters.map(c => `
+                    <a href="sheet.html?id=${c.id}&readonly=true" class="char-item">
+                        <span class="ci-name">${c.name}</span>
+                        <span class="ci-func">${c.func}</span>
+                    </a>
+                `).join('') + 
+                `</div>`;
+            } else {
+                charsHtml = `<div class="empty-files">NO_ACTIVE_FILES</div>`;
+            }
+
+            group.innerHTML = `
+                <div class="ug-header">
+                    <div class="ug-avatar">${u.userName.charAt(0).toUpperCase()}</div>
+                    <div class="ug-info">
+                        <h3>${u.userName} ${u.isAdmin ? '<span class="admin-badge">ADMIN</span>' : ''}</h3>
+                        <span>ID: ${u.userAccount}</span>
+                    </div>
+                </div>
+                ${charsHtml}
+            `;
+            container.appendChild(group);
+        });
+    }
+
+    // 搜索功能逻辑
+    document.getElementById('user-search').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        
+        if (!searchTerm) {
+            // 如果搜索框为空，显示所有用户
+            renderUsers(allUsersData);
+            return;
+        }
+
+        // 仅根据 userName (玩家名字) 进行过滤
+        const filtered = allUsersData.filter(u => 
+            u.userName.toLowerCase().includes(searchTerm)
+        );
+
+        renderUsers(filtered);
+    });
+
     async function loadMonitorData() {
         try {
             const res = await fetch('/api/admin/monitor');
             const data = await res.json();
-            const container = document.getElementById('monitor-content');
-            container.innerHTML = '';
-
-            data.forEach(u => {
-                const group = document.createElement('div');
-                group.className = 'user-group';
-                
-                let charsHtml = '';
-                if (u.characters.length > 0) {
-                    charsHtml = `<div class="char-list">` + 
-                    u.characters.map(c => `
-                        <a href="sheet.html?id=${c.id}&readonly=true" class="char-item">
-                            <span class="ci-name">${c.name}</span>
-                            <span class="ci-func">${c.func}</span>
-                        </a>
-                    `).join('') + 
-                    `</div>`;
-                } else {
-                    charsHtml = `<div class="empty-files">NO_ACTIVE_FILES</div>`;
-                }
-
-                group.innerHTML = `
-                    <div class="ug-header">
-                        <div class="ug-avatar">${u.userName.charAt(0).toUpperCase()}</div>
-                        <div class="ug-info">
-                            <h3>${u.userName} ${u.isAdmin ? '<span class="admin-badge">ADMIN</span>' : ''}</h3>
-                            <span>ID: ${u.userAccount}</span>
-                        </div>
-                    </div>
-                    ${charsHtml}
-                `;
-                container.appendChild(group);
-            });
+            
+            // 将数据存入全局变量
+            allUsersData = data;
+            
+            // 初始渲染所有数据
+            renderUsers(allUsersData);
 
         } catch(e) {
             console.error(e);
-            alert('数据加载失败');
+            document.getElementById('monitor-content').innerHTML = 
+                `<div style="text-align:center; color:#c0392b;">CONNECTION_LOST // RELOAD_REQUIRED</div>`;
         }
     }
 
