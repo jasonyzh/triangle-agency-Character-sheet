@@ -182,7 +182,7 @@
                 <div class="save-area"><button class="btn-save btn-save-server" onclick="saveData()"><i class="fas fa-cloud-upload-alt"></i> 上传终端</button><button class="btn-save btn-export" onclick="exportOffline()"><i class="fas fa-download"></i> 离线另存</button></div>
             </div>
             <div id="view-anom" class="tab-view"><div class="mod-header"><h2>异常能力</h2><button class="btn-add" onclick="addAnom(null, false)"><i class="fas fa-plus"></i> 添加</button></div><div id="list-anom"></div><div class="save-area"><button class="btn-save btn-save-server" onclick="saveData()"><i class="fas fa-cloud-upload-alt"></i> 上传终端</button><button class="btn-save btn-export" onclick="exportOffline()"><i class="fas fa-download"></i> 离线另存</button></div></div>
-            <div id="view-real" class="tab-view"><div class="mod-header"><h2>关系网</h2><button class="btn-add" onclick="document.getElementById('list-real').appendChild(addReal())"><i class="fas fa-plus"></i> 添加</button></div><div id="list-real"></div><div class="save-area"><button class="btn-save btn-save-server" onclick="saveData()"><i class="fas fa-cloud-upload-alt"></i> 上传终端</button><button class="btn-save btn-export" onclick="exportOffline()"><i class="fas fa-download"></i> 离线另存</button></div></div>
+            <div id="view-real" class="tab-view"><div class="mod-header"><h2>关系网</h2><button class="btn-add" onclick="addReal()"><i class="fas fa-plus"></i> 添加</button></div><div id="list-real"></div><div class="save-area"><button class="btn-save btn-save-server" onclick="saveData()"><i class="fas fa-cloud-upload-alt"></i> 上传终端</button><button class="btn-save btn-export" onclick="exportOffline()"><i class="fas fa-download"></i> 离线另存</button></div></div>
             <div id="view-item" class="tab-view"><div class="mod-header"><h2>申领物/福利</h2><button class="btn-add" onclick="addItem(null, false)"><i class="fas fa-plus"></i> 添加</button></div><div id="list-item"></div><div class="save-area"><button class="btn-save btn-save-server" onclick="saveData()"><i class="fas fa-cloud-upload-alt"></i> 上传终端</button><button class="btn-save btn-export" onclick="exportOffline()"><i class="fas fa-download"></i> 离线另存</button></div></div>
         </div>
     </div>
@@ -198,6 +198,8 @@
     const params = new URLSearchParams(window.location.search);
     const charId = params.get('id');
     const isReadOnly = params.get('readonly') === 'true';
+
+    let lastDialogInteractionTime = 0;
 
     let CONFIG_DATA = { anoms: [], realities: [], functions: [] };
 
@@ -258,12 +260,8 @@
         input.value = '';  
     }
 
-    // ===================================
-    // [核心修改] 联动逻辑
-    // ===================================
     function applyCascadingLogic(fieldId, value) {
         if (!value) return;
-
         if (fieldId === 'pReal') {
             const config = CONFIG_DATA.realities.find(r => r.name === value);
             if (config) {
@@ -274,50 +272,27 @@
         else if (fieldId === 'pFunc') {
             const config = CONFIG_DATA.functions.find(f => f.name === value);
             if (config) {
-                // 填充指令和行为
                 document.getElementById('pTrig3').innerHTML = config.directive;
                 if (config.perms && config.perms.length === 3) {
                     document.getElementById('perm1').value = config.perms[0];
                     document.getElementById('perm2').value = config.perms[1];
                     document.getElementById('perm3').value = config.perms[2];
                 }
-                
-                // 替换或添加物品
                 const itemListContainer = document.getElementById('list-item');
-                const presetItems = (config.items || []).slice().reverse(); // 倒序数组以便于插入
+                const presetItems = (config.items || []).slice().reverse(); 
                 const numToReplace = presetItems.length;
-
-                // 移除顶部的 N 个物品
-                for (let i = 0; i < numToReplace; i++) {
-                    if (itemListContainer.firstChild) {
-                        itemListContainer.firstChild.remove();
-                    }
-                }
-                
-                // 将新的预设物品插入到顶部
-                presetItems.forEach(itemData => {
-                    addItem(itemData, true); // 使用 prepend 功能
-                });
+                for (let i = 0; i < numToReplace; i++) { if (itemListContainer.firstChild) { itemListContainer.firstChild.remove(); } }
+                presetItems.forEach(itemData => { addItem(itemData, true); });
             }
         }
         else if (fieldId === 'pAnom') {
             const config = CONFIG_DATA.anoms.find(a => a.name === value);
             if (config) {
                  const anomListContainer = document.getElementById('list-anom');
-                const presetAbilities = (config.abilities || []).slice().reverse(); // 倒序数组
+                const presetAbilities = (config.abilities || []).slice().reverse(); 
                 const numToReplace = presetAbilities.length;
-
-                // 移除顶部的 N 个能力
-                for (let i = 0; i < numToReplace; i++) {
-                    if (anomListContainer.firstChild) {
-                        anomListContainer.firstChild.remove();
-                    }
-                }
-
-                // 将新的预设能力插入到顶部
-                presetAbilities.forEach(abilityData => {
-                    addAnom(abilityData, true); // 使用 prepend 功能
-                });
+                for (let i = 0; i < numToReplace; i++) { if (anomListContainer.firstChild) { anomListContainer.firstChild.remove(); } }
+                presetAbilities.forEach(abilityData => { addAnom(abilityData, true); });
             }
         }
     }
@@ -342,7 +317,16 @@
     }
 
     document.addEventListener('wheel', (e) => { const a=document.querySelectorAll('.tab-view')[currentTab]; if(a&&!a.contains(e.target))a.scrollTop+=e.deltaY;}, {passive:true});
-    document.addEventListener('click', (e) => { const c=document.querySelector('.container'), n=document.querySelector('.nav-bar'); if(window.innerWidth<=930||c.contains(e.target)||(n&&n.contains(e.target))||e.target.closest('.nav-arrow'))return; const x=e.clientX, m=window.innerWidth/2; if(x<m){if(currentTab>0){currentTab--;updateSwiper();}}else{if(currentTab<tabOrder.length-1){currentTab++;updateSwiper();}}});
+    
+    document.addEventListener('click', (e) => {
+        if (Date.now() - lastDialogInteractionTime < 100) { return; }
+        const c=document.querySelector('.container'), n=document.querySelector('.nav-bar'); 
+        if(window.innerWidth<=930||c.contains(e.target)||(n&&n.contains(e.target))||e.target.closest('.nav-arrow'))return; 
+        const x=e.clientX, m=window.innerWidth/2; 
+        if(x<m){if(currentTab>0){currentTab--;updateSwiper();}}
+        else{if(currentTab<tabOrder.length-1){currentTab++;updateSwiper();}}
+    });
+    
     let currentTab = 0;
     const tabOrder = ['view-char', 'view-anom', 'view-real', 'view-item'];
     const swiperWrapper = document.getElementById('swiperWrapper');
@@ -367,7 +351,7 @@
         } else {
             if(!charId) { window.location.href='dashboard.html'; return; }
             try { const res=await fetch(`/api/character/${charId}`); const data=await res.json(); populateData(data); } 
-            catch(e) { if(!document.getElementById('list-anom').children.length) addAnom(null, false); if(!document.getElementById('list-real').children.length) document.getElementById('list-real').appendChild(addReal()); if(!document.getElementById('list-item').children.length) addItem(null, false); }
+            catch(e) { if(!document.getElementById('list-anom').children.length) addAnom(null, false); if(!document.getElementById('list-real').children.length) addReal(); if(!document.getElementById('list-item').children.length) addItem(null, false); }
         }
     });
     if (isReadOnly) {
@@ -381,16 +365,24 @@
     const ATTRS=['专注','欺瞒','活力','共情','主动','坚毅','气场','专业','诡秘'];
     function initAttrs(){ const c=document.getElementById('attrs-list');c.innerHTML='';ATTRS.forEach(a=>{ const d=document.createElement('div');d.className='attr-row';d.innerHTML=`<div class="attr-label">${a}</div><input type="text" class="attr-input" data-attr="${a}" value="0"><div class="attr-dots-container"><div class="attr-dots" data-attr="${a}">${Array(9).fill(0).map((_,i)=>`<div class="dot" data-i="${i+1}"></div>`).join('')}</div></div>`;c.appendChild(d); const i=d.querySelector('input');i.oninput=(e)=>renderDots(a,e.target.value);d.querySelectorAll('.dot').forEach(dot=>{dot.onclick=()=>{if(isReadOnly)return;const max=parseInt(i.value)||0,idx=parseInt(dot.dataset.i);if(idx>max)return;if(dot.classList.contains('marked')){dot.classList.remove('marked');dot.classList.add('active');}else{dot.classList.remove('active');dot.classList.add('marked');}}});});}
     function renderDots(a,v){const val=parseInt(v)||0;document.querySelectorAll(`.attr-dots[data-attr="${a}"] .dot`).forEach((d,i)=>{if(i<val){if(!d.classList.contains('marked'))d.classList.add('active');}else{d.classList.remove('active','marked');}}); }
-    function createDelBtn(){return`<button class="btn-del" onclick="if(confirm('确定删除?'))this.parentElement.remove()">×</button>`;}
     
-    // [修改] addAnom 函数
+    // [核心修改]
+    function handleDelete(buttonElement) {
+        // 先执行 confirm，它会阻塞一切
+        const confirmed = confirm('确定删除?');
+        // 无论用户点击了什么，对话框关闭后立即更新时间戳
+        lastDialogInteractionTime = Date.now();
+        // 如果用户点击了“确定”，则执行删除
+        if (confirmed) {
+            buttonElement.parentElement.remove();
+        }
+    }
+    
+    function createDelBtn(){return`<button class="btn-del" onclick="handleDelete(this)">×</button>`;}
+    
     function addAnom(d=null, prepend=false){ const div=document.createElement('div');div.className='card bd-anom';div.innerHTML=`${createDelBtn()}<div class="row-2" style="margin-bottom:10px"><input type="text" class="f-name" placeholder="能力名称"><input type="text" class="f-trig" placeholder="触发器"></div><input type="text" class="f-qual" placeholder="资质" style="margin-bottom:10px"><label class="c-anom">成功时</label><div class="rich-editor f-succ" contenteditable="true"></div><label style="color:#c0392b;margin-top:8px">失败时</label><div class="rich-editor f-fail" contenteditable="true"></div><div style="background:#f9f9f9;padding:10px;border-radius:6px;margin-top:10px;border:1px solid #eee"><div style="display:flex;align-items:center;margin-bottom:6px;gap:10px"><input type="text" class="f-tdesc" placeholder="问题" style="flex:1;margin-bottom:0"><label class="chk-btn chk-trained"><input type="checkbox" class="f-chk"><span></span></label></div><div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><input type="text" class="f-t1" placeholder="答案1" style="flex:1"><input type="text" class="small-input f-t1-val"><div class="sq-dots d1">${get3Sq()}</div></div><div style="display:flex;gap:8px;align-items:center"><input type="text" class="f-t2" placeholder="答案2" style="flex:1"><input type="text" class="small-input f-t2-val"><div class="sq-dots d2">${get3Sq()}</div></div></div>`; setupSq(div);if(d)fillAnom(div,d);setRandomVars(div); const container = document.getElementById('list-anom'); if(prepend) { container.prepend(div); } else { container.appendChild(div); } if(isReadOnly){div.querySelectorAll('[contenteditable]').forEach(e=>e.setAttribute('contenteditable','false'));}}
-    
-    function addReal(d=null){const div=document.createElement('div');div.className='card bd-real';div.innerHTML=`${createDelBtn()}<div class="row-2" style="margin-bottom:10px"><input type="text" class="f-name" placeholder="姓名"><input type="text" class="f-actor" placeholder="扮演者"></div><div class="rich-editor f-desc" contenteditable="true" placeholder="描述" style="margin-bottom:10px"></div><label>连结进度</label><div class="rel-row"><div class="sq-dots r-dots">${get9Dots()}</div><label class="chk-btn"><input type="checkbox" class="f-act"><span></span></label></div><label>连结加成</label><div class="rich-editor f-conn" contenteditable="true"></div>`;setupRDots(div);if(d)fillReal(div,d);setRandomVars(div);if(isReadOnly){div.querySelectorAll('[contenteditable]').forEach(e=>e.setAttribute('contenteditable','false'));} return div;}
-    
-    // [修改] addItem 函数
+    function addReal(d=null){const div=document.createElement('div');div.className='card bd-real';div.innerHTML=`${createDelBtn()}<div class="row-2" style="margin-bottom:10px"><input type="text" class="f-name" placeholder="姓名"><input type="text" class="f-actor" placeholder="扮演者"></div><div class="rich-editor f-desc" contenteditable="true" placeholder="描述" style="margin-bottom:10px"></div><label>连结进度</label><div class="rel-row"><div class="sq-dots r-dots">${get9Dots()}</div><label class="chk-btn"><input type="checkbox" class="f-act"><span></span></label></div><label>连结加成</label><div class="rich-editor f-conn" contenteditable="true"></div>`;setupRDots(div);if(d)fillReal(div,d);setRandomVars(div);if(isReadOnly){div.querySelectorAll('[contenteditable]').forEach(e=>e.setAttribute('contenteditable','false'));} document.getElementById('list-real').appendChild(div);}
     function addItem(d=null, prepend=false){const div=document.createElement('div');div.className='card bd-func';div.innerHTML=`${createDelBtn()}<div class="row-2" style="margin-bottom:10px"><input type="text" class="f-item" placeholder="物品名称"><input type="text" class="f-pd" placeholder="页面/PD码"></div><label>效果</label><div class="rich-editor f-eff" contenteditable="true"></div>`;if(d){div.querySelector('.f-item').value=d.item||'';div.querySelector('.f-pd').value=d.pd||'';div.querySelector('.f-eff').innerHTML=d.eff||'';}setRandomVars(div); const container = document.getElementById('list-item'); if(prepend) { container.prepend(div); } else { container.appendChild(div); } if(isReadOnly){div.querySelectorAll('[contenteditable]').forEach(e=>e.setAttribute('contenteditable','false'));}}
-
     function get3Sq(){return` <div class="sq-dot"></div><div class="sq-dot"></div><div class="sq-dot"></div> `;}
     function get9Dots(){return Array(9).fill(0).map((_,i)=>`<div class="dot" data-i="${i+1}"></div>`).join('');}
     function setupSq(div){div.querySelectorAll('.sq-dot').forEach(d=>d.onclick=()=>{if(!isReadOnly)d.classList.toggle('active');});}
@@ -398,7 +390,7 @@
     function fillAnom(div,d){div.querySelector('.f-name').value=d.name||'';div.querySelector('.f-trig').value=d.trig||'';div.querySelector('.f-qual').value=d.qual||'';div.querySelector('.f-succ').innerHTML=d.succ||'';div.querySelector('.f-fail').innerHTML=d.fail||'';if(d.chk)div.querySelector('.f-chk').checked=d.chk;if(d.tdesc)div.querySelector('.f-tdesc').value=d.tdesc;if(d.t1)div.querySelector('.f-t1').value=d.t1;if(d.t2)div.querySelector('.f-t2').value=d.t2;if(d.t1v)div.querySelector('.f-t1-val').value=d.t1v;if(d.t2v)div.querySelector('.f-t2-val').value=d.t2v;if(d.p1)div.querySelectorAll('.d1 .sq-dot').forEach((e,i)=>{if(d.p1[i])e.classList.add('active')});if(d.p2)div.querySelectorAll('.d2 .sq-dot').forEach((e,i)=>{if(d.p2[i])e.classList.add('active')});}
     function fillReal(div,d){div.querySelector('.f-name').value=d.name;div.querySelector('.f-actor').value=d.actor;div.querySelector('.f-desc').innerHTML=d.desc;div.querySelector('.f-act').checked=d.act;div.querySelector('.f-conn').innerHTML=d.conn;div.querySelectorAll('.r-dots .dot').forEach((e,i)=>{if(i<d.lvl)e.classList.add('active')});}
     document.querySelectorAll('.p-cell').forEach(c=>{c.addEventListener('click',()=>{if(isReadOnly)return;if(c.classList.contains('active')){c.classList.remove('active');c.classList.add('ignored');}else if(c.classList.contains('ignored')){c.classList.remove('ignored');}else{c.classList.add('active');}});c.addEventListener('contextmenu',(e)=>{e.preventDefault();if(isReadOnly)return;c.classList.remove('active');c.classList.add('ignored');});});
-    function populateData(d){['pName','pTrig1','pTrig2','pTrig3','perm1','perm2','perm3','pComm','pRep','mvpCount','watchCount','noteTitle','noteBody'].forEach(id=>{const e=document.getElementById(id);if(d[id]&&e){if(e.tagName==='DIV')e.innerHTML=d[id];else e.value=d[id];}});setHybridInputState('pAnom',d.pAnom);setHybridInputState('pReal',d.pReal);setHybridInputState('pFunc',d.pFunc);if(d.qs)d.qs.forEach((h,i)=>{const q=document.getElementById(`q${i+1}`);if(q)q.innerHTML=h;});if(d.attrs){for(let k in d.attrs){const r=document.querySelector(`.attr-input[data-attr="${k}"]`);if(r){r.value=d.attrs[k].v;renderDots(k,d.attrs[k].v);const dots=r.parentElement.querySelectorAll('.dot');d.attrs[k].m.forEach(idx=>{if(dots[idx-1]){dots[idx-1].classList.remove('active');dots[idx-1].classList.add('marked');}});}}}document.getElementById('list-anom').innerHTML='';document.getElementById('list-real').innerHTML='';document.getElementById('list-item').innerHTML='';(d.anoms||[]).forEach(x=>addAnom(x, false));(d.reals||[]).forEach(x=>document.getElementById('list-real').appendChild(addReal(x)));(d.items||[]).forEach(x=>addItem(x, false));if(!document.getElementById('list-anom').children.length)addAnom(null, false);if(!document.getElementById('list-real').children.length)document.getElementById('list-real').appendChild(addReal());if(!document.getElementById('list-item').children.length)addItem(null, false);(d.pf||[]).forEach(i=>document.querySelector(`.f-cell[data-idx="${i}"]`)?.classList.add('active'));(d.pr||[]).forEach(i=>document.querySelector(`.r-cell[data-idx="${i}"]`)?.classList.add('active'));(d.pa||[]).forEach(i=>document.querySelector(`.a-cell[data-idx="${i}"]`)?.classList.add('active'));(d.pf_ign||[]).forEach(i=>document.querySelector(`.f-cell[data-idx="${i}"]`)?.classList.add('ignored'));(d.pr_ign||[]).forEach(i=>document.querySelector(`.r-cell[data-idx="${i}"]`)?.classList.add('ignored'));(d.pa_ign||[]).forEach(i=>document.querySelector(`.a-cell[data-idx="${i}"]`)?.classList.add('ignored'));}
+    function populateData(d){['pName','pTrig1','pTrig2','pTrig3','perm1','perm2','perm3','pComm','pRep','mvpCount','watchCount','noteTitle','noteBody'].forEach(id=>{const e=document.getElementById(id);if(d[id]&&e){if(e.tagName==='DIV')e.innerHTML=d[id];else e.value=d[id];}});setHybridInputState('pAnom',d.pAnom);setHybridInputState('pReal',d.pReal);setHybridInputState('pFunc',d.pFunc);if(d.qs)d.qs.forEach((h,i)=>{const q=document.getElementById(`q${i+1}`);if(q)q.innerHTML=h;});if(d.attrs){for(let k in d.attrs){const r=document.querySelector(`.attr-input[data-attr="${k}"]`);if(r){r.value=d.attrs[k].v;renderDots(k,d.attrs[k].v);const dots=r.parentElement.querySelectorAll('.dot');d.attrs[k].m.forEach(idx=>{if(dots[idx-1]){dots[idx-1].classList.remove('active');dots[idx-1].classList.add('marked');}});}}}document.getElementById('list-anom').innerHTML='';document.getElementById('list-real').innerHTML='';document.getElementById('list-item').innerHTML='';(d.anoms||[]).forEach(x=>addAnom(x, false));(d.reals||[]).forEach(x=>addReal(x));(d.items||[]).forEach(x=>addItem(x, false));if(!document.getElementById('list-anom').children.length)addAnom(null, false);if(!document.getElementById('list-real').children.length)addReal();if(!document.getElementById('list-item').children.length)addItem(null, false);(d.pf||[]).forEach(i=>document.querySelector(`.f-cell[data-idx="${i}"]`)?.classList.add('active'));(d.pr||[]).forEach(i=>document.querySelector(`.r-cell[data-idx="${i}"]`)?.classList.add('active'));(d.pa||[]).forEach(i=>document.querySelector(`.a-cell[data-idx="${i}"]`)?.classList.add('active'));(d.pf_ign||[]).forEach(i=>document.querySelector(`.f-cell[data-idx="${i}"]`)?.classList.add('ignored'));(d.pr_ign||[]).forEach(i=>document.querySelector(`.r-cell[data-idx="${i}"]`)?.classList.add('ignored'));(d.pa_ign||[]).forEach(i=>document.querySelector(`.a-cell[data-idx="${i}"]`)?.classList.add('ignored'));}
     function gatherData(){const d={pName:document.getElementById('pName').value,pAnom:document.getElementById('pAnom').value,pReal:document.getElementById('pReal').value,pFunc:document.getElementById('pFunc').value,pTrig1:document.getElementById('pTrig1').innerHTML,pTrig2:document.getElementById('pTrig2').innerHTML,pTrig3:document.getElementById('pTrig3').innerHTML,perm1:document.getElementById('perm1').value,perm2:document.getElementById('perm2').value,perm3:document.getElementById('perm3').value,pComm:document.getElementById('pComm').value,pRep:document.getElementById('pRep').value,mvpCount:document.getElementById('mvpCount').value,watchCount:document.getElementById('watchCount').value,noteTitle:document.getElementById('noteTitle').value,noteBody:document.getElementById('noteBody').innerHTML,qs:[],attrs:{},anoms:[],reals:[],items:[],pf:[],pr:[],pa:[],pf_ign:[],pr_ign:[],pa_ign:[]};for(let i=1;i<=7;i++)d.qs.push(document.getElementById(`q${i}`).innerHTML);ATTRS.forEach(a=>{const r=document.querySelector(`.attr-input[data-attr="${a}"]`).parentElement,m=[];r.querySelectorAll('.dot.marked').forEach(dt=>m.push(parseInt(dt.dataset.i)));d.attrs[a]={v:r.querySelector('input').value,m:m};});document.querySelectorAll('#list-anom .card').forEach(c=>{d.anoms.push({name:c.querySelector('.f-name').value,trig:c.querySelector('.f-trig').value,qual:c.querySelector('.f-qual').value,succ:c.querySelector('.f-succ').innerHTML,fail:c.querySelector('.f-fail').innerHTML,chk:c.querySelector('.f-chk').checked,tdesc:c.querySelector('.f-tdesc').value,t1:c.querySelector('.f-t1').value,t1v:c.querySelector('.f-t1-val').value,t2:c.querySelector('.f-t2').value,t2v:c.querySelector('.f-t2-val').value,p1:Array.from(c.querySelectorAll('.d1 .sq-dot')).map(e=>e.classList.contains('active')),p2:Array.from(c.querySelectorAll('.d2 .sq-dot')).map(e=>e.classList.contains('active'))});});document.querySelectorAll('#list-real .card').forEach(c=>{let l=0;c.querySelectorAll('.r-dots .dot').forEach((e,i)=>{if(e.classList.contains('active'))l=i+1});d.reals.push({name:c.querySelector('.f-name').value,actor:c.querySelector('.f-actor').value,desc:c.querySelector('.f-desc').innerHTML,act:c.querySelector('.f-act').checked,conn:c.querySelector('.f-conn').innerHTML,lvl:l});});document.querySelectorAll('#list-item .card').forEach(c=>{d.items.push({item:c.querySelector('.f-item').value,pd:c.querySelector('.f-pd').value,eff:c.querySelector('.f-eff').innerHTML});});document.querySelectorAll('.f-cell.active').forEach(e=>d.pf.push(parseInt(e.dataset.idx)));document.querySelectorAll('.r-cell.active').forEach(e=>d.pr.push(parseInt(e.dataset.idx)));document.querySelectorAll('.a-cell.active').forEach(e=>d.pa.push(parseInt(e.dataset.idx)));document.querySelectorAll('.f-cell.ignored').forEach(e=>d.pf_ign.push(parseInt(e.dataset.idx)));document.querySelectorAll('.r-cell.ignored').forEach(e=>d.pr_ign.push(parseInt(e.dataset.idx)));document.querySelectorAll('.a-cell.ignored').forEach(e=>d.pa_ign.push(parseInt(e.dataset.idx)));return d;}
     async function saveData(silent=false){if(isReadOnly)return;const d=gatherData();const res=await fetch(`/api/character/${charId}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});if(res.ok){if(!silent){const m=document.getElementById('status-msg');m.style.display='block';setTimeout(()=>m.style.display='none',2000);}}else{alert('保存失败');}}
     function exportOffline(){const d=gatherData();let h=document.documentElement.outerHTML;h=h.replace(/<script id="__SAVED_DATA__" type="application\/json">.*?<\/script>/s,`<script id="__SAVED_DATA__" type="application/json">${JSON.stringify(d)}<\/script>`);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([h],{type:'text/html'}));a.download=`${d.pName||'角色'}_离线备份.html`;a.click();}
