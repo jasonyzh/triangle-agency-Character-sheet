@@ -55,11 +55,17 @@
         .btn-new { background: var(--signal-red); color: white; }
         .btn-new:hover { background: #e74c3c; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(192, 57, 43, 0.3); }
         .btn-logout { background: #fff; color: #555; }
-        .btn-logout:hover { background: #f0f0f0; }
+        /* 修改: 为退出按钮增加悬浮特效 */
+        .btn-logout:hover { background: #f0f0f0; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }
         .btn-console { background: #3498db; color: white; }
         .btn-console:hover { background: #2980b9; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3); }
         .btn-console.admin { background: #9b59b6; }
         .btn-console.admin:hover { background: #8e44ad; box-shadow: 0 5px 15px rgba(155, 89, 182, 0.3); }
+        
+        /* 新增: 高墙按钮样式 */
+        .btn-highwall { background: #2c3e50; color: white; }
+        .btn-highwall:hover { background: #34495e; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(44, 62, 80, 0.3); }
+
         
         .grid { 
             display: grid; 
@@ -259,7 +265,8 @@
                 <span class="btm">AGENCY</span>
             </div>
             <div class="btn-group">
-                <button class="btn" style="background:#2c3e50; color:white;" onclick="enterHighWall()" title="高墙文件">
+                <!-- 修改: 移除行内style, 添加class -->
+                <button class="btn btn-highwall" onclick="enterHighWall()" title="高墙文件">
                     <i class="fas fa-file-shield"></i> <span class="btn-text">高墙</span>
                 </button>
                 <button class="btn btn-console" id="btnConsole" style="display:none;" onclick="goConsole()" title="管理台">
@@ -381,7 +388,7 @@
                 setTimeout(() => {
                     window.location.href = 'documents.html';
                 }, 500);
-            }, 2500);
+            }, 4500);
         }
 
         function goConsole() {
