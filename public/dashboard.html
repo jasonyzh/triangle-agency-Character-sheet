@@ -455,8 +455,24 @@
                         <div class="card-content-wrapper" onclick="openSheet(event, '${c.id}')">
                             <div class="card-header"><span class="c-name">${c.name}</span></div>
                             <div class="info-group">
-                                <div class="info-field if-anom"><span class="field-label">异常</span><span class="field-val">${c.anom || 'N/A'}</span></div>
-                                <div class="info-field if-func"><span class="field-label">职能</span><span class="field-val">${c.func || 'N/A'}</span></div>
+							<div class="info-field if-anom">
+                                    <span class="field-label">
+                                        <i class="fas fa-bolt anim-flicker"></i> 异常 // ANOMALY
+                                    </span>
+                                    <span class="field-val">${c.anom}</span>
+                                </div>
+                                <div class="info-field if-real">
+                                    <span class="field-label">
+                                        <i class="fas fa-fingerprint anim-breathe"></i> 现实 // REALITY
+                                    </span>
+                                    <span class="field-val">${c.real}</span>
+                                </div>
+								<div class="info-field if-func">
+                                    <span class="field-label">
+                                        <i class="fas fa-briefcase anim-float"></i> 职能 // COMPETENCY
+                                    </span>
+                                    <span class="field-val">${c.func}</span>
+                                </div>
                             </div>
                         </div>
                     `;
