@@ -21,6 +21,7 @@
 ### 初始化 npm 环境并安装依赖：
    ```bash
 npm install express body-parser cors
+npm install cors
 npm install sqlite3 --registry=https://registry.npmmirror.com --sqlite3_binary_host_mirror=https://npmmirror.com/mirrors/sqlite3/
 ```
 ### 在项目根目录下运行：
@@ -37,4 +38,5 @@ db.run('INSERT INTO users VALUES (?, ?, ?, ?, ?)', [999, 'admin', 'admin', '管�
 如需修改默认账号，请直接编辑该行中的 admin 字段。  
 
 删除data文件中database.db再执行node server.js
+
 
