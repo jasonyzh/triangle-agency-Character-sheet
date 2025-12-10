@@ -436,6 +436,45 @@
             60% { content: '..'; }
             80%, 100% { content: '...'; }
         }
+		/* ... 原有的 CSS ... */
+
+		/* === 移动端适配优化 === */
+		@media (max-width: 768px) {
+			/* 1. 调整 Header 布局：垂直排列 */
+			header {
+				flex-direction: column;
+				align-items: flex-start;
+				gap: 15px;
+				margin-bottom: 20px;
+				padding-bottom: 15px;
+			}
+
+			/* 2. 按钮组占满宽度，两端对齐 */
+			.btn-group {
+				width: 100%;
+				display: flex;
+				justify-content: space-between; /* 按钮均匀分布 */
+				gap: 8px; /* 减小间距 */
+			}
+
+			/* 3. 按钮样式调整 */
+			.btn {
+				flex: 1; /* 让按钮平分宽度 */
+				justify-content: center; /* 图标居中 */
+				padding: 10px 0; /* 调整内边距 */
+				font-size: 14px;
+				min-width: 40px;
+			}
+
+			/* 4. 关键：隐藏按钮文字，只留图标 */
+			.btn-text {
+				display: none;
+			}
+			
+			/* 5. 调整 Logo 大小 */
+			.brand-logo .top { font-size: 20px; }
+			.brand-logo .btm { font-size: 12px; }
+		}
 
     </style>
 </head>
@@ -452,17 +491,34 @@
     </div>
 
     <div class="container">
-        <header>
-            <div class="brand-logo">
-                <span class="top">TRIANGLE</span>
-                <span class="btm">AGENCY</span>
-            </div>
-            <div class="btn-group">
-                <button class="btn btn-console" id="btnConsole" style="display:none;" onclick="goConsole()"><i class="fas fa-cog"></i> 控制台</button>
-                <button class="btn btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i></button>
-                <button class="btn btn-new" onclick="createNew()"><i class="fas fa-plus"></i> 新建档案</button>
-            </div>
-        </header>
+
+	<header>
+		<div class="brand-logo">
+			<span class="top">TRIANGLE</span>
+			<span class="btm">AGENCY</span>
+		</div>
+		<div class="btn-group">
+			<!-- 新增的高墙文件按钮 -->
+			<button class="btn" style="background:#2c3e50; color:white;" onclick="window.location.href='documents.html'" title="高墙文件">
+				<i class="fas fa-file-shield"></i> <span class="btn-text">高墙</span>
+			</button>
+
+			<!-- 控制台按钮 (根据权限显示) -->
+			<button class="btn btn-console" id="btnConsole" style="display:none;" onclick="goConsole()" title="管理台">
+				<i class="fas fa-cog"></i> <span class="btn-text" id="btnConsoleText">控制台</span>
+			</button>
+
+			<!-- 登出按钮 (保持原样，或也加 span) -->
+			<button class="btn btn-logout" onclick="logout()" title="登出">
+				<i class="fas fa-sign-out-alt"></i> <span class="btn-text">退出</span>
+			</button>
+
+			<!-- 新建按钮 -->
+			<button class="btn btn-new" onclick="createNew()" title="新建档案">
+				<i class="fas fa-plus"></i> <span class="btn-text">新建</span>
+			</button>
+		</div>
+	</header>
         <div id="list" class="grid"></div>
     </div>
 
@@ -544,19 +600,25 @@
         let currentCharId = null;
 
         // 根据角色显示控制台按钮
-        (function initConsoleButton() {
-            const btnConsole = document.getElementById('btnConsole');
-            if (userRole >= 2) {
-                // 超级管理员 - 紫色按钮
-                btnConsole.style.display = 'inline-flex';
-                btnConsole.classList.add('admin');
-                btnConsole.innerHTML = '<i class="fas fa-shield-alt"></i> 管理台';
-            } else if (userRole >= 1) {
-                // 经理 - 蓝色按钮
-                btnConsole.style.display = 'inline-flex';
-                btnConsole.innerHTML = '<i class="fas fa-user-tie"></i> 经理台';
-            }
-        })();
+		(function initConsoleButton() {
+			const btnConsole = document.getElementById('btnConsole');
+			const btnText = document.getElementById('btnConsoleText'); // 获取文字 span
+			
+			// 如果之前没有加 id="btnConsoleText"，这里做一个容错处理，直接改 innerHTML 也可以，
+			// 但为了配合上面的 CSS 隐藏文字功能，建议按第一步修改 HTML。
+			
+			if (userRole >= 2) {
+				// 超级管理员
+				btnConsole.style.display = 'inline-flex';
+				btnConsole.classList.add('admin');
+				// 只修改图标和文字 span 的内容，保持结构
+				btnConsole.innerHTML = '<i class="fas fa-shield-alt"></i> <span class="btn-text">管理台</span>';
+			} else if (userRole >= 1) {
+				// 经理
+				btnConsole.style.display = 'inline-flex';
+				btnConsole.innerHTML = '<i class="fas fa-user-tie"></i> <span class="btn-text">经理台</span>';
+			}
+		})();
 
         function goConsole() {
             if (userRole >= 2) {
