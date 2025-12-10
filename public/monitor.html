@@ -205,6 +205,7 @@
 </div>
 
 <script>
+    // 1. 权限检查
     const isAdmin = localStorage.getItem('ta_is_admin');
     if (isAdmin !== 'true') {
         document.getElementById('accessDeniedModal').style.display = 'flex';
@@ -214,10 +215,16 @@
     // 全局变量存储所有用户数据
     let allUsersData = [];
 
-    // 渲染函数：接收一个用户数组并显示
+    // 2. 渲染函数 (增加防崩溃检查)
     function renderUsers(users) {
+        console.log(">>> [Frontend] 开始渲染用户列表, 数量:", users.length);
         const container = document.getElementById('monitor-content');
         container.innerHTML = '';
+
+        if (!Array.isArray(users)) {
+            container.innerHTML = `<div style="color:red;text-align:center;">数据格式错误: 期望数组，收到 ${typeof users}</div>`;
+            return;
+        }
 
         if (users.length === 0) {
             container.innerHTML = `<div class="no-result">NO_MATCHING_OPERATORS_FOUND</div>`;
@@ -229,12 +236,13 @@
             group.className = 'user-group';
             
             let charsHtml = '';
-            if (u.characters && u.characters.length > 0) {
+            // 安全检查: 确保 characters 存在且是数组
+            if (Array.isArray(u.characters) && u.characters.length > 0) {
                 charsHtml = `<div class="char-list">` + 
                 u.characters.map(c => `
                     <a href="sheet.html?id=${c.id}&readonly=true" class="char-item">
-                        <span class="ci-name">${c.name}</span>
-                        <span class="ci-func">${c.func}</span>
+                        <span class="ci-name">${c.name || '未命名'}</span>
+                        <span class="ci-func">${c.func || '---'}</span>
                     </a>
                 `).join('') + 
                 `</div>`;
@@ -242,12 +250,16 @@
                 charsHtml = `<div class="empty-files">NO_ACTIVE_FILES</div>`;
             }
 
+            // 安全获取用户名，防止 null
+            const displayName = u.userName || '未知用户';
+            const initial = displayName.charAt(0).toUpperCase();
+
             group.innerHTML = `
                 <div class="ug-header">
-                    <div class="ug-avatar">${u.userName.charAt(0).toUpperCase()}</div>
+                    <div class="ug-avatar">${initial}</div>
                     <div class="ug-info">
-                        <h3>${u.userName} ${u.isAdmin ? '<span class="admin-badge">ADMIN</span>' : ''}</h3>
-                        <span>ID: ${u.userAccount}</span>
+                        <h3>${displayName} ${u.isAdmin ? '<span class="admin-badge">ADMIN</span>' : ''}</h3>
+                        <span>ID: ${u.userAccount || '---'}</span>
                     </div>
                 </div>
                 ${charsHtml}
@@ -256,42 +268,84 @@
         });
     }
 
-    // 搜索功能逻辑
+    // 3. 搜索功能逻辑
     document.getElementById('user-search').addEventListener('input', function(e) {
         const searchTerm = e.target.value.toLowerCase().trim();
         
         if (!searchTerm) {
-            // 如果搜索框为空，显示所有用户
             renderUsers(allUsersData);
             return;
         }
 
-        // 仅根据 userName (玩家名字) 进行过滤
         const filtered = allUsersData.filter(u => 
-            u.userName.toLowerCase().includes(searchTerm)
+            (u.userName && u.userName.toLowerCase().includes(searchTerm)) || 
+            (u.userAccount && u.userAccount.toLowerCase().includes(searchTerm))
         );
 
         renderUsers(filtered);
     });
 
+    // 4. 核心加载函数 (带详细 Debug)
     async function loadMonitorData() {
+        const container = document.getElementById('monitor-content');
+        
         try {
-            const res = await fetch('/api/admin/monitor');
+            console.log(">>> [Frontend] Step 1: 获取 Token");
+            // 注意：login.html 中使用的是 'ta_token'
+            const token = localStorage.getItem('ta_token');
+
+            if (!token) {
+                throw new Error("本地未找到 Token (请重新登录)");
+            }
+
+            console.log(">>> [Frontend] Step 2: 发起 fetch 请求");
+            const res = await fetch('/api/admin/monitor', {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            console.log(">>> [Frontend] Step 3: 收到响应, 状态码:", res.status);
+
+            if (!res.ok) {
+                if (res.status === 401 || res.status === 403) {
+                    throw new Error("权限不足或会话已过期 (401/403)");
+                }
+                const errText = await res.text();
+                throw new Error(`服务器错误 (${res.status}): ${errText}`);
+            }
+
+            console.log(">>> [Frontend] Step 4: 解析 JSON");
             const data = await res.json();
+            console.log(">>> [Frontend] 数据内容:", data);
             
             // 将数据存入全局变量
             allUsersData = data;
             
-            // 初始渲染所有数据
+            // 渲染
             renderUsers(allUsersData);
 
         } catch(e) {
-            console.error(e);
-            document.getElementById('monitor-content').innerHTML = 
-                `<div style="text-align:center; color:#c0392b;">CONNECTION_LOST // RELOAD_REQUIRED</div>`;
+            console.error("!!! [Frontend Error]:", e);
+            
+            container.innerHTML = 
+                `<div style="text-align:center; color:#c0392b; margin-top:50px;">
+                    <i class="fas fa-exclamation-triangle" style="font-size:48px; margin-bottom:20px;"></i>
+                    <div style="font-weight:bold; font-size:18px;">加载失败</div>
+                    <div style="font-size:12px; margin-top:10px; opacity:0.8; font-family:monospace;">
+                        ${e.message}
+                    </div>
+                    <button onclick="window.location.href='login.html'" 
+                            style="margin-top:20px; padding:8px 16px; background:#c0392b; color:white; border:none; border-radius:4px; cursor:pointer;">
+                        返回登录
+                    </button>
+                </div>`;
         }
     }
 
+    // 启动加载
     loadMonitorData();
 </script>
 </body>
