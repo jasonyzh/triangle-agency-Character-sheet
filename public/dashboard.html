@@ -118,12 +118,11 @@
         .dots::after { content: ''; width: 1.5em; text-align: left; display: inline-block; animation: dot-steps 1.5s infinite steps(4, end); }
         @keyframes dot-steps { 0%, 20% { content: ''; } 40% { content: '.'; } 60% { content: '..'; } 80%, 100% { content: '...'; } }
 
-        /* === 高墙特效 (GLITCH & CYBERPUNK) === */
+        /* === 高墙特效 (V1 优化版) === */
         
-        /* 1. 基础容器：开始时看起来和普通加载一样 */
         #hw-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #0f172a; /* 初始深蓝背景，伪装成正常 */
+            background: #0f172a;
             z-index: 9999;
             pointer-events: none;
             clip-path: inset(50% 0 50% 0);
@@ -131,51 +130,15 @@
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             overflow: hidden;
         }
-
-        #hw-overlay.active {
-            pointer-events: all;
-            clip-path: inset(0 0 0 0);
-        }
-
-        /* 2. 正常加载的内容 */
-        .hw-normal-content {
-            text-align: center; color: var(--signal-red);
-            transition: opacity 0.1s;
-            z-index: 10;
-        }
+        #hw-overlay.active { pointer-events: all; clip-path: inset(0 0 0 0); }
+        #hw-overlay.glitch-mode { background: #000; animation: bg-flash 0.1s infinite; }
         
-        /* 3. 故障花屏层 */
-        .hw-glitch-layer {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000;
-            display: none; /* 默认隐藏 */
-            z-index: 20;
-            mix-blend-mode: hard-light;
-        }
-        
-        /* 故障时的背景动画 */
-        #hw-overlay.glitch-mode {
-            background: #200000; /* 变成暗红 */
-            animation: bg-flash 0.1s infinite; /* 背景剧烈闪烁 */
-        }
-        
-        #hw-overlay.glitch-mode .hw-normal-content {
-            filter: invert(1) blur(1px); /* 文字反色模糊 */
-            transform: scale(1.1);
-        }
+        .hw-normal-content { text-align: center; color: var(--signal-red); transition: opacity 0.1s; z-index: 10; }
+        #hw-overlay.glitch-mode .hw-normal-content { filter: invert(1) blur(1px); transform: scale(1.1); }
+        .hw-scanlines { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2)); background-size: 100% 4px; animation: scanline 0.2s linear infinite; pointer-events: none; display: none; z-index: 21; }
+        @keyframes bg-flash { 0%, 100% { background-color: #100000; } 50% { background-color: #000000; } }
+        @keyframes scanline { to { transform: translateY(4px); } }
 
-        /* 赛博花屏特效 (CSS Striping) */
-        .hw-scanlines {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
-            background-size: 100% 4px;
-            animation: scanline 0.2s linear infinite;
-            pointer-events: none;
-            display: none;
-            z-index: 21;
-        }
-
-        /* 4. 眼睛层 */
         .hw-eye-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #000;
@@ -186,38 +149,61 @@
         }
 
         .hw-eye-svg {
-            width: 150px;
-            opacity: 0;
-            transform-origin: center center; /* 修复1：设置正确的变换原点 */
-            transform: scaleY(0.01); /* 闭眼 */
-            filter: drop-shadow(0 0 20px #00f3ff);
+            width: 150px; opacity: 0; transform-origin: center center;
+            transform: scaleY(0.01); filter: drop-shadow(0 0 20px #00f3ff);
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative; z-index: 31;
         }
+        .hw-eye-svg.eye-open { opacity: 1; transform: scaleY(1); }
         
-        /* 修复2：修正 CSS 选择器，确保能正确应用到 SVG 上 */
-        .hw-eye-svg.eye-open {
+        .hw-eye-svg.scared {
+            animation: eye-tremble 0.1s infinite;
+        }
+        @keyframes eye-tremble {
+            0% { transform: scale(1) translate(0, 0); }
+            50% { transform: scale(0.98) translate(1px, -1px); }
+            100% { transform: scale(1) translate(0, 0); }
+        }
+
+        .hw-tentacles-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 35;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .tendril {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 8vw;
+            height: 120vmax;
+            background: #000;
+            transform-origin: top center;
+            opacity: 0;
+            border-radius: 0 0 50% 50%;
+            filter: blur(12px) contrast(1.5);
+        }
+
+        .tendril.creeping {
             opacity: 1;
-            transform: scaleY(1);
+            animation: creep-in 2.2s cubic-bezier(0.6, 0, 0.1, 1) forwards;
         }
 
-        /* Keyframes */
-        @keyframes bg-flash {
-            0% { background-color: #200000; transform: translate(2px, 0); }
-            25% { background-color: #000000; transform: translate(-2px, 2px); }
-            50% { background-color: #400000; transform: translate(0, -2px); }
-            75% { background-color: #100000; transform: translate(2px, 2px); }
-            100% { background-color: #200000; transform: translate(0, 0); }
-        }
-        
-        @keyframes spin-crash {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(180deg); } /* 转一半卡住 */
+        @keyframes creep-in {
+            from {
+                transform: translate(-50%, -110%) rotate(var(--r));
+            }
+            to {
+                transform: translate(-50%, 0%) rotate(var(--r));
+            }
         }
 
-        @keyframes scanline {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(4px); }
+        #hw-blackout {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 100;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s;
         }
+        #hw-blackout.active { opacity: 1; }
 
         /* Toast & Modal */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 5000; justify-content: center; align-items: center; }
@@ -227,69 +213,7 @@
         .toast.show { display: block; animation: slideUp 0.3s ease; }
         .toast.success { background: #27ae60; }
         .empty-state { grid-column: 1 / -1; text-align: center; background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.4); padding: 60px 0; font-size: 14px; border-radius: 8px; border: 2px dashed rgba(255,255,255,0.1); }
-    /* === 新增特效样式 === */
-
-        /* 触手容器：覆盖全屏，中心定位 */
-        .hw-tentacles-layer {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 35; /* 在眼睛(30)之上，或者之下? 既然要蔓延掩盖，建议在眼睛之上或者同层混合 */
-            display: flex; justify-content: center; align-items: center;
-            pointer-events: none;
-            overflow: hidden;
-        }
-
-        /* 单个触手 */
-        .tendril {
-            position: absolute;
-            width: 15vw; /* 宽度 */
-            height: 120vmax; /* 足够长，超出屏幕 */
-            background: #000;
-            top: 50%; left: 50%;
-            transform-origin: top center; /* 以顶部（中心点）为旋转轴，实际上我们反过来做，从外向内 */
-            filter: blur(8px) contrast(1.2); /* 模糊边缘，制造液态/阴影感 */
-            opacity: 0;
-            border-radius: 0 0 50% 50%; /* 尖端圆润 */
-            mix-blend-mode: multiply; /* 混合模式，增强黑暗感 */
-        }
-
-        /* 触手动画：从屏幕外伸向中心 */
-        .tendril.creeping {
-            opacity: 1;
-            animation: creep-in 1.8s cubic-bezier(0.7, 0, 0.2, 1) forwards;
-        }
-
-        @keyframes creep-in {
-            0% {
-                transform: translate(-50%, -120%) rotate(var(--r)); /* 初始位置：远在圆心之外 */
-            }
-            100% {
-                transform: translate(-50%, -10%) rotate(var(--r)); /* 结束位置：刺入圆心 */
-            }
-        }
-
-        /* 最终黑屏层 */
-        #hw-blackout {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000;
-            z-index: 100;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.5s ease;
-        }
-        #hw-blackout.active {
-            opacity: 1;
-        }
-
-        /* 优化眼睛层：当触手出现时，眼睛稍微缩小颤抖，仿佛在恐惧 */
-        .hw-eye-svg.scared {
-            animation: eye-shiver 0.1s infinite;
-        }
-        @keyframes eye-shiver {
-            0% { transform: scale(1) translate(0,0); }
-            50% { transform: scale(0.98) translate(1px, 1px); }
-            100% { transform: scale(1) translate(0,0); }
-        }
-	</style>
+    </style>
 </head>
 <body>
     
@@ -301,7 +225,7 @@
         </div>
     </div>
 
-   <!-- 高墙特效容器 -->
+   <!-- 高墙特效 (伪装 -> 故障 -> 眼睛 -> 吞噬) -->
     <div id="hw-overlay">
         <!-- 1. 伪装层 -->
         <div class="hw-normal-content" id="hw-content">
@@ -311,11 +235,8 @@
 
         <!-- 2. 故障层 -->
         <div class="hw-scanlines" id="hw-scanlines"></div>
-
-        <!-- NEW: 4. 暗影触手层 (新增) -->
-        <div class="hw-tentacles-layer" id="hw-tentacles"></div>
-
-        <!-- 3. 眼睛层 -->
+        
+        <!-- 3. 眼睛层 (背景将是纯黑) -->
         <div class="hw-eye-layer" id="hw-eye-layer">
             <svg class="hw-eye-svg" id="hw-eye-icon" viewBox="0 0 100 90">
                 <path d="M5 45 Q 50 5 95 45 Q 50 85 5 45 Z" fill="#000" stroke="#00f3ff" stroke-width="3"/>
@@ -324,7 +245,10 @@
             </svg>
         </div>
         
-        <!-- NEW: 5. 最终熄灭层 (新增) -->
+        <!-- 4. 暗影触手层 (新增) -->
+        <div class="hw-tentacles-layer" id="hw-tentacles"></div>
+
+        <!-- 5. 最终熄灭层 (用于平滑过渡) -->
         <div id="hw-blackout"></div>
     </div>
 
@@ -386,7 +310,7 @@
             }
         })();
 
-// === 高墙特效逻辑 (GLITCH SEQUENCE) ===
+        // === 高墙特效逻辑 (V1 优化版) ===
         function enterHighWall() {
             const overlay = document.getElementById('hw-overlay');
             const icon = document.getElementById('hw-icon');
@@ -403,7 +327,7 @@
             // 阶段 2: 故障 (1.0s)
             setTimeout(() => {
                 icon.classList.remove('fa-spin');
-                icon.style.transform = 'rotate(160deg)'; 
+                icon.style.transform = 'rotate(160deg)';
                 
                 setTimeout(() => {
                     icon.className = 'fas fa-exclamation-triangle loader-icon';
@@ -416,62 +340,76 @@
                 }, 100);
             }, 1000);
 
-            // 阶段 3: 凝视 (1.4s)
+            // 阶段 3: 凝视 (1.5s) - 眼睛在黑暗中睁开
             setTimeout(() => {
                 overlay.classList.remove('glitch-mode');
                 scanlines.style.display = 'none';
-                document.getElementById('hw-content').style.display = 'none'; 
+                document.getElementById('hw-content').style.display = 'none';
+                
                 eyeLayer.style.opacity = '1';
                 
                 setTimeout(() => {
                     eyeIcon.classList.add('eye-open');
                 }, 100);
-            }, 1400);
 
-            // 阶段 4: 暗影触手蔓延 (1.8s) - 新增部分
+            }, 1500);
+
+            // 阶段 4: 吞噬 (1.9s) - 触手开始蔓延
             setTimeout(() => {
-                // 生成12根触手，环绕360度
-                tentaclesLayer.innerHTML = ''; // 清空
-                const count = 12;
+                eyeIcon.classList.add('scared');
+
+                tentaclesLayer.innerHTML = ''; 
+                const count = 20;
                 for (let i = 0; i < count; i++) {
                     const div = document.createElement('div');
                     div.className = 'tendril';
-                    // 计算旋转角度
+                    
                     const deg = i * (360 / count);
-                    // 设置CSS变量用于动画中的旋转保持
                     div.style.setProperty('--r', `${deg}deg`);
-                    // 随机化一点延迟和宽度，让它看起来更像生物/液态，而不是完美的几何体
-                    div.style.animationDelay = `${Math.random() * 0.3}s`;
-                    div.style.width = `${10 + Math.random() * 10}vw`; 
+                    
+                    div.style.animationDelay = `${Math.random() * 0.4}s`;
+                    
                     tentaclesLayer.appendChild(div);
                     
-                    // 触发动画
                     requestAnimationFrame(() => div.classList.add('creeping'));
                 }
+            }, 1900);
 
-                // 眼睛开始颤抖
-                eyeIcon.classList.add('scared');
-
-            }, 1800);
-
-            // 阶段 5: 视野熄灭 (2.8s)
+            // 阶段 5: 熄灭 & 跳转 (4.5s)
             setTimeout(() => {
-                blackout.classList.add('active'); // 全黑遮罩淡入
-            }, 2800);
-
-            // 阶段 6: 跳转 (3.3s)
-            setTimeout(() => {
-                window.location.href = 'documents.html';
-            }, 3300);
+                blackout.classList.add('active');
+                setTimeout(() => {
+                    window.location.href = 'documents.html';
+                }, 500);
+            }, 4500);
         }
 
         function goConsole() {
-            if (userRole >= 2) window.location.href = 'admin.html';
-            else if (userRole >= 1) window.location.href = 'manager.html';
+            const overlay = document.getElementById('transition-overlay');
+            const loaderText = overlay.querySelector('.loader-text');
+
+            // 更改加载文本
+            if (loaderText) {
+                loaderText.innerHTML = '授权认证中<span class="dots"></span>';
+            }
+
+            // 激活过渡动画
+            overlay.classList.add('active');
+
+            // 在动画播放后跳转页面
+            setTimeout(() => {
+                if (userRole >= 2) {
+                    window.location.href = 'admin.html';
+                } else if (userRole >= 1) {
+                    window.location.href = 'manager.html';
+                }
+            }, 1200); // 延迟与打开档案的动画时间一致
         }
 
         function logout() {
             localStorage.removeItem('ta_uid');
+            localStorage.removeItem('ta_token');
+            localStorage.removeItem('ta_role');
             window.location.href = 'login.html';
         }
 
@@ -485,6 +423,10 @@
         async function loadList() {
             try {
                 const res = await fetch(`/api/characters?userId=${uid}`, { headers: {'Authorization': `Bearer ${token}`} });
+                if (res.status === 401) { // 如果token失效，自动登出
+                    logout();
+                    return;
+                }
                 const list = await res.json();
                 const container = document.getElementById('list');
                 container.innerHTML = '';
@@ -505,37 +447,58 @@
                         <div class="card-content-wrapper" onclick="openSheet(event, '${c.id}')">
                             <div class="card-header"><span class="c-name">${c.name}</span></div>
                             <div class="info-group">
-                                <div class="info-field if-anom"><span class="field-label">异常</span><span class="field-val">${c.anom}</span></div>
-                                <div class="info-field if-func"><span class="field-label">职能</span><span class="field-val">${c.func}</span></div>
+                                <div class="info-field if-anom"><span class="field-label">异常</span><span class="field-val">${c.anom || 'N/A'}</span></div>
+                                <div class="info-field if-func"><span class="field-label">职能</span><span class="field-val">${c.func || 'N/A'}</span></div>
                             </div>
                         </div>
                     `;
                     container.appendChild(el);
                 });
-            } catch(e) { console.error(e); }
+            } catch(e) { 
+                console.error("加载列表失败:", e);
+                showToast("无法连接至服务器");
+            }
         }
 
         async function createNew() {
             const btn = document.querySelector('.btn-new');
             const original = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.disabled = true;
             try {
                 const res = await fetch('/api/character', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
                     body: JSON.stringify({ userId: uid })
                 });
+                if (res.status === 401) { logout(); return; }
                 const data = await res.json();
                 if(data.success) {
+                    // 恢复默认加载文本
+                    const defaultLoaderText = document.querySelector('#transition-overlay .loader-text');
+                    if (defaultLoaderText) {
+                        defaultLoaderText.innerHTML = '访问终端中<span class="dots"></span>';
+                    }
                     const overlay = document.getElementById('transition-overlay');
                     overlay.classList.add('active');
                     setTimeout(() => window.location.href = `sheet.html?id=${data.id}`, 1200);
                 }
-            } catch(e) { btn.innerHTML = original; }
+            } catch(e) { 
+                btn.innerHTML = original; 
+                btn.disabled = false;
+            }
         }
 
         function openSheet(event, id) {
             event.preventDefault();
+            // 恢复默认加载文本
+            const defaultLoaderText = document.querySelector('#transition-overlay .loader-text');
+            if (defaultLoaderText) {
+                defaultLoaderText.innerHTML = '访问终端中<span class="dots"></span>';
+            }
             const card = event.currentTarget.closest('.char-card');
             if(card) card.classList.add('accessing');
             const overlay = document.getElementById('transition-overlay');
@@ -554,19 +517,33 @@
                     method: 'POST', 
                     headers: {'Authorization': `Bearer ${token}`} 
                 });
+                if (res.status === 401) { logout(); return; }
                 const data = await res.json();
                 document.getElementById('authCode').textContent = data.authCode || 'Error';
             } catch(e) { document.getElementById('authCode').textContent = 'Failed'; }
         }
         function copyAuthCode() {
-            navigator.clipboard.writeText(document.getElementById('authCode').textContent);
-            showToast('已复制', true);
+            const code = document.getElementById('authCode').textContent;
+            if(navigator.clipboard && code) {
+                navigator.clipboard.writeText(code).then(() => {
+                    showToast('已复制', true);
+                });
+            }
         }
         async function delChar(e, id) {
             e.stopPropagation();
-            if(!confirm('确定销毁档案？')) return;
-            await fetch(`/api/character/${id}`, { method: 'DELETE' });
-            loadList();
+            if(!confirm('确定销毁档案？此操作不可逆。')) return;
+            try {
+                const res = await fetch(`/api/character/${id}`, { 
+                    method: 'DELETE',
+                    headers: {'Authorization': `Bearer ${token}`}
+                });
+                if (res.status === 401) { logout(); return; }
+                showToast("档案已销毁", true);
+                loadList();
+            } catch(e) {
+                showToast("销毁失败");
+            }
         }
 
         loadList();
