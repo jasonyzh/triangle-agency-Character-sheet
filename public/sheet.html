@@ -121,7 +121,28 @@
     .chk-btn input:checked + span::after { content: "已激活"; }
     .chk-btn.chk-trained span::after { content: "未训练"; }
     .chk-btn.chk-trained input:checked + span::after { content: "已训练"; }
-    .save-area { text-align: center; margin: 30px 0; display:flex; gap:15px; justify-content:center; position: relative; z-index: 2; }
+    .save-area { 
+    text-align: center; 
+    margin: 30px 0; 
+    display: flex; 
+    gap: 15px; 
+    justify-content: center; 
+    position: relative; 
+    z-index: 2; 
+    flex-wrap: wrap; /* 新增：允许按钮换行 */
+	}.btn-purple { 
+		background: #9b59b6; 
+		box-shadow: 0 4px 10px rgba(155, 89, 182, 0.4); 
+	}
+	.btn-purple:hover { 
+		background: #8e44ad; 
+	}.btn-dark { 
+		background: #34495e; 
+		box-shadow: 0 4px 10px rgba(44, 62, 80, 0.4); 
+	}
+	.btn-dark:hover { 
+		background: #2c3e50; 
+	}
     .btn-save { background: var(--signal-red); color: white; border: none; padding: 12px 30px; border-radius: 4px; font-size: 13px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(192, 57, 43, 0.4); display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 1px; }
     .btn-export { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; }
     .btn-export:hover { border-color: white; background: rgba(255,255,255,0.1); }
@@ -188,7 +209,10 @@
 </div>
 <div class="panel"><h2><i class="fas fa-file-contract"></i> 欢迎你，特工！</h2><div style="margin-bottom:12px;"><label>1. 你是如何与你的异常接触的？</label><div class="rich-editor" id="q1" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>2. 机构是如何找到你的？</label><div class="rich-editor" id="q2" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>3. 你的能力有独特的外在视觉表现吗？</label><div class="rich-editor" id="q3" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>4. 你喝咖啡有什么偏好？</label><div class="rich-editor" id="q4" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>5. 请描述你过往的工作经历</label><div class="rich-editor" id="q5" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>6. 你对Adobe、Excel和Google套件的熟悉程度如何？</label><div class="rich-editor" id="q6" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>7. 在协作工作环境中，你能做出什么贡献？</label><div class="rich-editor" id="q7" contenteditable="true"></div></div></div>
 <div class="panel"><h2><i class="fas fa-sticky-note"></i> 备注/笔记</h2><label>标题</label><input type="text" id="noteTitle" style="margin-bottom: 12px; font-weight: bold;"><label>内容</label><div class="rich-editor" id="noteBody" contenteditable="true" placeholder="摘要..."></div></div>
-<div class="save-area"><button class="btn-save btn-save-server" onclick="saveData()"><i class="fas fa-cloud-upload-alt"></i> 上传终端</button><button class="btn-save btn-export" onclick="exportOffline()"><i class="fas fa-download"></i> 离线另存</button></div>
+<div class="save-area"><button class="btn-save btn-save-server" onclick="saveData()"><i class="fas fa-cloud-upload-alt"></i> 上传终端</button>
+<button class="btn-save btn-export" onclick="exportOffline()"><i class="fas fa-download"></i> 离线另存</button><button class="btn-save btn-export" onclick="exportJson()"><i class="fas fa-file-code"></i> 导出JSON</button><button class="btn-save btn-export" onclick="triggerImport()"><i class="fas fa-file-import"></i> 导入覆盖</button>
+<input type="file" id="jsonInput" accept=".json" style="display:none" onchange="handleImportJson(this)">
+</div>
 </div>
 <div id="view-anom" class="tab-view"><div class="mod-header"><h2>异常能力</h2><button class="btn-add" onclick="addAnom(null, false)"><i class="fas fa-plus"></i> 添加</button></div><div id="list-anom"></div><div class="save-area"><button class="btn-save btn-save-server" onclick="saveData()"><i class="fas fa-cloud-upload-alt"></i> 上传终端</button><button class="btn-save btn-export" onclick="exportOffline()"><i class="fas fa-download"></i> 离线另存</button></div></div>
 <div id="view-real" class="tab-view"><div class="mod-header"><h2>关系网</h2><button class="btn-add" onclick="addRealSafe()"><i class="fas fa-plus"></i> 添加</button></div><div id="list-real"></div><div class="save-area"><button class="btn-save btn-save-server" onclick="saveData()"><i class="fas fa-cloud-upload-alt"></i> 上传终端</button><button class="btn-save btn-export" onclick="exportOffline()"><i class="fas fa-download"></i> 离线另存</button></div></div>
@@ -352,7 +376,54 @@ function setHybridInputState(fieldId, value) {
 }
 
 document.addEventListener('wheel', (e) => { const a=document.querySelectorAll('.tab-view')[currentTab]; if(a&&!a.contains(e.target))a.scrollTop+=e.deltaY;}, {passive:true});
-document.addEventListener('click', (e) => { const c=document.querySelector('.container'), n=document.querySelector('.nav-bar'); if(window.innerWidth<=930||c.contains(e.target)||(n&&n.contains(e.target))||e.target.closest('.nav-arrow'))return; const x=e.clientX, m=window.innerWidth/2; if(x<m){if(currentTab>0){currentTab--;updateSwiper();}}else{if(currentTab<tabOrder.length-1){currentTab++;updateSwiper();}}});
+let mouseStartX = 0;
+let mouseStartY = 0;
+
+// 1. 记录鼠标按下的位置
+document.addEventListener('mousedown', (e) => {
+    mouseStartX = e.clientX;
+    mouseStartY = e.clientY;
+});
+// 2. 修改后的点击监听
+document.addEventListener('click', (e) => {
+    // 计算移动距离
+    const diffX = Math.abs(e.clientX - mouseStartX);
+    const diffY = Math.abs(e.clientY - mouseStartY);
+
+    // 如果移动超过 5 像素，视为拖拽，不触发页面切换
+    if (diffX > 5 || diffY > 5) return;
+
+    const c = document.querySelector('.container');
+    const n = document.querySelector('.nav-bar');
+    
+    // 排除条件：
+    // 1. 屏幕宽度小于等于 930px (手机端由触摸逻辑接管)
+    // 2. 点击在内容容器内
+    // 3. 点击在底部导航栏内
+    // 4. 点击的是左右箭头按钮 (箭头有自己的 onclick 事件)
+    if (window.innerWidth <= 930 || 
+        c.contains(e.target) || 
+        (n && n.contains(e.target)) || 
+        e.target.closest('.nav-arrow')) {
+        return;
+    }
+	
+	// 执行切换逻辑
+    const x = e.clientX;
+    const m = window.innerWidth / 2;
+    if (x < m) {
+        if (currentTab > 0) {
+            currentTab--;
+            updateSwiper();
+        }
+    } else {
+        if (currentTab < tabOrder.length - 1) {
+            currentTab++;
+            updateSwiper();
+        }
+    }
+});
+
 let currentTab = 0;
 const tabOrder = ['view-char', 'view-anom', 'view-real', 'view-item'];
 const swiperWrapper = document.getElementById('swiperWrapper');
@@ -418,44 +489,36 @@ function updateSlotButtons() {
     const btnAddReal = document.querySelector('#view-real .btn-add');
 
     if (btnAddAnom) {
-        if (anomCount >= SLOT_LIMITS.anomSlots) {
-            btnAddAnom.disabled = true;
-            btnAddAnom.innerHTML = `<i class="fas fa-lock"></i> 已满 (${anomCount}/${SLOT_LIMITS.anomSlots})`;
-            btnAddAnom.style.opacity = '0.5';
-            btnAddAnom.style.cursor = 'not-allowed';
-        } else {
-            btnAddAnom.disabled = false;
-            btnAddAnom.innerHTML = `<i class="fas fa-plus"></i> 添加 (${anomCount}/${SLOT_LIMITS.anomSlots})`;
-            btnAddAnom.style.opacity = '1';
-            btnAddAnom.style.cursor = 'pointer';
-        }
+        // 始终启用按钮
+        btnAddAnom.disabled = false;
+        btnAddAnom.innerHTML = `<i class="fas fa-plus"></i> 添加 (${anomCount})`;
+        btnAddAnom.style.opacity = '1';
+        btnAddAnom.style.cursor = 'pointer';
     }
 
     if (btnAddReal) {
-        if (realCount >= SLOT_LIMITS.realSlots) {
-            btnAddReal.disabled = true;
-            btnAddReal.innerHTML = `<i class="fas fa-lock"></i> 已满 (${realCount}/${SLOT_LIMITS.realSlots})`;
-            btnAddReal.style.opacity = '0.5';
-            btnAddReal.style.cursor = 'not-allowed';
-        } else {
-            btnAddReal.disabled = false;
-            btnAddReal.innerHTML = `<i class="fas fa-plus"></i> 添加 (${realCount}/${SLOT_LIMITS.realSlots})`;
-            btnAddReal.style.opacity = '1';
-            btnAddReal.style.cursor = 'pointer';
-        }
+        // 始终启用按钮
+        btnAddReal.disabled = false;
+        btnAddReal.innerHTML = `<i class="fas fa-plus"></i> 添加 (${realCount})`;
+        btnAddReal.style.opacity = '1';
+        btnAddReal.style.cursor = 'pointer';
     }
 }
 
 function addAnom(d=null, prepend=false, skipCheck=false){
-    // 检查槽位限制
-    if (!skipCheck && !d) {
-        const currentCount = document.querySelectorAll('#list-anom .card').length;
-        if (currentCount >= SLOT_LIMITS.anomSlots) {
-            showToast('异常能力槽位已满，请联系经理解锁更多槽位', 'error');
-            return;
-        }
-    }
-    const div=document.createElement('div');div.className='card bd-anom';div.innerHTML=`${createDelBtn('anom')}<div class="row-2" style="margin-bottom:10px"><input type="text" class="f-name" placeholder="能力名称"><input type="text" class="f-trig" placeholder="触发器"></div><input type="text" class="f-qual" placeholder="资质" style="margin-bottom:10px"><label class="c-anom">成功时</label><div class="rich-editor f-succ" contenteditable="true"></div><label style="color:#c0392b;margin-top:8px">失败时</label><div class="rich-editor f-fail" contenteditable="true"></div><div style="background:#f9f9f9;padding:10px;border-radius:6px;margin-top:10px;border:1px solid #eee"><div style="display:flex;align-items:center;margin-bottom:6px;gap:10px"><input type="text" class="f-tdesc" placeholder="问题" style="flex:1;margin-bottom:0"><label class="chk-btn chk-trained"><input type="checkbox" class="f-chk"><span></span></label></div><div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><input type="text" class="f-t1" placeholder="答案1" style="flex:1"><input type="text" class="small-input f-t1-val"><div class="sq-dots d1">${get3Sq()}</div></div><div style="display:flex;gap:8px;align-items:center"><input type="text" class="f-t2" placeholder="答案2" style="flex:1"><input type="text" class="small-input f-t2-val"><div class="sq-dots d2">${get3Sq()}</div></div></div>`; setupSq(div);if(d)fillAnom(div,d);setRandomVars(div); const container = document.getElementById('list-anom'); if(prepend) { container.prepend(div); } else { container.appendChild(div); } if(isReadOnly){div.querySelectorAll('[contenteditable]').forEach(e=>e.setAttribute('contenteditable','false'));}
+    // [修改] 移除了槽位限制检查逻辑
+    
+    const div=document.createElement('div');
+    div.className='card bd-anom';
+    div.innerHTML=`${createDelBtn('anom')}<div class="row-2" style="margin-bottom:10px"><input type="text" class="f-name" placeholder="能力名称"><input type="text" class="f-trig" placeholder="触发器"></div><input type="text" class="f-qual" placeholder="资质" style="margin-bottom:10px"><label class="c-anom">成功时</label><div class="rich-editor f-succ" contenteditable="true"></div><label style="color:#c0392b;margin-top:8px">失败时</label><div class="rich-editor f-fail" contenteditable="true"></div><div style="background:#f9f9f9;padding:10px;border-radius:6px;margin-top:10px;border:1px solid #eee"><div style="display:flex;align-items:center;margin-bottom:6px;gap:10px"><input type="text" class="f-tdesc" placeholder="问题" style="flex:1;margin-bottom:0"><label class="chk-btn chk-trained"><input type="checkbox" class="f-chk"><span></span></label></div><div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><input type="text" class="f-t1" placeholder="答案1" style="flex:1"><input type="text" class="small-input f-t1-val"><div class="sq-dots d1">${get3Sq()}</div></div><div style="display:flex;gap:8px;align-items:center"><input type="text" class="f-t2" placeholder="答案2" style="flex:1"><input type="text" class="small-input f-t2-val"><div class="sq-dots d2">${get3Sq()}</div></div></div>`; 
+    setupSq(div);
+    if(d) fillAnom(div,d);
+    setRandomVars(div); 
+    
+    const container = document.getElementById('list-anom'); 
+    if(prepend) { container.prepend(div); } else { container.appendChild(div); } 
+    if(isReadOnly){div.querySelectorAll('[contenteditable]').forEach(e=>e.setAttribute('contenteditable','false'));}
+    
     updateSlotButtons();
 }
 
@@ -503,16 +566,10 @@ window.resetBonus = function(btn) {
     select.value = ''; 
 };
 
-// [修改] addReal 函数，支持混合输入和槽位检查
+// [修改] addReal 函数，移除了槽位检查
 function addReal(d = null, skipCheck = false) {
-    // 检查槽位限制（仅在手动添加时检查）
-    if (!skipCheck && !d) {
-        const currentCount = document.querySelectorAll('#list-real .card').length;
-        if (currentCount >= SLOT_LIMITS.realSlots) {
-            showToast('关系网槽位已满，请联系经理解锁更多槽位', 'error');
-            return null;
-        }
-    }
+    // [修改] 移除了槽位限制检查逻辑
+
     const div = document.createElement('div');
     div.className = 'card bd-real';
     const bonusOptions = getBonusOptions();
@@ -613,6 +670,93 @@ function showToast(msg, type='success') {
 }
 async function saveData(silent=false){if(isReadOnly)return;const d=gatherData();const res=await fetch(`/api/character/${charId}`,{method:'PUT',headers:getAuthHeaders(),body:JSON.stringify(d)});if(res.ok){if(!silent){showToast('DATA_SAVED', 'success');}}else if(res.status===401||res.status===403){window.location.href='login.html';}else{showToast('保存失败', 'error');}}
 function exportOffline(){const d=gatherData();let h=document.documentElement.outerHTML;h=h.replace(/<script id="__SAVED_DATA__" type="application\/json">.*?<\/script>/s,`<script id="__SAVED_DATA__" type="application/json">${JSON.stringify(d)}<\/script>`);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([h],{type:'text/html'}));a.download=`${d.pName||'角色'}_离线备份.html`;a.click();}
+
+// ==========================================
+// 新增：JSON 导出与导入功能
+// ==========================================
+
+/**
+ * 导出当前数据为 JSON 文件
+ */
+function exportJson() {
+    // 1. 获取当前页面所有数据
+    const data = gatherData();
+    
+    // 2. 生成文件名 (例如: 姓名_data.json)
+    const name = data.pName ? data.pName.replace(/\s+/g, '_') : 'character';
+    const fileName = `${name}_data.json`;
+
+    // 3. 创建 Blob 对象
+    const jsonStr = JSON.stringify(data, null, 2); // 格式化缩进
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+
+    // 4. 创建下载链接并触发点击
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    
+    // 5. 清理
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showToast('JSON 数据已导出');
+}
+
+/**
+ * 触发文件选择框
+ */
+function triggerImport() {
+    if (document.body.classList.contains('readonly-mode')) {
+        alert('只读模式下无法导入数据');
+        return;
+    }
+    if(!confirm('警告：导入 JSON 将完全覆盖当前页面上的所有内容！\n确定要继续吗？')) {
+        return;
+    }
+    document.getElementById('jsonInput').click();
+}
+
+/**
+ * 处理文件读取与数据填充
+ */
+function handleImportJson(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    
+    reader.onload = function(e) {
+        try {
+            // 1. 解析 JSON
+            const data = JSON.parse(e.target.result);
+            
+            // 2. 简单验证数据有效性 (检查是否有关键字段)
+            if (typeof data !== 'object' || (!data.pName && !data.anoms)) {
+                throw new Error("无效的角色数据格式");
+            }
+
+            // 3. 填充数据 (使用现有的 populateData 函数)
+            populateData(data);
+            
+            showToast('数据导入成功', 'success');
+            
+            // 可选：导入后自动保存到服务器
+            // saveData(true); 
+
+        } catch (err) {
+            console.error(err);
+            alert('导入失败：文件格式错误或数据损坏');
+        }
+    };
+
+    reader.readAsText(file);
+    
+    // 清空 input，确保同一个文件可以被再次选择触发 onchange
+    input.value = '';
+}
 </script>
 <div class="nav-arrow arrow-left" onclick="moveTab(-1)"><i class="fas fa-caret-left"></i></div>
 <div class="nav-arrow arrow-right" onclick="moveTab(1)"><i class="fas fa-caret-right"></i></div>
