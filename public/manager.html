@@ -3500,18 +3500,21 @@
     let missionsList = [];
     let inboxMessages = [];
 
-    async function loadMissions() {
-        try {
-            const res = await fetch('/api/manager/missions', {
-                headers: getAuthHeaders()
-            });
-            if (!res.ok) throw new Error('加载任务失败');
-            missionsList = await res.json();
-            renderMissions();
-        } catch (e) {
-            console.error('加载任务失败:', e);
-        }
-    }
+	// 加载任务列表
+	async function loadMissions() {
+		try {
+			// 关键：在 URL 中附加上当前选中的标签页状态 (currentMissionTab)
+			const res = await fetch(`/api/manager/missions?status=${currentMissionTab}`, {
+				headers: getAuthHeaders()
+			});
+			if (!res.ok) throw new Error('加载任务失败');
+			missionsList = await res.json();
+			renderMissions(); // 获取到新数据后，立即渲染
+		} catch (e) {
+			console.error('加载任务失败:', e);
+			document.getElementById('missionList').innerHTML = `<div class="mission-empty">加载失败</div>`;
+		}
+	}
 
     function renderMissions() {
         const container = document.getElementById('missionList');
@@ -3566,12 +3569,15 @@
         }).join('');
     }
 
-    function switchMissionTab(tab) {
-        currentMissionTab = tab;
-        document.querySelectorAll('.mission-tabs button').forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
-        renderMissions();
-    }
+	// 切换任务标签页 (进行中 / 已归档)
+	function switchMissionTab(tab) {
+		currentMissionTab = tab; // 更新全局状态变量
+		document.querySelectorAll('.mission-tabs button').forEach(btn => btn.classList.remove('active'));
+		event.target.classList.add('active');
+		
+		// 关键：切换后，调用 loadMissions() 重新从服务器获取数据
+		loadMissions(); 
+	}
 
     function openMissionModal(editId = null) {
         currentMissionId = editId;
