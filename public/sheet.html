@@ -1249,6 +1249,40 @@ let currentMailTab = 'inbox';
 let mailData = { inbox: [], sent: [], highwallFiles: [] };
 let isA1Unlocked = false; // 是否解锁了A1高墙文件（控制报告提交权限）
 
+// 定时检查新邮件 (每10秒)
+setInterval(checkNewMail, 10000);
+
+async function checkNewMail() {
+    if (!charId || !token) return;
+    try {
+        const res = await fetch(`/api/character/${charId}/messages`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+            const messages = await res.json();
+            const unreadCount = messages.filter(m => !m.read).length;
+            updateMailButton(unreadCount);
+        }
+    } catch (e) {
+        // 忽略后台检查错误
+    }
+}
+
+function updateMailButton(unreadCount) {
+    const mailBtn = document.querySelector('.top-mail-btn');
+    const badge = document.getElementById('topMailBadge');
+    if (!mailBtn || !badge) return;
+
+    if (unreadCount > 0) {
+        mailBtn.classList.add('has-unread');
+        badge.style.display = 'block';
+        badge.textContent = unreadCount;
+    } else {
+        mailBtn.classList.remove('has-unread');
+        badge.style.display = 'none';
+    }
+}
+
 function openMailModal() {
     document.getElementById('mail-full-modal').classList.add('active');
     loadMailbox();
@@ -1308,17 +1342,7 @@ async function loadMailbox() {
 
         // 更新顶部未读消息标记
         const unreadCount = mailData.inbox.filter(m => !m.read).length;
-        const mailBtn = document.querySelector('.top-mail-btn');
-        const badge = document.getElementById('topMailBadge');
-
-        if (unreadCount > 0) {
-            mailBtn.classList.add('has-unread');
-            badge.style.display = 'block';
-            badge.textContent = unreadCount;
-        } else {
-            mailBtn.classList.remove('has-unread');
-            badge.style.display = 'none';
-        }
+        updateMailButton(unreadCount);
 
         // 高墙文件夹标签 - 只有解锁A1后才显示
         const hwTab = document.getElementById('tab-highwall');
@@ -2024,17 +2048,7 @@ async function markMessageRead(msgId) {
         
         // 更新顶部未读图标状态
         const unreadCount = mailData.inbox.filter(m => !m.read).length;
-        const mailBtn = document.querySelector('.top-mail-btn');
-        const badge = document.getElementById('topMailBadge');
-
-        if (unreadCount > 0) {
-            mailBtn.classList.add('has-unread');
-            badge.style.display = 'block';
-            badge.textContent = unreadCount;
-        } else {
-            mailBtn.classList.remove('has-unread');
-            badge.style.display = 'none';
-        }
+        updateMailButton(unreadCount);
     } catch (e) {
         console.error('标记已读失败:', e);
     }
@@ -2231,7 +2245,7 @@ function showToast(msg, type='success') {
     m.style.display = 'block';
     setTimeout(() => m.style.display = 'none', 2500);
 }
-async function saveData(silent=false){if(isReadOnly)return;const d=gatherData();const res=await fetch(`/api/character/${charId}`,{method:'PUT',headers:getAuthHeaders(),body:JSON.stringify(d)});if(res.ok){if(!silent){showToast('DATA_SAVED', 'success');}}else if(res.status===401||res.status===403){window.location.href='login.html';}else{showToast('保存失败', 'error');}}
+async function saveData(silent=false){if(isReadOnly)return;const d=gatherData();const res=await fetch(`/api/character/${charId}`,{method:'PUT',headers:getAuthHeaders(),body:JSON.stringify(d)});if(res.ok){if(!silent){showToast('DATA_SAVED', 'success');} checkNewMail();}else if(res.status===401||res.status===403){window.location.href='login.html';}else{showToast('保存失败', 'error');}}
 function exportOffline(){const d=gatherData();let h=document.documentElement.outerHTML;h=h.replace(/<script id="__SAVED_DATA__" type="application\/json">.*?<\/script>/s,`<script id="__SAVED_DATA__" type="application/json">${JSON.stringify(d)}<\/script>`);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([h],{type:'text/html'}));a.download=`${d.pName||'角色'}_离线备份.html`;a.click();}
 
 function exportJson() {
