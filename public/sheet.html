@@ -1249,11 +1249,35 @@ let currentMailTab = 'inbox';
 let mailData = { inbox: [], sent: [], highwallFiles: [] };
 let isA1Unlocked = false; // 是否解锁了A1高墙文件（控制报告提交权限）
 
-// 定时检查新邮件 (每10秒)
-setInterval(checkNewMail, 10000);
+// 智能邮件检查机制：
+// 1. 页面可见时立即检查
+// 2. 用户操作(点击)时，如果距离上次检查超过30秒，则顺便检查
+// 3. 避免了后台死板的轮询浪费资源
+
+let lastMailCheckTime = 0;
+const MAIL_CHECK_COOLDOWN = 30000; // 30秒冷却
+
+// 监听页面可见性变化
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        checkNewMail();
+    }
+});
+
+// 监听用户点击交互
+document.addEventListener('click', () => {
+    const now = Date.now();
+    if (now - lastMailCheckTime > MAIL_CHECK_COOLDOWN) {
+        checkNewMail();
+    }
+});
 
 async function checkNewMail() {
     if (!charId || !token) return;
+    
+    // 更新检查时间
+    lastMailCheckTime = Date.now();
+
     try {
         const res = await fetch(`/api/character/${charId}/messages`, {
             headers: { 'Authorization': `Bearer ${token}` }
@@ -1264,7 +1288,7 @@ async function checkNewMail() {
             updateMailButton(unreadCount);
         }
     } catch (e) {
-        // 忽略后台检查错误
+        console.error('邮件检查失败:', e);
     }
 }
 
