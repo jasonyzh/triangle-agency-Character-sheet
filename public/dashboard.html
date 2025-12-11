@@ -645,8 +645,12 @@
         (function initConsoleButton() {
             const btnConsole = document.getElementById('btnConsole');
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             const menuConsole = document.getElementById('menuConsole');
 
+=======
+            const btnManager = document.getElementById('btnManager');
+>>>>>>> Stashed changes
 =======
             const btnManager = document.getElementById('btnManager');
 >>>>>>> Stashed changes
@@ -663,6 +667,7 @@
                 btnConsole.innerHTML = '<i class="fas fa-shield-alt"></i> <span class="btn-text">管理台</span>';
                 btnManager.style.display = 'inline-flex';
             } else if (userRole >= 1) {
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
                 btnConsole.style.display = 'inline-flex';
                 btnConsole.innerHTML = '<i class="fas fa-user-tie"></i> <span>经理台</span>';
@@ -692,6 +697,10 @@
                 window.location.href = 'manager.html';
             }
                 btnConsole.innerHTML = '<i class="fas fa-user-tie"></i> <span class="btn-text">经理台</span>';
+=======
+                // 经理只显示经理台
+                btnManager.style.display = 'inline-flex';
+>>>>>>> Stashed changes
 =======
                 // 经理只显示经理台
                 btnManager.style.display = 'inline-flex';
