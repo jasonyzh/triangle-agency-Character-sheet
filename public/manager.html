@@ -1,6 +1,5 @@
-<!-- manager.html (完整代码) -->
-
 <!DOCTYPE html>
+
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -14,7 +13,10 @@
             --pure-white: #ffffff;
             --signal-red: #c0392b;
             --text-dark: #2c3e50;
-            --manager-blue: #3498db;
+            --manager-blue: #D85742;
+            --manager-blue-dark: #C04A3A;
+            --manager-blue-light: #E06B56;
+            --manager-blue-bg: #F5D5D0;
         }
         body {
             font-family: "Roboto Mono", "Noto Sans SC", "Microsoft YaHei", sans-serif;
@@ -52,14 +54,14 @@
             font-size: 12px;
         }
         .branch-info .branch-name {
-            color: #2ecc71;
+            color: var(--manager-blue-light);
             font-weight: 600;
         }
         .branch-info .branch-scatter {
             color: #95a5a6;
         }
         .branch-info .branch-scatter span {
-            color: #e74c3c;
+            color: var(--manager-blue);
             font-weight: bold;
         }
 
@@ -178,7 +180,7 @@
             font-size: 11px;
             font-weight: bold;
             text-transform: uppercase;
-            background: #27ae60;
+            background: var(--manager-blue);
             color: white;
         }
         .mission-detail-status.archived {
@@ -204,12 +206,12 @@
             background: var(--manager-blue);
             color: white;
         }
-        .btn-mission-edit:hover { background: #2980b9; }
+        .btn-mission-edit:hover { background: var(--manager-blue-dark); }
         .btn-mission-archive {
-            background: #e67e22;
+            background: var(--manager-blue);
             color: white;
         }
-        .btn-mission-archive:hover { background: #d35400; }
+        .btn-mission-archive:hover { background: var(--manager-blue-dark); }
 
         .mission-detail-body {
             display: flex;
@@ -241,7 +243,7 @@
         }
         .section-header h3 { margin-bottom: 0; }
         .btn-add-agent {
-            background: #27ae60;
+            background: var(--manager-blue);
             color: white;
             border: none;
             padding: 8px 14px;
@@ -251,7 +253,7 @@
             font-weight: 600;
             transition: 0.2s;
         }
-        .btn-add-agent:hover { background: #219a52; }
+        .btn-add-agent:hover { background: var(--manager-blue-dark); }
         .mission-desc-text {
             color: #7f8c8d;
             font-size: 14px;
@@ -272,17 +274,19 @@
             align-items: center;
             gap: 12px;
             transition: 0.2s;
+            min-width: 0;
+            overflow: hidden;
         }
         .agent-card:hover {
             border-color: var(--manager-blue);
-            box-shadow: 0 4px 12px rgba(52,152,219,0.15);
+            box-shadow: 0 4px 12px rgba(216,87,66,0.15);
         }
         .agent-card.clickable { cursor: pointer; }
         .agent-avatar {
             width: 48px;
             height: 48px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--manager-blue), #2980b9);
+            background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-dark));
             display: flex;
             align-items: center;
             justify-content: center;
@@ -291,12 +295,15 @@
             font-weight: bold;
             flex-shrink: 0;
         }
-        .agent-info { flex: 1; }
+        .agent-info { flex: 1; min-width: 0; overflow: hidden; }
         .agent-name {
             font-weight: bold;
             font-size: 14px;
             color: var(--text-dark);
             margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .agent-status-row {
             display: flex;
@@ -309,12 +316,12 @@
             padding: 4px 8px;
             font-size: 12px;
             width: 100px;
-            color: #27ae60;
+            color: var(--manager-blue);
             background: white;
         }
         .agent-status-input:focus {
             outline: none;
-            border-color: #27ae60;
+            border-color: var(--manager-blue);
         }
         .agent-actions {
             display: flex;
@@ -322,7 +329,7 @@
             flex-shrink: 0;
         }
         .btn-agent-record {
-            background: #f39c12;
+            background: var(--manager-blue);
             border: none;
             color: white;
             cursor: pointer;
@@ -331,7 +338,7 @@
             font-size: 13px;
             transition: 0.2s;
         }
-        .btn-agent-record:hover { background: #e67e22; }
+        .btn-agent-record:hover { background: var(--manager-blue-dark); }
         .btn-agent-docs {
             background: #2c3e50;
             border: none;
@@ -353,7 +360,7 @@
             font-size: 14px;
             transition: 0.2s;
         }
-        .btn-remove-agent:hover { color: #e74c3c; border-color: #e74c3c; }
+        .btn-remove-agent:hover { color: var(--manager-blue); border-color: var(--manager-blue); }
 
         /* === 申领物管理样式 === */
         .requisition-panel {
@@ -361,7 +368,7 @@
             padding: 20px;
             border-radius: 6px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            border-left: 5px solid #9b59b6;
+            border-left: 5px solid var(--manager-blue);
         }
         .requisition-header {
             display: flex;
@@ -377,9 +384,9 @@
             align-items: center;
             gap: 8px;
         }
-        .requisition-header h3 i { color: #9b59b6; }
+        .requisition-header h3 i { color: var(--manager-blue); }
         .btn-new-requisition {
-            background: #9b59b6;
+            background: var(--manager-blue);
             color: white;
             border: none;
             padding: 8px 16px;
@@ -389,7 +396,7 @@
             font-weight: bold;
             transition: 0.2s;
         }
-        .btn-new-requisition:hover { background: #8e44ad; }
+        .btn-new-requisition:hover { background: var(--manager-blue-dark); }
         .requisition-empty {
             text-align: center;
             padding: 60px 20px;
@@ -447,7 +454,7 @@
             text-transform: uppercase;
             transition: all 0.2s;
         }
-        .btn-claim:hover { background: #2980b9; }
+        .btn-claim:hover { background: var(--manager-blue-dark); }
 
         /* 角色卡列表 */
         .section-title {
@@ -485,7 +492,7 @@
         }
 
         .card-header {
-            background: linear-gradient(135deg, var(--manager-blue), #2980b9);
+            background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-dark));
             padding: 15px;
             color: white;
             cursor: pointer;
@@ -549,7 +556,7 @@
             background: var(--manager-blue);
             color: white;
         }
-        .btn-view:hover { background: #2980b9; }
+        .btn-view:hover { background: var(--manager-blue-dark); }
 
         .btn-slots {
             background: rgba(52, 152, 219, 0.1);
@@ -573,11 +580,11 @@
         /* 移除授权按钮样式 */
         .btn-remove-auth {
             background: rgba(231, 76, 60, 0.1);
-            border: 1px solid #e74c3c;
-            color: #e74c3c;
+            border: 1px solid var(--manager-blue);
+            color: var(--manager-blue);
         }
         .btn-remove-auth:hover {
-            background: #e74c3c;
+            background: var(--manager-blue);
             color: white;
         }
 
@@ -615,7 +622,7 @@
             display: none;
         }
         .toast.show { display: block; animation: slideUp 0.3s ease; }
-        .toast.success { background: #27ae60; }
+        .toast.success { background: var(--manager-blue); }
         @keyframes slideUp { from { opacity: 0; transform: translate(-50%, 20px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
         .loading {
@@ -683,10 +690,10 @@
         .btn-modal-confirm { color: white; font-weight: bold; }
         
         /* 槽位管理弹窗 特有样式 */
-        #slotModal .modal-header { background: linear-gradient(135deg, var(--manager-blue), #2980b9); }
+        #slotModal .modal-header { background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-dark)); }
         #slotModal .modal-header h3, #slotModal .modal-close { color: white; }
         #slotModal .btn-modal-confirm { background: var(--manager-blue); }
-        #slotModal .btn-modal-confirm:hover { background: #2980b9; }
+        #slotModal .btn-modal-confirm:hover { background: var(--manager-blue-dark); }
         .slot-group { margin-bottom: 20px; }
         .slot-group label { display: block; font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
         .slot-controls { display: flex; align-items: center; gap: 15px; }
@@ -710,12 +717,12 @@
 
         /* 嘉奖/申诫弹窗样式 */
         #recordModal .modal-box { max-width: 500px; }
-        #recordModal .modal-header { background: linear-gradient(135deg, #27ae60, #2ecc71); }
+        #recordModal .modal-header { background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-light)); }
         #recordModal .modal-header h3, #recordModal .modal-close { color: white; }
         .record-tabs { display: flex; gap: 5px; margin-bottom: 15px; }
         .record-tab { flex: 1; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; transition: all 0.2s; background: #ecf0f1; color: #7f8c8d; }
-        .record-tab.active-reward { background: #27ae60; color: white; }
-        .record-tab.active-reprimand { background: #e74c3c; color: white; }
+        .record-tab.active-reward { background: var(--manager-blue); color: white; }
+        .record-tab.active-reprimand { background: var(--manager-blue-dark); color: white; }
         .record-input-area { margin-bottom: 15px; }
         .record-input-area textarea { width: 100%; padding: 12px; border: 2px solid #ecf0f1; border-radius: 4px; font-size: 13px; resize: none; height: 80px; box-sizing: border-box; font-family: inherit; }
         .record-input-area textarea:focus { outline: none; border-color: var(--manager-blue); }
@@ -724,24 +731,24 @@
         .record-count-input { width: 60px; padding: 8px; border: 2px solid #ecf0f1; border-radius: 4px; font-size: 14px; text-align: center; }
         .record-count-input:focus { outline: none; border-color: var(--manager-blue); }
         .btn-add-record { width: 100%; padding: 10px; border: none; border-radius: 4px; font-size: 13px; font-weight: bold; cursor: pointer; transition: all 0.2s; }
-        .btn-add-record.reward { background: #27ae60; color: white; }
-        .btn-add-record.reward:hover { background: #219a52; }
-        .btn-add-record.reprimand { background: #e74c3c; color: white; }
-        .btn-add-record.reprimand:hover { background: #c0392b; }
-        .record-count-badge { display: inline-block; background: #27ae60; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; margin-left: 5px; }
-        .record-count-badge.reprimand { background: #e74c3c; }
+        .btn-add-record.reward { background: var(--manager-blue); color: white; }
+        .btn-add-record.reward:hover { background: var(--manager-blue-dark); }
+        .btn-add-record.reprimand { background: var(--manager-blue-dark); color: white; }
+        .btn-add-record.reprimand:hover { background: #A83D2E; }
+        .record-count-badge { display: inline-block; background: var(--manager-blue); color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; margin-left: 5px; }
+        .record-count-badge.reprimand { background: var(--manager-blue-dark); }
         .record-history { border-top: 1px solid #ecf0f1; padding-top: 15px; margin-top: 15px; }
         .record-history h4 { font-size: 12px; color: #7f8c8d; text-transform: uppercase; margin-bottom: 10px; }
         .record-list { max-height: 200px; overflow-y: auto; }
-        .record-entry { padding: 10px; background: #f8f9fa; border-radius: 4px; margin-bottom: 8px; position: relative; border-left: 3px solid #27ae60; }
-        .record-entry.reprimand { border-left-color: #e74c3c; }
+        .record-entry { padding: 10px; background: #f8f9fa; border-radius: 4px; margin-bottom: 8px; position: relative; border-left: 3px solid var(--manager-blue); }
+        .record-entry.reprimand { border-left-color: var(--manager-blue-dark); }
         .record-entry .record-reason { font-size: 13px; color: var(--text-dark); margin-bottom: 5px; }
         .record-entry .record-meta { font-size: 11px; color: #95a5a6; }
         .record-entry .btn-delete-record { position: absolute; top: 8px; right: 8px; background: none; border: none; color: #bdc3c7; cursor: pointer; font-size: 12px; padding: 2px 5px; }
-        .record-entry .btn-delete-record:hover { color: #e74c3c; }
+        .record-entry .btn-delete-record:hover { color: var(--manager-blue); }
         .record-empty { text-align: center; padding: 20px; color: #95a5a6; font-size: 13px; }
-        .btn-records { background: rgba(39, 174, 96, 0.1); border: 1px solid #27ae60; color: #27ae60; }
-        .btn-records:hover { background: #27ae60; color: white; }
+        .btn-records { background: rgba(216, 87, 66, 0.1); border: 1px solid var(--manager-blue); color: var(--manager-blue); }
+        .btn-records:hover { background: var(--manager-blue); color: white; }
 
         /* === 普通文档加载过渡 (新增) === */
         #transition-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #0f172a; z-index: 8000; pointer-events: none; clip-path: inset(50% 0 50% 0); transition: clip-path 0.8s cubic-bezier(0.8, 0, 0.2, 1); display: flex; flex-direction: column; justify-content: center; align-items: center; }
@@ -759,7 +766,7 @@
         /* === 收件箱按钮样式 === */
         .btn-inbox {
             background: rgba(142, 68, 173, 0.2);
-            color: #9b59b6;
+            color: var(--manager-blue);
             border: none;
             padding: 8px 12px;
             border-radius: 4px;
@@ -768,12 +775,12 @@
             font-size: 12px;
             position: relative;
         }
-        .btn-inbox:hover { background: #9b59b6; color: white; }
+        .btn-inbox:hover { background: var(--manager-blue); color: white; }
         .inbox-badge {
             position: absolute;
             top: -5px;
             right: -5px;
-            background: #e74c3c;
+            background: var(--manager-blue);
             color: white;
             font-size: 10px;
             font-weight: bold;
@@ -792,7 +799,7 @@
             border-radius: 6px;
             margin-bottom: 25px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            border-left: 5px solid #27ae60;
+            border-left: 5px solid var(--manager-blue);
         }
         .mission-header {
             display: flex;
@@ -808,9 +815,9 @@
             align-items: center;
             gap: 8px;
         }
-        .mission-header h3 i { color: #27ae60; }
+        .mission-header h3 i { color: var(--manager-blue); }
         .btn-new-mission {
-            background: #27ae60;
+            background: var(--manager-blue);
             color: white;
             border: none;
             padding: 8px 16px;
@@ -820,7 +827,7 @@
             font-weight: bold;
             transition: 0.2s;
         }
-        .btn-new-mission:hover { background: #219a52; }
+        .btn-new-mission:hover { background: var(--manager-blue-dark); }
         .mission-tabs {
             display: flex;
             gap: 5px;
@@ -842,7 +849,7 @@
         }
         .mission-tabs button.active {
             background: white;
-            color: #27ae60;
+            color: var(--manager-blue);
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .mission-list { display: flex; flex-direction: column; gap: 15px; }
@@ -857,9 +864,9 @@
             cursor: pointer;
         }
         .mission-card.clickable:hover {
-            border-color: #27ae60;
+            border-color: var(--manager-blue);
             transform: translateX(5px);
-            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.15);
+            box-shadow: 0 4px 12px rgba(216, 87, 66, 0.15);
         }
         .mission-card-header {
             display: flex;
@@ -879,11 +886,11 @@
             margin-left: 6px;
         }
         .mission-type-badge.containment {
-            background: linear-gradient(135deg, #3498db, #2980b9);
+            background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-dark));
             color: white;
         }
         .mission-type-badge.sweep {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-dark));
             color: white;
         }
         .mission-quick-actions { display: flex; gap: 5px; }
@@ -899,7 +906,7 @@
             align-items: center;
             gap: 6px;
             font-size: 12px;
-            color: #27ae60;
+            color: var(--manager-blue);
             font-weight: 600;
             flex: 1;
             overflow: hidden;
@@ -915,7 +922,7 @@
             transition: 0.2s;
         }
         .mission-card.clickable:hover .mission-enter-hint {
-            color: #27ae60;
+            color: var(--manager-blue);
             transform: translateX(3px);
         }
         .mission-members { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -932,7 +939,7 @@
         .mission-member-status {
             font-size: 10px;
             color: white;
-            background: #27ae60;
+            background: var(--manager-blue);
             padding: 2px 6px;
             border-radius: 10px;
         }
@@ -944,7 +951,7 @@
             padding: 0 2px;
             font-size: 12px;
         }
-        .mission-member .btn-remove-member:hover { color: #e74c3c; }
+        .mission-member .btn-remove-member:hover { color: var(--manager-blue); }
         .mission-empty { text-align: center; padding: 30px; color: #95a5a6; font-size: 13px; }
         .btn-add-member {
             background: transparent;
@@ -956,29 +963,59 @@
             cursor: pointer;
             transition: 0.2s;
         }
-        .btn-add-member:hover { border-color: #27ae60; color: #27ae60; }
+        .btn-add-member:hover { border-color: var(--manager-blue); color: var(--manager-blue); }
 
         /* === 任务收件箱样式 === */
         .mission-inbox-list {
-            max-height: 300px;
+            max-height: 400px;
             overflow-y: auto;
+            padding: 5px;
+        }
+        .mission-inbox-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .mission-inbox-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        .mission-inbox-list::-webkit-scrollbar-thumb {
+            background: #bdc3c7;
+            border-radius: 3px;
+        }
+        .mission-inbox-list::-webkit-scrollbar-thumb:hover {
+            background: #95a5a6;
         }
         .mission-inbox-item {
             display: flex;
             align-items: center;
-            padding: 12px 15px;
-            border-bottom: 1px solid #f0f0f0;
+            padding: 14px 16px;
+            margin-bottom: 8px;
+            background: white;
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
             cursor: pointer;
-            transition: 0.2s;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
-        .mission-inbox-item:hover { background: #f8f9fa; }
-        .mission-inbox-item.unread { background: #fff8e1; }
-        .mission-inbox-item.unread:hover { background: #fff3cd; }
+        .mission-inbox-item:hover { 
+            background: #f8f9fa; 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            transform: translateX(2px);
+        }
+        .mission-inbox-item.unread { 
+            background: #fffbf0; 
+            border-color: #ffd54f;
+            border-left: 3px solid #ffc107;
+        }
+        .mission-inbox-item.unread:hover { 
+            background: #fff8e1; 
+            box-shadow: 0 2px 6px rgba(255,193,7,0.2);
+        }
         .mission-inbox-sender {
             width: 36px;
             height: 36px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #3498db, #2980b9);
+            background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-dark));
             color: white;
             display: flex;
             align-items: center;
@@ -1021,10 +1058,10 @@
             color: #7f8c8d;
         }
         .mission-inbox-type.mail { background: #e8f4fc; color: #3498db; }
-        .mission-inbox-type.containment { background: #fdecea; color: #e74c3c; }
+        .mission-inbox-type.containment { background: #fdecea; color: var(--manager-blue); }
         .mission-inbox-type.report { background: #e8f8f5; color: #27ae60; }
         .inbox-badge {
-            background: #e74c3c;
+            background: var(--manager-blue);
             color: white;
             font-size: 11px;
             padding: 2px 7px;
@@ -1033,9 +1070,17 @@
         }
         .inbox-empty {
             text-align: center;
-            padding: 30px;
+            padding: 50px 30px;
             color: #bdc3c7;
-            font-size: 13px;
+            font-size: 14px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px dashed #e0e0e0;
+        }
+        .inbox-empty i {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: #d5d5d5;
         }
         .btn-refresh-inbox {
             background: none;
@@ -1052,61 +1097,137 @@
         .mission-values-row {
             display: flex;
             align-items: flex-end;
-            gap: 20px;
+            justify-content: center;
+            gap: 24px;
             flex-wrap: wrap;
         }
         .value-input-group {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 10px;
+            align-items: flex-start;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            padding: 16px 18px;
+            border-radius: 10px;
+            border: 1px solid #e8eaed;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+            transition: all 0.2s ease;
+            width: 200px;
+            flex-shrink: 0;
+        }
+        .value-input-group:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+            transform: translateY(-1px);
         }
         .value-input-group label {
-            font-size: 12px;
-            font-weight: 600;
-            color: #7f8c8d;
+            font-size: 13px;
+            font-weight: 700;
+            color: #34495e;
+            margin-bottom: 0;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .value-input-group label::before {
+            content: '';
+            width: 4px;
+            height: 16px;
+            background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-dark));
+            border-radius: 2px;
         }
         .value-input-wrapper {
             display: flex;
             align-items: center;
             gap: 0;
+            height: 44px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
         }
         .value-btn {
-            width: 32px;
-            height: 36px;
-            border: 1px solid #ddd;
-            background: #f8f9fa;
-            color: #7f8c8d;
+            width: 40px;
+            height: 44px;
+            border: none;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            color: #5a6c7d;
             cursor: pointer;
-            transition: 0.2s;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
         }
-        .value-btn:first-child { border-radius: 6px 0 0 6px; border-right: none; }
-        .value-btn:last-child { border-radius: 0 6px 6px 0; border-left: none; }
-        .value-btn:hover { background: #e9ecef; color: var(--text-dark); }
+        .value-btn:first-child { 
+            border-radius: 0;
+        }
+        .value-btn:last-child { 
+            border-radius: 0;
+        }
+        .value-btn:hover { 
+            background: linear-gradient(135deg, #e9ecef, #dee2e6); 
+            color: #24292f;
+        }
+        .value-btn:active {
+            background: linear-gradient(135deg, #dee2e6, #ced4da);
+            transform: scale(0.95);
+        }
         .value-input-wrapper input {
-            width: 70px;
-            height: 36px;
-            border: 1px solid #ddd;
+            width: 90px;
+            height: 44px;
+            border: none;
             text-align: center;
-            font-size: 14px;
-            font-weight: 600;
+            font-size: 16px;
+            font-weight: 700;
+            color: #2c3e50;
+            background: #ffffff;
+            padding: 0;
         }
-        .value-input-wrapper input:focus { outline: none; border-color: #3498db; }
+        .value-input-wrapper input:focus { 
+            outline: none; 
+            background: #f8f9fa;
+        }
         .value-hint {
-            font-size: 10px;
+            font-size: 11px;
             color: #95a5a6;
+            margin-top: 4px;
+            height: 16px;
+            font-style: italic;
         }
         .btn-save-values {
-            padding: 10px 20px;
-            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            height: 44px;
+            padding: 0 28px;
+            margin-bottom: 0;
+            background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-light));
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             color: white;
-            font-size: 13px;
-            font-weight: 600;
+            font-size: 14px;
+            font-weight: 700;
             cursor: pointer;
-            transition: 0.2s;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 3px 6px rgba(216,87,66,0.25);
+            align-self: flex-end;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        .btn-save-values:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(39,174,96,0.3); }
+        .btn-save-values:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 5px 12px rgba(216,87,66,0.35);
+            background: linear-gradient(135deg, var(--manager-blue-dark), var(--manager-blue));
+        }
+        .btn-save-values:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(216,87,66,0.25);
+        }
 
         /* === 特工详情弹窗样式 === */
         #agentDetailModal .modal-box.large { max-width: 700px; max-height: 85vh; }
@@ -1167,7 +1288,7 @@
             font-size: 12px;
         }
         .relation-tag {
-            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-light));
             color: white;
             padding: 6px 12px;
             border-radius: 15px;
@@ -1185,14 +1306,51 @@
         }
 
         /* === 任务报告样式 === */
-        .mission-reports-list { max-height: 300px; overflow-y: auto; }
-        .report-empty { text-align: center; padding: 30px; color: #bdc3c7; font-size: 13px; }
+        .mission-reports-list { 
+            max-height: 400px; 
+            overflow-y: auto;
+            padding: 5px;
+        }
+        .mission-reports-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .mission-reports-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        .mission-reports-list::-webkit-scrollbar-thumb {
+            background: #bdc3c7;
+            border-radius: 3px;
+        }
+        .mission-reports-list::-webkit-scrollbar-thumb:hover {
+            background: #95a5a6;
+        }
+        .report-empty { 
+            text-align: center; 
+            padding: 50px 30px; 
+            color: #bdc3c7; 
+            font-size: 14px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px dashed #e0e0e0;
+        }
+        .report-empty i {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: #d5d5d5;
+        }
         .report-item {
             background: white;
             border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 10px;
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+        }
+        .report-item:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transform: translateY(-1px);
         }
         .report-item-header {
             display: flex;
@@ -1215,10 +1373,11 @@
             display: flex;
             gap: 15px;
             align-items: center;
-            margin: 10px 0;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 6px;
+            margin: 12px 0;
+            padding: 12px 14px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #f0f2f5 100%);
+            border-radius: 8px;
+            border: 1px solid #e8e8e8;
         }
         .report-rating-input {
             display: flex;
@@ -1234,35 +1393,71 @@
         }
         .report-rating-input input[type="number"] { width: 80px; }
         .report-annotation {
-            margin-top: 10px;
+            margin-top: 12px;
         }
         .report-annotation textarea {
             width: 100%;
-            min-height: 60px;
-            padding: 10px;
+            min-height: 70px;
+            padding: 12px;
             border: 1px solid #ddd;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 13px;
             resize: vertical;
+            transition: border-color 0.2s;
+            font-family: inherit;
+        }
+        .report-annotation textarea:focus {
+            outline: none;
+            border-color: var(--manager-blue);
+            box-shadow: 0 0 0 3px rgba(216,87,66,0.1);
         }
         .report-actions {
             display: flex;
             gap: 10px;
-            margin-top: 10px;
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid #f0f0f0;
         }
         .btn-report {
-            padding: 8px 15px;
+            padding: 9px 18px;
             border: none;
             border-radius: 6px;
             font-size: 12px;
+            font-weight: 600;
             cursor: pointer;
-            transition: 0.2s;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
-        .btn-report.save { background: #3498db; color: white; }
-        .btn-report.save:hover { background: #2980b9; }
-        .btn-report.send { background: #27ae60; color: white; }
-        .btn-report.send:hover { background: #219a52; }
-        .btn-report:disabled { background: #bdc3c7; cursor: not-allowed; }
+        .btn-report.save { 
+            background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-dark)); 
+            color: white; 
+            box-shadow: 0 2px 4px rgba(216,87,66,0.3);
+        }
+        .btn-report.save:hover { 
+            background: linear-gradient(135deg, var(--manager-blue-dark), #A83D2E); 
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(216,87,66,0.4);
+        }
+        .btn-report.send { 
+            background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-dark)); 
+            color: white; 
+            box-shadow: 0 2px 4px rgba(216,87,66,0.3);
+        }
+        .btn-report.send:hover { 
+            background: linear-gradient(135deg, var(--manager-blue-dark), #A83D2E); 
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(216,87,66,0.4);
+        }
+        .btn-report:disabled { 
+            background: #bdc3c7; 
+            cursor: not-allowed; 
+            box-shadow: none;
+        }
+        .btn-report:disabled:hover {
+            transform: none;
+        }
         .report-status-badge {
             font-size: 10px;
             padding: 2px 8px;
@@ -1276,7 +1471,7 @@
 
         /* === 收件箱弹窗样式 === */
         #inboxModal .modal-box { max-width: 600px; max-height: 80vh; display: flex; flex-direction: column; }
-        #inboxModal .modal-header { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+        #inboxModal .modal-header { background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-dark)); }
         #inboxModal .modal-header h3, #inboxModal .modal-close { color: white; }
         #inboxModal .modal-body { flex: 1; overflow-y: auto; }
         .inbox-list { display: flex; flex-direction: column; gap: 10px; }
@@ -1286,10 +1481,10 @@
             border-radius: 6px;
             cursor: pointer;
             transition: 0.2s;
-            border-left: 3px solid #9b59b6;
+            border-left: 3px solid var(--manager-blue);
         }
         .inbox-item:hover { background: #f0f0f0; }
-        .inbox-item.unread { background: #f3e5f5; border-left-color: #e74c3c; }
+        .inbox-item.unread { background: #f3e5f5; border-left-color: var(--manager-blue); }
         .inbox-item-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
         .inbox-item-sender { font-weight: bold; font-size: 13px; color: var(--text-dark); }
         .inbox-item-time { font-size: 11px; color: #95a5a6; }
@@ -1313,10 +1508,10 @@
             font-size: 14px;
             box-sizing: border-box;
         }
-        .mission-form input:focus, .mission-form textarea:focus { outline: none; border-color: #27ae60; }
+        .mission-form input:focus, .mission-form textarea:focus { outline: none; border-color: var(--manager-blue); }
         .mission-form textarea { min-height: 80px; resize: vertical; }
-        #missionModal .btn-modal-confirm { background: #27ae60; }
-        #missionModal .btn-modal-confirm:hover { background: #219a52; }
+        #missionModal .btn-modal-confirm { background: var(--manager-blue); }
+        #missionModal .btn-modal-confirm:hover { background: var(--manager-blue-dark); }
 
         /* === 邮件详情弹窗样式 === */
         #mailDetailModal .modal-box { max-width: 550px; }
@@ -1381,12 +1576,12 @@
             font-size: 11px;
             width: 100px;
             text-align: center;
-            color: #27ae60;
+            color: var(--manager-blue);
             background: #f8f9fa;
         }
         .member-status-input:focus {
             outline: none;
-            border-color: #27ae60;
+            border-color: var(--manager-blue);
             background: white;
         }
         .btn-remove-member {
@@ -1419,7 +1614,7 @@
         }
         .member-select-item:hover {
             background: #e8f5e9;
-            border-color: #27ae60;
+            border-color: var(--manager-blue);
         }
 
         /* 收件箱项增强 */
@@ -1437,7 +1632,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #9b59b6;
+            color: var(--manager-blue);
             flex-shrink: 0;
         }
         .inbox-item.unread .inbox-item-icon {
@@ -1471,7 +1666,7 @@
         .inbox-unread-dot {
             width: 10px;
             height: 10px;
-            background: #e74c3c;
+            background: var(--manager-blue);
             border-radius: 50%;
             flex-shrink: 0;
         }
@@ -1502,7 +1697,7 @@
             gap: 10px;
             flex-wrap: wrap;
             font-size: 13px;
-            color: #27ae60;
+            color: var(--manager-blue);
         }
         .report-table {
             width: 100%;
@@ -1686,7 +1881,6 @@
                             <input type="number" id="missionScatterValue" value="0">
                             <button class="value-btn" onclick="adjustMissionValue('scatter', 1)"><i class="fas fa-plus"></i></button>
                         </div>
-                        <span class="value-hint">可为负数</span>
                     </div>
                     <button class="btn-save-values" onclick="saveMissionValues()">
                         <i class="fas fa-save"></i> 保存数值
@@ -2038,22 +2232,105 @@
 
     // 加载已授权的角色
     async function loadCharacters() {
+        console.log('loadCharacters called'); // 临时调试日志
+        
+        // #region agent log
         try {
+            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2044',message:'loadCharacters called',data:{hasToken:!!token},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+        } catch (logErr) {
+            console.error('Log error:', logErr);
+        }
+        // #endregion
+
+        try {
+            console.log('loadCharacters: starting fetch'); // 临时调试日志
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2046',message:'Before fetch API',data:{url:'/api/manager/characters'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+            // #endregion
+
+            // 添加超时处理
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
+
             const res = await fetch('/api/manager/characters', {
-                headers: getAuthHeaders()
+                headers: getAuthHeaders(),
+                signal: controller.signal
             });
+
+            clearTimeout(timeoutId);
+
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2049',message:'Fetch response received',data:{status:res.status,statusText:res.statusText,ok:res.ok},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+            // #endregion
+
+            if (!res.ok) {
+                // #region agent log
+                fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2051',message:'Response not OK',data:{status:res.status,statusText:res.statusText},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+                // #endregion
+
+                const container = document.getElementById('charList');
+                if (container) {
+                    container.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>加载失败</h3>
+                        <p>状态码: ${res.status}</p>
+                    </div>`;
+                }
+                showToast('加载失败');
+                return;
+            }
+
             const chars = await res.json();
+
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2050',message:'JSON parsed',data:{charsCount:chars?.length||0,isArray:Array.isArray(chars)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+            // #endregion
+
             renderCharacters(chars);
+
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2050',message:'renderCharacters called',data:{charsCount:chars?.length||0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+            // #endregion
+
         } catch (e) {
-            console.error(e);
-            showToast('加载失败');
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2052',message:'Exception caught',data:{errorMessage:e.message,errorName:e.name,errorStack:e.stack?.substring(0,200),isAbortError:e.name==='AbortError'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+            // #endregion
+
+            console.error('loadCharacters error:', e);
+            const container = document.getElementById('charList');
+            if (container) {
+                const errorMsg = e.name === 'AbortError' ? '请求超时，请检查网络连接' : (e.message || '未知错误');
+                container.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>加载失败</h3>
+                    <p>${errorMsg}</p>
+                    <button onclick="loadCharacters()" style="margin-top:10px;padding:8px 16px;background:#3498db;color:white;border:none;border-radius:4px;cursor:pointer;">重试</button>
+                </div>`;
+            }
+            showToast('加载失败: ' + (e.message || '未知错误'));
         }
     }
 
     function renderCharacters(chars) {
         const container = document.getElementById('charList');
 
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2057',message:'renderCharacters called',data:{containerExists:!!container,charsCount:chars?.length||0,charsIsArray:Array.isArray(chars)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
+
+        if (!container) {
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2058',message:'Container not found',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+            // #endregion
+            return;
+        }
+
         if (!chars || chars.length === 0) {
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2060',message:'Empty chars array',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+            // #endregion
+
             container.innerHTML = `
                 <div class="empty-state" style="grid-column: 1/-1;">
                     <i class="fas fa-folder-open"></i>
@@ -2807,6 +3084,10 @@
     async function addMemberToMission(charId, charName) {
         if (!addMemberMissionId) return;
 
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2805',message:'addMemberToMission called',data:{charId,charName,addMemberMissionId,currentMissionDetailId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+        // #endregion
+
         try {
             const res = await fetch(`/api/manager/mission/${addMemberMissionId}/member`, {
                 method: 'POST',
@@ -2815,15 +3096,39 @@
             });
 
             const data = await res.json();
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2815',message:'API response received',data:{success:data.success,missionId:addMemberMissionId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+            // #endregion
+
             if (data.success) {
                 showToast(`已添加 ${charName}`, true);
+                
+                // 保存 missionId 用于后续刷新，因为 closeAddMemberModal 会清空它
+                const missionIdToRefresh = addMemberMissionId;
                 closeAddMemberModal();
+                
+                // #region agent log
+                fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2819',message:'Before loadMissions',data:{missionsListLength:missionsList.length,currentMissionDetailId,missionIdToRefresh},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+                // #endregion
+
                 await loadMissions();
 
+                // #region agent log
+                fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2822',message:'After loadMissions',data:{missionsListLength:missionsList.length,currentMissionDetailId,missionIdToRefresh},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+                // #endregion
+
                 // 如果在任务详情页，刷新成员列表
-                if (currentMissionDetailId && currentMissionDetailId === addMemberMissionId) {
+                if (currentMissionDetailId && currentMissionDetailId === missionIdToRefresh) {
                     const mission = missionsList.find(m => m.id === currentMissionDetailId);
+                    // #region agent log
+                    fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2824',message:'Finding mission in list',data:{missionFound:!!mission,missionMembersCount:mission?.members?.length||0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+                    // #endregion
+
                     if (mission) {
+                        // #region agent log
+                        fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2825',message:'Calling renderMissionDetailMembers',data:{membersCount:mission.members?.length||0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+                        // #endregion
+
                         renderMissionDetailMembers(mission.members || []);
                     }
                 }
@@ -3171,10 +3476,22 @@
     function renderMissionDetailMembers(members) {
         const container = document.getElementById('missionDetailMembers');
 
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:3170',message:'renderMissionDetailMembers called',data:{membersCount:members?.length||0,membersArray:members?.map(m=>({id:m.character_id,name:m.name}))||[]},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+        // #endregion
+
         if (!members || members.length === 0) {
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:3173',message:'Empty members list - returning early',data:{containerExists:!!container},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+            // #endregion
+
             container.innerHTML = '<div class="no-members">暂无成员，点击上方"添加特工"按钮添加</div>';
             return;
         }
+
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:3177',message:'Rendering members',data:{membersCount:members.length,containerWidth:container?.offsetWidth},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+        // #endregion
 
         container.innerHTML = members.map(member => {
             const initial = (member.name || '?').charAt(0).toUpperCase();
@@ -3205,6 +3522,10 @@
                 </div>
             `;
         }).join('');
+
+        // #region agent log
+        setTimeout(()=>{const cards=container.querySelectorAll('.agent-card');cards.forEach((card,i)=>{fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:3205',message:'Card rendered dimensions',data:{cardIndex:i,cardWidth:card.offsetWidth,cardScrollWidth:card.scrollWidth,infoWidth:card.querySelector('.agent-info')?.offsetWidth,actionsWidth:card.querySelector('.agent-actions')?.offsetWidth},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});});},100);
+        // #endregion
     }
 
     // ==================== 任务报告管理 ====================
@@ -3705,6 +4026,7 @@
     async function removeMemberFromDetail(charId) {
         if (!currentMissionDetailId) return;
         if (!confirm('确定要从任务中移除此特工吗？')) return;
+                // 刷新详情页面
 
         try {
             const res = await fetch(`/api/manager/mission/${currentMissionDetailId}/member/${charId}`, {
@@ -3716,7 +4038,6 @@
             if (data.success) {
                 showToast('特工已移除', true);
                 await loadMissions();
-                // 刷新详情页面
                 const mission = missionsList.find(m => m.id === currentMissionDetailId);
                 if (mission) {
                     renderMissionDetailMembers(mission.members || []);
@@ -3810,7 +4131,24 @@
     // ==========================================
 
     // 初始化页面
-    loadCharacters();
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:3929',message:'Page initialization started',data:{hasToken:!!token,role},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
+
+    try {
+        loadCharacters();
+    } catch (e) {
+        console.error('loadCharacters failed:', e);
+        const container = document.getElementById('charList');
+        if (container) {
+            container.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>初始化失败</h3>
+                <p>${e.message || '未知错误'}</p>
+            </div>`;
+        }
+    }
+    
     loadMissions();
     loadInbox();
     loadMyBranch();
