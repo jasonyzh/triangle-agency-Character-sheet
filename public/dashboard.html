@@ -60,7 +60,9 @@
             margin-bottom: 40px; padding-bottom: 20px;
             border-bottom: 2px solid rgba(255,255,255,0.1);
         }
-        
+		
+
+		
         .brand-logo {
             display: flex; flex-direction: column; line-height: 0.9;
             font-weight: 900; font-style: italic; text-transform: uppercase;
@@ -68,25 +70,63 @@
         .brand-logo .top { font-size: 24px; letter-spacing: 2px; color: #fff; }
         .brand-logo .btm { font-size: 14px; letter-spacing: 4px; color: var(--signal-red); margin-left: 2px; }
 
-        .btn-group { display: flex; gap: 12px; }
+        .btn-group { 
+            display: flex; 
+            gap: 10px; 
+            align-items: center; 
+        }
         
         .btn { 
-            padding: 10px 18px; border-radius: 4px; cursor: pointer; border: none; 
-            font-weight: bold; font-size: 13px; display: inline-flex; align-items: center; 
-            gap: 8px; transition: all 0.2s; text-transform: uppercase; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            height: 38px; /* 统一高度 */
+            padding: 0 16px; /* 统一内边距 */
+            border-radius: 4px; 
+            cursor: pointer; 
+            border: none; 
+            font-weight: 700; 
+            font-size: 13px; 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center;
+            gap: 8px; 
+            transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
+            text-transform: uppercase; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            color: white; /* 统一文字颜色 */
+            text-decoration: none;
+            line-height: 1;
         }
-        .btn-new { background: var(--signal-red); color: white; }
-        .btn-new:hover { background: #e74c3c; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(192, 57, 43, 0.3); }
-        .btn-logout { background: #fff; color: #555; }
-        .btn-logout:hover { background: #f0f0f0; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }
-        .btn-console { background: #3498db; color: white; }
-        .btn-console:hover { background: #2980b9; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3); }
-        .btn-console.admin { background: #9b59b6; }
-        .btn-console.admin:hover { background: #8e44ad; box-shadow: 0 5px 15px rgba(155, 89, 182, 0.3); }
+		.btn i { width: 16px; text-align: center; }
+		.btn:hover { transform: translateY(-2px); }
+        .btn:active { transform: translateY(0); }
+		
+		
+        .btn-new { background: var(--signal-red); }
+        .btn-new:hover { background: #e74c3c; box-shadow: 0 5px 15px rgba(192, 57, 43, 0.3); }
+
+		.btn-logout { background: #fff; color: #555; border: 1px solid #eee; }
+        .btn-logout:hover { background: #f8f9fa; color: var(--signal-red); transform: translateY(-2px); }
+        .btn-console { background: #E06B56; color: white; }
+        .btn-console:hover { 
+            background: #cf5d48; /* 稍微调深一点作为悬停色 */
+            transform: translateY(-2px); 
+            box-shadow: 0 5px 15px rgba(224, 107, 86, 0.3); 
+        }
+        .btn-manager { background: #E06B56; }
+        .btn-manager:hover { background: #cf5d48; box-shadow: 0 5px 15px rgba(224, 107, 86, 0.3); }
+		.btn-admin { background: #d63031; }
+        .btn-admin:hover { background: #c0392b; box-shadow: 0 5px 15px rgba(214, 48, 49, 0.3); }
+
+		
+        /* === 管理台 (Admin) - 配色 红色 === */
+        .btn-console.admin { background: #d63031; /* 鲜艳的红色 */ }
+        .btn-console.admin:hover { 
+            background: #c0392b; 
+            box-shadow: 0 5px 15px rgba(214, 48, 49, 0.3); 
+        }
         
-        .btn-highwall { background: #2c3e50; color: white; }
-        .btn-highwall:hover { background: #34495e; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(44, 62, 80, 0.3); }
-        
+        .btn-highwall { background: #2c3e50; }
+        .btn-highwall:hover { background: #34495e; box-shadow: 0 5px 15px rgba(44, 62, 80, 0.3); }
+		
         .grid { 
             display: grid; 
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
@@ -301,22 +341,54 @@
         .menu-item.primary:hover {
             background: #e74c3c;
         }
-        .menu-item.console {
-            background: rgba(52, 152, 219, 0.2);
-            border-color: #3498db;
-            color: #3498db;
+		/* === 移动端菜单特殊样式修正 === */
+        
+        /* 1. 经理台 (实心 #E06B56) */
+        .menu-item.manager {
+            background: #E06B56 !important; /* 强制背景实心填充 */
+            border-color: #E06B56 !important;
+            color: white !important;         /* 强制文字白色 */
         }
-        .menu-item.console:hover {
-            background: #3498db;
-            color: white;
+        .menu-item.manager:hover {
+            background: #cf5d48 !important;
         }
+
+
+        /* 控制台：实心 红色 */
         .menu-item.admin {
-            background: rgba(155, 89, 182, 0.2);
-            border-color: #9b59b6;
-            color: #9b59b6;
+            background: var(--signal-red) !important; /* 强制背景实心填充 */
+            border-color: var(--signal-red) !important;
+            color: white !important;
         }
         .menu-item.admin:hover {
-            background: #9b59b6;
+            background: #c0392b !important;
+        }
+		/* === 桌面端：高墙按钮 (改为蓝色 #3498db) === */
+        .btn-highwall { background: #3498db; }
+        .btn-highwall:hover { 
+            background: #2980b9; /* 悬停变深 */
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3); 
+        }
+
+        /* === 移动端：高墙菜单项 (实心蓝色填充) === */
+        /* 注意：这需要您在 HTML 里的高墙 div 上加上 class="highwall" */
+        .menu-item.highwall {
+            background: #3498db !important; /* 强制实心背景 */
+            border-color: #3498db !important;
+            color: white !important;         /* 强制白色文字 */
+        }
+        .menu-item.highwall:hover {
+            background: #2980b9 !important;
+        }
+
+        /* === 侧边栏：管理台 (红色) === */
+        .menu-item.admin {
+            background: rgba(214, 48, 49, 0.15); /* 低透明度背景 */
+            border-color: #d63031;
+            color: #d63031;
+        }
+        .menu-item.admin:hover {
+            background: #d63031;
             color: white;
         }
         .menu-item.logout {
@@ -331,10 +403,29 @@
             color: var(--signal-red);
         }
 
+		/* === 移动端布局修正 === */
         @media (max-width: 768px) {
-            header { flex-direction: column; align-items: flex-start; gap: 15px; margin-bottom: 20px; padding-bottom: 15px; }
-            .btn-group { display: none; } /* Hide desktop buttons */
-            .menu-toggle { display: flex; } /* Show mobile menu toggle */
+            header { 
+                /* 关键修改：改为水平排列，两端对齐 */
+                flex-direction: row; 
+                justify-content: space-between; 
+                align-items: center; 
+                
+                margin-bottom: 20px; 
+                padding-bottom: 15px; 
+            }
+
+            /* 隐藏桌面端按钮组 */
+            .btn-group { display: none; } 
+            
+            /* 显示菜单按钮 */
+            .menu-toggle { display: flex; } 
+
+            /* Logo样式微调 */
+            .brand-logo {
+                /* 移除之前的 flex设置，防止被拉伸 */
+                flex: 0 0 auto; 
+            }
             .brand-logo .top { font-size: 20px; }
             .brand-logo .btm { font-size: 12px; }
         }
@@ -541,21 +632,30 @@
                 <span class="btm">AGENCY</span>
             </div>
             <!-- FIXED: 清理并整合了所有按钮 -->
-            <div class="btn-group">
+			<div class="btn-group">
+                <!-- 1. 新建 -->
                 <button class="btn btn-new" onclick="createNew()" title="新建档案">
-                    <i class="fas fa-plus"></i> <span class="btn-text">新建</span>
+                    <i class="fas fa-plus"></i> <span>新建</span>
                 </button>
+                
+                <!-- 2. 高墙 -->
                 <button class="btn btn-highwall" onclick="enterHighWall()" title="高墙文件">
-                    <i class="fas fa-file-shield"></i> <span class="btn-text">高墙</span>
+                    <i class="fas fa-file-shield"></i> <span>高墙</span>
                 </button>
-                <button class="btn btn-console" id="btnManager" style="display:none;" onclick="goManager()" title="经理台">
-                    <i class="fas fa-user-tie"></i> <span class="btn-text">经理台</span>
+                
+                <!-- 3. 经理台 (默认隐藏) -->
+                <button class="btn btn-manager" id="btnManager" style="display:none;" onclick="goManager()" title="经理台">
+                    <i class="fas fa-user-tie"></i> <span>经理台</span>
                 </button>
-                <button class="btn btn-console admin" id="btnConsole" style="display:none;" onclick="goConsole()" title="管理台">
-                    <i class="fas fa-shield-alt"></i> <span class="btn-text">管理台</span>
+                
+                <!-- 4. 控制台 (默认隐藏) -->
+                <button class="btn btn-admin" id="btnConsole" style="display:none;" onclick="goConsole()" title="管理控制台">
+                    <i class="fas fa-shield-alt"></i> <span>控制台</span>
                 </button>
+                
+                <!-- 退出 -->
                 <button class="btn btn-logout" onclick="logout()" title="登出">
-                    <i class="fas fa-sign-out-alt"></i> <span class="btn-text">退出</span>
+                    <i class="fas fa-sign-out-alt"></i> <span>退出</span>
                 </button>
             </div>
             <!-- 移动端菜单按钮 -->
@@ -584,18 +684,26 @@
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        <div class="side-menu-content">
+		<div class="side-menu-content">
+            <!-- 新建 (这个样式是原本就对的) -->
             <div class="menu-item primary" onclick="closeSideMenu(); createNew();">
                 <i class="fas fa-plus"></i> 新建
             </div>
-            <!-- FIXED: 侧边栏按钮现在会动态配置 -->
-			<div class="menu-item" onclick="closeSideMenu(); enterHighWall();">
+            <!-- 控制台 (必须有 class="admin") -->
+            <div class="menu-item admin" id="menuConsole" style="display:none;" onclick="closeSideMenu(); goConsole();">
+                <i class="fas fa-shield-alt"></i> <span>控制台</span>
+            </div>
+            <!-- 经理台 (必须有 class="manager") -->
+            <div class="menu-item manager" id="menuManager" style="display:none;" onclick="closeSideMenu(); goManager();">
+                <i class="fas fa-user-tie"></i> <span>经理台</span>
+            </div>
+            <!-- 高墙 -->
+            <div class="menu-item highwall" onclick="closeSideMenu(); enterHighWall();">
                 <i class="fas fa-file-shield"></i> 高墙
             </div>
-            <div class="menu-item" id="menuConsole" style="display:none;">
-                <i class="fas fa-user-tie"></i> <span>控制台</span>
-            </div>
 
+
+            <!-- 退出 -->
             <div class="menu-item logout" onclick="closeSideMenu(); logout();">
                 <i class="fas fa-sign-out-alt"></i> 退出登录
             </div>
@@ -628,28 +736,49 @@
         (function initConsoleButton() {
             const btnConsole = document.getElementById('btnConsole'); // 管理台按钮
             const btnManager = document.getElementById('btnManager'); // 经理台按钮
-            const menuConsole = document.getElementById('menuConsole'); // 侧边栏的按钮
+            const menuConsole = document.getElementById('menuConsole'); 
+            const menuManager = document.getElementById('menuManager');
 
-            if (userRole >= 2) { // 超级管理员
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard.html:628',message:'initConsoleButton called',data:{userRole:userRole},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+            // #endregion
+
+            if (userRole >= 2) { // === 超级管理员 (显示全部) ===
+                
+                // 1. 桌面端显示
                 btnManager.style.display = 'inline-flex';
                 btnConsole.style.display = 'inline-flex';
                 
-                // 配置侧边栏按钮为 "管理台"
-                menuConsole.style.display = 'flex';
-                menuConsole.classList.add('admin');
-                menuConsole.onclick = goConsole;
-                menuConsole.querySelector('span').textContent = '管理台';
-                menuConsole.querySelector('i').className = 'fas fa-shield-alt';
+                // 2. 移动端显示 - 经理台
+                if(menuManager) {
+                    menuManager.style.display = 'flex';
+                    menuManager.classList.add('console'); // 蓝色样式
+                }
 
-            } else if (userRole >= 1) { // 经理
+                // 3. 移动端显示 - 管理台
+                if(menuConsole) {
+                    menuConsole.style.display = 'flex';
+                    menuConsole.classList.add('admin');   // 紫色样式
+                }
+
+            } else if (userRole >= 1) { // === 经理 (只显示经理台) ===
+                
+                // 1. 桌面端显示
                 btnManager.style.display = 'inline-flex';
                 
-                // 配置侧边栏按钮为 "经理台"
-                menuConsole.style.display = 'flex';
-                menuConsole.classList.add('console');
-                menuConsole.onclick = goManager;
-                menuConsole.querySelector('span').textContent = '经理台';
-                menuConsole.querySelector('i').className = 'fas fa-user-tie';
+                // 2. 移动端显示 - 经理台
+                if(menuManager) {
+                    menuManager.style.display = 'flex';
+                    menuManager.classList.add('console');
+                }
+                
+                // 3. 确保管理台隐藏
+                if(menuConsole) menuConsole.style.display = 'none';
+
+            } else { // === 普通用户 ===
+                // 确保全部隐藏
+                if(menuManager) menuManager.style.display = 'none';
+                if(menuConsole) menuConsole.style.display = 'none';
             }
         })();
 
@@ -740,7 +869,40 @@
         function goManager() {
             createTransition('授权认证中', 'manager.html');
         }
+        (function initConsoleButton() {
+            const btnConsole = document.getElementById('btnConsole'); // 桌面控制台
+            const btnManager = document.getElementById('btnManager'); // 桌面经理台
+            
+            const menuConsole = document.getElementById('menuConsole'); // 手机控制台
+            const menuManager = document.getElementById('menuManager'); // 手机经理台
 
+            // 角色定义：2=超管, 1=经理, 0=普通
+            if (userRole >= 2) { 
+                // === 超级管理员：显示所有 ===
+                if(btnManager) btnManager.style.display = 'inline-flex';
+                if(btnConsole) btnConsole.style.display = 'inline-flex';
+                
+                if(menuManager) menuManager.style.display = 'flex';
+                if(menuConsole) menuConsole.style.display = 'flex';
+
+            } else if (userRole >= 1) { 
+                // === 经理：只显示经理台 ===
+                if(btnManager) btnManager.style.display = 'inline-flex';
+                // 确保控制台隐藏
+                if(btnConsole) btnConsole.style.display = 'none';
+                
+                if(menuManager) menuManager.style.display = 'flex';
+                if(menuConsole) menuConsole.style.display = 'none';
+
+            } else { 
+                // === 普通用户：全部隐藏 ===
+                if(btnManager) btnManager.style.display = 'none';
+                if(btnConsole) btnConsole.style.display = 'none';
+                if(menuManager) menuManager.style.display = 'none';
+                if(menuConsole) menuConsole.style.display = 'none';
+            }
+        })();
+		
         function logout() {
             localStorage.clear();
             window.location.href = 'login.html';
