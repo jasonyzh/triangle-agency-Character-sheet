@@ -842,7 +842,7 @@
             font-weight: bold;
             transition: 0.2s;
         }
-        .btn-new-mission:hover { background: #219a52; }
+
         .mission-tabs {
             display: flex;
             gap: 5px;
@@ -1551,7 +1551,7 @@
         .mission-form input:focus, .mission-form textarea:focus { outline: none; border-color: #27ae60; }
         .mission-form textarea { min-height: 80px; resize: vertical; }
         #missionModal .btn-modal-confirm { background: #27ae60; }
-        #missionModal .btn-modal-confirm:hover { background: #219a52; }
+
 
         /* === 邮件详情弹窗样式 === */
         #mailDetailModal .modal-box { max-width: 550px; }
@@ -2186,7 +2186,46 @@
         /* 隐藏分部信息防止挤压，或者在侧边栏显示 */
         .branch-info { display: none !important; } 
     }
-	
+	/* =========================================
+           【颜色修正补丁】去除绿色，统一为经理红
+           ========================================= */
+        
+        /* 1. 创建任务按钮悬停状态 */
+        .btn-new-mission:hover {
+            background: var(--manager-blue-dark) !important;
+        }
+
+        /* 2. 任务弹窗 (Mission Modal) 头部 */
+        #missionModal .modal-header {
+            background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-dark)) !important;
+        }
+
+        /* 3. 任务弹窗内的输入框聚焦颜色 */
+        .mission-form input:focus, 
+        .mission-form textarea:focus, 
+        .mission-form select:focus {
+            border-color: var(--manager-blue) !important;
+        }
+
+        /* 4. 任务弹窗确认按钮 */
+        #missionModal .btn-modal-confirm {
+            background: var(--manager-blue) !important;
+        }
+        #missionModal .btn-modal-confirm:hover {
+            background: var(--manager-blue-dark) !important;
+        }
+
+        /* 5. 添加成员弹窗 (Add Member Modal) 头部 */
+        /* 之前这里使用了内联样式的绿色，用 !important 覆盖它 */
+        #addMemberModal .modal-header {
+            background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-dark)) !important;
+        }
+        
+        /* 6. 添加成员按钮虚线框悬停色 */
+        .btn-add-member:hover {
+            border-color: var(--manager-blue) !important;
+            color: var(--manager-blue) !important;
+        }
 	</style>
 </head>
 <body>
