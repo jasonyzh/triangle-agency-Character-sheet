@@ -2326,39 +2326,55 @@ app.post('/api/manager/mission', authenticateToken, requireRole(ROLE.MANAGER), (
 });
 
 // 获取经理的所有任务
+// ==========================================
+// 外勤任务 API - 获取经理的所有任务 (修正版)
+// ==========================================
 app.get('/api/manager/missions', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
     const managerId = req.user.userId;
-    const includeArchived = req.query.includeArchived === 'true';
+    
+    // 修正点 1：读取 status 参数
+    const statusFilter = req.query.status; 
 
-    let sql = 'SELECT * FROM field_missions WHERE created_by = ?';
-    if (!includeArchived) {
-        sql += " AND status = 'active'";
+    // 构建基础 SQL 和参数
+    let sql = 'SELECT * FROM field_missions';
+    let params = [];
+    const conditions = [];
+
+    // 如果不是超管，则限制只能看自己创建的任务
+    if (req.user.role < ROLE.SUPER_ADMIN) {
+        conditions.push('created_by = ?');
+        params.push(managerId);
     }
+    
+    // 修正点 2：如果 status 参数有效，则加入 SQL 查询条件
+    if (statusFilter === 'active' || statusFilter === 'archived') {
+        conditions.push('status = ?');
+        params.push(statusFilter);
+    }
+    
+    // 组合查询条件
+    if (conditions.length > 0) {
+        sql += ' WHERE ' + conditions.join(' AND ');
+    }
+
     sql += ' ORDER BY created_at DESC';
 
-    // 超管可以看到所有任务
-    if (req.user.role >= ROLE.SUPER_ADMIN) {
-        sql = 'SELECT * FROM field_missions';
-        if (!includeArchived) {
-            sql += " WHERE status = 'active'";
+    db.all(sql, params, (err, missions) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json([]);
         }
-        sql += ' ORDER BY created_at DESC';
-    }
-
-    db.all(sql, req.user.role >= ROLE.SUPER_ADMIN ? [] : [managerId], (err, missions) => {
-        if (err) return res.status(500).json([]);
 
         if (!missions || missions.length === 0) {
             return res.json([]);
         }
 
-        // 获取每个任务的成员
+        // (下面的代码保持不变，用于获取任务成员)
         let completed = 0;
         const result = [];
-
         missions.forEach(mission => {
             db.all(`
-                SELECT fmm.*, c.data, c.user_id
+                SELECT fmm.character_id, c.data, fmm.member_status, fmm.joined_at
                 FROM field_mission_members fmm
                 JOIN characters c ON fmm.character_id = c.id
                 WHERE fmm.mission_id = ?
@@ -2373,19 +2389,17 @@ app.get('/api/manager/missions', authenticateToken, requireRole(ROLE.MANAGER), (
                         joined_at: m.joined_at
                     };
                 });
-
-                result.push({
-                    id: mission.id,
-                    name: mission.name,
-                    description: mission.description,
-                    status: mission.status,
+                
+                const missionData = {
+                    ...mission,
                     members: memberList,
-                    createdAt: mission.created_at,
-                    updatedAt: mission.updated_at
-                });
+                    mission_type: mission.mission_type || 'containment'
+                };
 
+                result.push(missionData);
                 completed++;
                 if (completed === missions.length) {
+                    result.sort((a, b) => b.created_at - a.created_at);
                     res.json(result);
                 }
             });
