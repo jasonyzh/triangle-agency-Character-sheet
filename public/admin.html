@@ -163,8 +163,10 @@
             padding: 10px;
             border: 2px solid #ecf0f1;
             border-radius: 4px;
-            font-size: 13px;
+            font-size: 16px; /* 防止iOS自动缩放 */
             transition: border-color 0.2s;
+            box-sizing: border-box;
+            width: 100%;
         }
         .form-field input:focus {
             outline: none;
@@ -175,6 +177,38 @@
             display: flex;
             gap: 10px;
             margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 600px) {
+            .container { padding: 10px; }
+            header { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .btn-group { width: 100%; justify-content: flex-end; }
+            .tabs { flex-wrap: wrap; }
+            .tab-btn { flex: 1; min-width: 120px; text-align: center; }
+
+            /* SMTP表单移动端单列布局 */
+            .smtp-grid {
+                grid-template-columns: 1fr;
+            }
+            .smtp-grid .full { grid-column: 1; }
+
+            .config-panel { padding: 15px; }
+            .config-row { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .config-row > div { width: 100%; }
+
+            .btn-row { flex-direction: column; }
+            .btn-row button { width: 100%; }
+
+            /* 添加用户面板移动端适配 */
+            .add-panel { flex-direction: column; }
+            .add-panel input, .add-panel select { width: 100%; min-width: unset; }
+            .btn-add { width: 100%; padding: 12px; }
+
+            /* 用户卡片移动端适配 */
+            .user-card { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .action-btns { width: 100%; justify-content: flex-start; }
         }
         .btn-save {
             background: var(--signal-red);

@@ -150,6 +150,224 @@
             border-radius: 8px; border: 2px dashed rgba(255,255,255,0.1);
         }
 
+        /* 移动端菜单按钮 */
+        .menu-toggle {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 6px 10px;
+            color: rgba(255,255,255,0.7);
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+        }
+        .menu-toggle:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: var(--signal-red);
+            color: white;
+        }
+        .menu-toggle .tri-icon {
+            position: relative;
+            width: 20px;
+            height: 18px;
+        }
+        .menu-toggle .tri {
+            position: absolute;
+            width: 0; height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-bottom: 9px solid var(--signal-red);
+        }
+        /* 顶部三角 */
+        .menu-toggle .t1 {
+            left: 5px; top: 0;
+            animation: tri-pulse-top 2.5s ease-in-out infinite;
+        }
+        /* 左下三角 */
+        .menu-toggle .t2 {
+            left: 0; top: 9px;
+            animation: tri-pulse-left 2.5s ease-in-out infinite;
+        }
+        /* 右下三角 */
+        .menu-toggle .t3 {
+            left: 10px; top: 9px;
+            animation: tri-pulse-right 2.5s ease-in-out infinite;
+        }
+        @keyframes tri-pulse-top {
+            0%, 100% { transform: translateY(0); opacity: 1; }
+            50% { transform: translateY(-4px); opacity: 0.7; }
+        }
+        @keyframes tri-pulse-left {
+            0%, 100% { transform: translate(0, 0); opacity: 1; }
+            50% { transform: translate(-4px, 3px); opacity: 0.7; }
+        }
+        @keyframes tri-pulse-right {
+            0%, 100% { transform: translate(0, 0); opacity: 1; }
+            50% { transform: translate(4px, 3px); opacity: 0.7; }
+        }
+
+        /* 侧滑菜单 */
+        .side-menu-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 4000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .side-menu-overlay.show {
+            display: block;
+            opacity: 1;
+        }
+
+        .side-menu {
+            position: fixed;
+            top: 0; right: -280px;
+            width: 260px;
+            height: 100%;
+            background: linear-gradient(180deg, #1a252f 0%, #0f172a 100%);
+            z-index: 4001;
+            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            box-shadow: -5px 0 30px rgba(0,0,0,0.3);
+        }
+        .side-menu.show {
+            right: 0;
+        }
+
+        .side-menu-header {
+            padding: 25px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .side-menu-header .brand-sm {
+            font-weight: 900;
+            font-style: italic;
+        }
+        .side-menu-header .brand-sm .t { color: white; font-size: 16px; }
+        .side-menu-header .brand-sm .a { color: var(--signal-red); font-size: 10px; letter-spacing: 2px; display: block; }
+
+        .side-menu-close {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.5);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+        }
+        .side-menu-close:hover { color: white; }
+
+        .side-menu-content {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .menu-item:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateX(-3px);
+        }
+        .menu-item i {
+            width: 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .menu-item.primary {
+            background: var(--signal-red);
+            border-color: var(--signal-red);
+        }
+        .menu-item.primary:hover {
+            background: #e74c3c;
+        }
+        .menu-item.console {
+            background: rgba(52, 152, 219, 0.2);
+            border-color: #3498db;
+            color: #3498db;
+        }
+        .menu-item.console:hover {
+            background: #3498db;
+            color: white;
+        }
+        .menu-item.admin {
+            background: rgba(155, 89, 182, 0.2);
+            border-color: #9b59b6;
+            color: #9b59b6;
+        }
+        .menu-item.admin:hover {
+            background: #9b59b6;
+            color: white;
+        }
+        .menu-item.logout {
+            margin-top: auto;
+            background: transparent;
+            border-color: rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.6);
+        }
+        .menu-item.logout:hover {
+            background: rgba(231, 76, 60, 0.2);
+            border-color: var(--signal-red);
+            color: var(--signal-red);
+        }
+
+        /* 手机端适配 */
+        @media (max-width: 600px) {
+            body { padding: 12px; }
+
+            .menu-toggle { display: flex; }
+            .btn-group { display: none; }
+
+            header {
+                margin-bottom: 20px;
+                padding-bottom: 15px;
+            }
+
+            .grid { gap: 15px; }
+            .char-card { padding: 15px; }
+            .c-name { font-size: 18px; }
+            .field-val { font-size: 13px; }
+
+            .card-tools { gap: 6px; }
+            .tool-btn {
+                padding: 5px 8px;
+                font-size: 9px;
+            }
+        }
+
+        /* === 页面过渡遮罩 (文档展开效果) === */
+        #transition-overlay {
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100vw; height: 100vh;
+            background: #0f172a; 
         /* === 移动端适配优化 === */
         @media (max-width: 768px) {
             header { flex-direction: column; align-items: flex-start; gap: 15px; margin-bottom: 20px; padding-bottom: 15px; }
@@ -342,12 +560,18 @@
                 <span class="btm">AGENCY</span>
             </div>
             <div class="btn-group">
+                <button class="btn btn-console" id="btnConsole" style="display:none;" onclick="goConsole()"><i class="fas fa-cog"></i> <span>控制台</span></button>
+                <button class="btn btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> <span>退出</span></button>
+                <button class="btn btn-new" onclick="createNew()"><i class="fas fa-plus"></i> <span class="btn-text">新建档案</span></button>
                 <!-- 修改: 移除行内style, 添加class -->
 				<button class="btn btn-new" onclick="createNew()" title="新建档案">
                     <i class="fas fa-plus"></i> <span class="btn-text">新建</span>
                 </button>
                 <button class="btn btn-highwall" onclick="enterHighWall()" title="高墙文件">
                     <i class="fas fa-file-shield"></i> <span class="btn-text">高墙</span>
+                </button>
+                <button class="btn btn-console" id="btnManager" style="display:none;" onclick="goManager()" title="经理台">
+                    <i class="fas fa-user-tie"></i> <span class="btn-text">经理台</span>
                 </button>
                 <button class="btn btn-console" id="btnConsole" style="display:none;" onclick="goConsole()" title="管理台">
                     <i class="fas fa-cog"></i> <span class="btn-text" id="btnConsoleText">控制台</span>
@@ -357,8 +581,43 @@
                 </button>
 
             </div>
+            <!-- 移动端菜单按钮 -->
+            <button class="menu-toggle" onclick="toggleSideMenu()">
+                <span>更多</span>
+                <div class="tri-icon">
+                    <div class="tri t1"></div>
+                    <div class="tri t2"></div>
+                    <div class="tri t3"></div>
+                </div>
+            </button>
         </header>
-        <div id="list" class="grid"></div>
+
+    <div id="list" class="grid"></div>
+    </div>
+
+    <!-- 侧滑菜单 -->
+    <div class="side-menu-overlay" id="sideMenuOverlay" onclick="closeSideMenu()"></div>
+    <div class="side-menu" id="sideMenu">
+        <div class="side-menu-header">
+            <div class="brand-sm">
+                <span class="t">TRIANGLE</span>
+                <span class="a">AGENCY</span>
+            </div>
+            <button class="side-menu-close" onclick="closeSideMenu()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="side-menu-content">
+            <div class="menu-item primary" onclick="closeSideMenu(); createNew();">
+                <i class="fas fa-plus"></i> 新建档案
+            </div>
+            <div class="menu-item console" id="menuConsole" style="display:none;" onclick="closeSideMenu(); goConsole();">
+                <i class="fas fa-user-tie"></i> <span>经理台</span>
+            </div>
+            <div class="menu-item logout" onclick="closeSideMenu(); logout();">
+                <i class="fas fa-sign-out-alt"></i> 退出登录
+            </div>
+        </div>
     </div>
 
     <!-- 授权/分享模态框 -->
@@ -385,13 +644,67 @@
 
         (function initConsoleButton() {
             const btnConsole = document.getElementById('btnConsole');
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+            const menuConsole = document.getElementById('menuConsole');
+
+=======
+            const btnManager = document.getElementById('btnManager');
+>>>>>>> Stashed changes
+=======
+            const btnManager = document.getElementById('btnManager');
+>>>>>>> Stashed changes
             if (userRole >= 2) {
+                // 超管同时显示管理台和经理台
                 btnConsole.style.display = 'inline-flex';
                 btnConsole.classList.add('admin');
+                btnConsole.innerHTML = '<i class="fas fa-shield-alt"></i> <span>管理台</span>';
+                // 移动端菜单
+                menuConsole.style.display = 'flex';
+                menuConsole.classList.remove('console');
+                menuConsole.classList.add('admin');
+                menuConsole.innerHTML = '<i class="fas fa-shield-alt"></i> <span>管理台</span>';
                 btnConsole.innerHTML = '<i class="fas fa-shield-alt"></i> <span class="btn-text">管理台</span>';
+                btnManager.style.display = 'inline-flex';
             } else if (userRole >= 1) {
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 btnConsole.style.display = 'inline-flex';
+                btnConsole.innerHTML = '<i class="fas fa-user-tie"></i> <span>经理台</span>';
+                // 移动端菜单
+                menuConsole.style.display = 'flex';
+                menuConsole.innerHTML = '<i class="fas fa-user-tie"></i> <span>经理台</span>';
+            }
+        })();
+
+        // 侧滑菜单控制
+        function toggleSideMenu() {
+            document.getElementById('sideMenu').classList.add('show');
+            document.getElementById('sideMenuOverlay').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSideMenu() {
+            document.getElementById('sideMenu').classList.remove('show');
+            document.getElementById('sideMenuOverlay').classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        function goConsole() {
+            if (userRole >= 2) {
+                window.location.href = 'admin.html';
+            } else if (userRole >= 1) {
+                window.location.href = 'manager.html';
+            }
                 btnConsole.innerHTML = '<i class="fas fa-user-tie"></i> <span class="btn-text">经理台</span>';
+=======
+                // 经理只显示经理台
+                btnManager.style.display = 'inline-flex';
+>>>>>>> Stashed changes
+=======
+                // 经理只显示经理台
+                btnManager.style.display = 'inline-flex';
+>>>>>>> Stashed changes
             }
         })();
 
@@ -473,22 +786,30 @@
             const overlay = document.getElementById('transition-overlay');
             const loaderText = overlay.querySelector('.loader-text');
 
-            // 更改加载文本
             if (loaderText) {
                 loaderText.innerHTML = '授权认证中<span class="dots"></span>';
             }
 
-            // 激活过渡动画
             overlay.classList.add('active');
 
-            // 在动画播放后跳转页面
             setTimeout(() => {
-                if (userRole >= 2) {
-                    window.location.href = 'admin.html';
-                } else if (userRole >= 1) {
-                    window.location.href = 'manager.html';
-                }
-            }, 1200); // 延迟与打开档案的动画时间一致
+                window.location.href = 'admin.html';
+            }, 1200);
+        }
+
+        function goManager() {
+            const overlay = document.getElementById('transition-overlay');
+            const loaderText = overlay.querySelector('.loader-text');
+
+            if (loaderText) {
+                loaderText.innerHTML = '授权认证中<span class="dots"></span>';
+            }
+
+            overlay.classList.add('active');
+
+            setTimeout(() => {
+                window.location.href = 'manager.html';
+            }, 1200);
         }
 
         function logout() {

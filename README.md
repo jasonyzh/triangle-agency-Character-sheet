@@ -1,42 +1,228 @@
-# 三角机构角色卡服务器版（Node.js + Express）
+# 三角机构角色卡管理系统
 
-这是一个基于 Node.js 和 Express 构建的简易用户管理后端服务，包含默认管理员账号，支持基本的用户身份结构。
+基于 Node.js + Express + SQLite 构建的 TRPG 角色卡管理系统，支持多用户、权限管理、角色卡分享等功能。
 
 - 作者：ska，残光
-- 免责声明：ai搓的，密码等数据未加密。
 
-## 🚀 快速开始
+## 功能特性
 
-### 前置要求
-- 已安装 [Node.js](https://nodejs.org/)（建议 v18 或更高版本）
-- 命令行终端（如 CMD、PowerShell、Terminal 等）
+### 安全与认证
+- JWT Token 认证（24小时有效期）
+- bcrypt 密码加密存储
+- 三级角色权限系统：玩家 / 经理 / 超级管理员
+
+### 用户管理
+- 用户注册/登录
+- 可选邮箱验证注册（需配置SMTP）
+- 超管可管理所有用户
+
+### 角色卡功能
+- 创建/编辑/删除角色卡
+- 异常能力与关系网槽位限制（初始各3个，经理可解锁更多）
+- JSON导出/导入角色卡数据
+- 角色卡分享（支持密码保护和过期时间）
+
+### 授权系统
+- 玩家可生成授权码给经理
+- 经理认领授权后可查看和编辑玩家角色卡
+- 经理可管理已授权角色的槽位数量
+- 经理可移除已授权的角色卡
+
+### 外勤任务系统
+- 经理可创建外勤任务并添加任务成员
+- 任务成员在任务期间可被任务创建者编辑（无需额外授权）
+- 支持任务报告提交和查看
+- 任务状态管理（进行中/已结案）
+
+### 站内信系统
+- 角色卡邮箱功能（收件箱/已发邮件/写信）
+- 可向负责经理或任务队友发送消息
+- 支持寄送收容物给经理
+- 系统通知（高墙文件授权等）
+
+### 高墙文件系统
+- 机密文档管理功能
+- 文件授权机制（经理授权特定角色访问）
+- A1任务报告模板（只读参考）
+- 文件分支隔离（不同分部看到不同文件）
+
+### 嘉奖/申诫系统
+- 经理可修改角色的嘉奖/申诫数值
+- 任务面板中可直接修改任务成员的嘉奖/申诫
+- 完整的历史记录追踪
+- 角色卡上可点击查看修改历史
+
+## 快速开始
+
+### 环境要求
+- [Node.js](https://nodejs.org/) v18 或更高版本
+- npm 包管理器
 
 ### 安装步骤
 
-1. **克隆或下载本项目** 到本地。
-2. 打开命令行（CMD），进入项目根目录：
+1. **克隆或下载项目**
    ```bash
-   cd 你的项目文件夹路径
+   git clone https://github.com/your-repo/triangle-agency-Character-sheet.git
+   cd triangle-agency-Character-sheet
+   ```
 
-### 初始化 npm 环境并安装依赖：
+2. **安装依赖**
    ```bash
-npm install express body-parser cors
-npm install cors
-npm install sqlite3 --registry=https://registry.npmmirror.com --sqlite3_binary_host_mirror=https://npmmirror.com/mirrors/sqlite3/
-```
-### 在项目根目录下运行：
+   npm install
+   ```
+
+   > 如果 sqlite3 安装失败，可尝试使用国内镜像：
+   > ```bash
+   > npm install sqlite3 --registry=https://registry.npmmirror.com --sqlite3_binary_host_mirror=https://npmmirror.com/mirrors/sqlite3/
+   > ```
+
+3. **启动服务器**
    ```bash
+   npm start
+   ```
+   或
+   ```bash
+   node server.js
+   ```
+
+4. **访问系统**
+
+   打开浏览器访问：`http://localhost:3333`
+
+## 默认账号
+
+| 账号 | 密码 | 角色 |
+|------|------|------|
+| admin | admin | 超级管理员 |
+| 111 | 111 | 测试玩家 |
+
+> **重要**：生产环境请务必修改默认密码！
+
+## 角色权限说明
+
+| 角色 | 权限 |
+|------|------|
+| 玩家 (0) | 管理自己的角色卡，生成授权码 |
+| 经理 (1) | 玩家权限 + 管理已授权角色卡、调整槽位 |
+| 超级管理员 (2) | 所有权限 + 用户管理、系统配置 |
+
+## 配置说明
+
+### SMTP邮箱配置（可选）
+
+如需启用邮箱验证注册，请在管理后台配置SMTP：
+
+1. 以超级管理员登录
+2. 进入管理台 → 系统设置
+3. 配置SMTP服务器信息：
+   - SMTP主机
+   - SMTP端口（通常 587 或 465）
+   - SMTP用户名
+   - SMTP密码
+   - 发件人地址
+
+### 环境变量
+
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
+| JWT_SECRET | JWT签名密钥 | triangle-agency-secret-key-change-in-production |
+
+> **生产环境**请设置自定义的 JWT_SECRET：
+> ```bash
+> JWT_SECRET=your-secret-key node server.js
+> ```
+
+## 数据存储
+
+所有数据存储在 `data/` 目录下：
+- `database.db` - SQLite数据库文件
+- `anoms.json` - 异常能力选项配置
+- `realities.json` - 现实锚点选项配置
+- `functions.json` - 功能部门选项配置
+- `bonuses.json` - 加成选项配置
+- `email-template.html` - 自定义邮件模板（可选）
+
+### 重置数据库
+
+如需重置数据库（清除所有数据）：
+```bash
+rm data/database.db
 node server.js
 ```
-### 默认登录信息
-用户名：admin
-密码：admin
 
-#### 提示：默认管理员账号定义在 server.js 第 28 行：
-db.run('INSERT INTO users VALUES (?, ?, ?, ?, ?)', [999, 'admin', 'admin', '管理员', 1]);  
+## 项目结构
 
-如需修改默认账号，请直接编辑该行中的 admin 字段。  
+```
+├── server.js           # 后端服务主文件
+├── package.json        # 项目配置和依赖
+├── data/               # 数据目录
+│   ├── database.db     # SQLite数据库
+│   ├── high-security/  # 高墙文件目录
+│   │   └── *.md        # 机密文档（Markdown格式）
+│   └── *.json          # 配置文件
+└── public/             # 前端静态文件
+    ├── login.html      # 登录页
+    ├── dashboard.html  # 档案页（角色卡列表）
+    ├── sheet.html      # 角色卡编辑页（含邮箱功能）
+    ├── manager.html    # 经理控制台（含任务管理）
+    ├── monitor.html    # 管理员监控台
+    ├── documents.html  # 高墙文件查看器
+    └── share.html      # 分享查看页
+```
 
-删除data文件中database.db再执行node server.js
+## 依赖说明
 
+| 包名 | 用途 |
+|------|------|
+| express | Web框架 |
+| body-parser | 请求体解析 |
+| sqlite3 | SQLite数据库 |
+| bcrypt | 密码加密 |
+| jsonwebtoken | JWT认证 |
+| nodemailer | 邮件发送 |
+| uuid | 生成唯一ID |
+
+## 更新日志
+
+### v1.2.0
+- 高墙文件系统
+  - 机密文档授权与查看
+  - A1任务报告模板（只读模式，白色背景）
+  - 文件分支隔离功能
+- 站内信系统增强
+  - 新增已发邮件查看功能
+  - 优化邮件列表显示
+- 任务面板优化
+  - 修复任务成员嘉奖/申诫修改不生效的问题
+  - 新增查看完整任务报告功能
+- 经理控制台
+  - 支持移除已授权的角色卡
+- 嘉奖/申诫历史记录
+  - 角色卡上可点击查看完整修改历史
+
+### v1.1.0
+- 外勤任务系统
+  - 经理可创建和管理外勤任务
+  - 任务成员管理与权限
+  - 任务报告提交与查看
+- 站内信系统
+  - 角色卡邮箱功能
+  - 向经理/队友发送消息
+  - 寄送收容物功能
+- 嘉奖/申诫系统
+  - 经理可修改角色嘉奖/申诫
+  - 历史记录追踪
+
+### v1.0.0
+- 基础角色卡管理功能
+- JWT认证和bcrypt密码加密
+- 三级角色权限系统
+- 角色卡授权与分享功能
+- 异常能力/关系网槽位限制系统
+- JSON导出/导入功能
+- SMTP邮箱验证注册（可选）
+
+## 许可证
+
+MIT License
 

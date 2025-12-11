@@ -216,6 +216,35 @@
         .relation-name { font-weight: bold; color: var(--text-dark); }
         .relation-type { font-size: 12px; color: #7f8c8d; }
 
+        /* 记录统计 */
+        .record-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .record-item {
+            background: #f8f9fa;
+            padding: 12px 8px;
+            border-radius: 4px;
+            text-align: center;
+            border-top: 3px solid #ccc;
+        }
+        .record-item.reward { border-top-color: #27ae60; }
+        .record-item.warning { border-top-color: #e74c3c; }
+        .record-item.review { border-top-color: #f39c12; }
+        .record-item.mvp { border-top-color: #9b59b6; }
+        .record-name {
+            font-size: 10px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .record-value {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+
         .loading {
             text-align: center;
             padding: 60px;
@@ -391,6 +420,28 @@
                 </div>
             </div>
             <div class="char-body">
+                <div class="section">
+                    <div class="section-title"><i class="fas fa-award"></i> 职员记录</div>
+                    <div class="record-grid">
+                        <div class="record-item mvp">
+                            <div class="record-name">MVP</div>
+                            <div class="record-value">${data.pComm || 0}</div>
+                        </div>
+                        <div class="record-item reward">
+                            <div class="record-name">嘉奖</div>
+                            <div class="record-value">${data.mvpCount || 0}</div>
+                        </div>
+                        <div class="record-item warning">
+                            <div class="record-name">申诫</div>
+                            <div class="record-value">${data.watchCount || 0}</div>
+                        </div>
+                        <div class="record-item review">
+                            <div class="record-name">察看期</div>
+                            <div class="record-value">${data.pRep || 0}</div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="section">
                     <div class="section-title"><i class="fas fa-chart-bar"></i> 资质</div>
                     <div class="stats-grid">
