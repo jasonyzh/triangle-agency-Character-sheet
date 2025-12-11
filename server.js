@@ -108,7 +108,7 @@ db.serialize(() => {
         expires_at INTEGER,
         FOREIGN KEY(character_id) REFERENCES characters(id) ON DELETE CASCADE
     )`);
-	    // 高墙文件权限表
+	    // 高墙文件权限表（旧版，按用户）
     db.run(`CREATE TABLE IF NOT EXISTS document_permissions (
         user_id INTEGER,
         filename TEXT,
@@ -116,6 +116,168 @@ db.serialize(() => {
         PRIMARY KEY (user_id, filename),
         FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
     )`);
+
+    // 高墙文件权限表（新版，按角色卡）
+    db.run(`CREATE TABLE IF NOT EXISTS character_document_permissions (
+        character_id TEXT,
+        filename TEXT,
+        granted_at INTEGER,
+        PRIMARY KEY (character_id, filename),
+        FOREIGN KEY(character_id) REFERENCES characters(id) ON DELETE CASCADE
+    )`);
+
+    // 角色卡站内信表
+    db.run(`CREATE TABLE IF NOT EXISTS character_messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        character_id TEXT,
+        sender_id INTEGER,
+        sender_name TEXT,
+        subject TEXT,
+        content TEXT,
+        message_type TEXT DEFAULT 'mail',
+        hw_filename TEXT,
+        read INTEGER DEFAULT 0,
+        created_at INTEGER,
+        FOREIGN KEY(character_id) REFERENCES characters(id) ON DELETE CASCADE,
+        FOREIGN KEY(sender_id) REFERENCES users(id) ON DELETE SET NULL
+    )`);
+
+    // 外勤任务表
+    db.run(`CREATE TABLE IF NOT EXISTS field_missions (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        description TEXT,
+        status TEXT DEFAULT 'active',
+        created_by INTEGER,
+        created_at INTEGER,
+        updated_at INTEGER,
+        FOREIGN KEY(created_by) REFERENCES users(id) ON DELETE SET NULL
+    )`);
+
+    // 外勤任务成员表
+    db.run(`CREATE TABLE IF NOT EXISTS field_mission_members (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        mission_id TEXT NOT NULL,
+        character_id TEXT NOT NULL,
+        member_status TEXT DEFAULT '待命',
+        joined_at INTEGER,
+        FOREIGN KEY(mission_id) REFERENCES field_missions(id) ON DELETE CASCADE,
+        FOREIGN KEY(character_id) REFERENCES characters(id) ON DELETE CASCADE,
+        UNIQUE(mission_id, character_id)
+    )`);
+
+    // 经理收件箱表（保留用于非任务相关邮件）
+    db.run(`CREATE TABLE IF NOT EXISTS manager_inbox (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        manager_id INTEGER NOT NULL,
+        sender_character_id TEXT,
+        sender_name TEXT,
+        subject TEXT,
+        content TEXT,
+        message_type TEXT DEFAULT 'mail',
+        report_data TEXT,
+        read INTEGER DEFAULT 0,
+        created_at INTEGER,
+        FOREIGN KEY(manager_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY(sender_character_id) REFERENCES characters(id) ON DELETE SET NULL
+    )`);
+
+    // 分部表
+    db.run(`CREATE TABLE IF NOT EXISTS branches (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        description TEXT,
+        created_by INTEGER,
+        created_at INTEGER,
+        updated_at INTEGER,
+        FOREIGN KEY(created_by) REFERENCES users(id) ON DELETE SET NULL
+    )`);
+
+    // 分部经理关联表
+    db.run(`CREATE TABLE IF NOT EXISTS branch_managers (
+        branch_id TEXT NOT NULL,
+        manager_id INTEGER NOT NULL,
+        assigned_at INTEGER,
+        PRIMARY KEY(branch_id, manager_id),
+        FOREIGN KEY(branch_id) REFERENCES branches(id) ON DELETE CASCADE,
+        FOREIGN KEY(manager_id) REFERENCES users(id) ON DELETE CASCADE
+    )`);
+
+    // 任务报告表
+    db.run(`CREATE TABLE IF NOT EXISTS mission_reports (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        mission_id TEXT NOT NULL,
+        submitted_by TEXT,
+        original_data TEXT,
+        revised_data TEXT,
+        annotations TEXT,
+        rating TEXT,
+        scatter_value INTEGER DEFAULT 0,
+        status TEXT DEFAULT 'submitted',
+        submitted_at INTEGER,
+        reviewed_at INTEGER,
+        sent_at INTEGER,
+        FOREIGN KEY(mission_id) REFERENCES field_missions(id) ON DELETE CASCADE,
+        FOREIGN KEY(submitted_by) REFERENCES characters(id) ON DELETE SET NULL
+    )`);
+
+    // 任务收件箱表
+    db.run(`CREATE TABLE IF NOT EXISTS mission_inbox (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        mission_id TEXT NOT NULL,
+        sender_character_id TEXT,
+        sender_name TEXT,
+        subject TEXT,
+        content TEXT,
+        message_type TEXT DEFAULT 'mail',
+        report_id INTEGER,
+        read INTEGER DEFAULT 0,
+        created_at INTEGER,
+        FOREIGN KEY(mission_id) REFERENCES field_missions(id) ON DELETE CASCADE,
+        FOREIGN KEY(sender_character_id) REFERENCES characters(id) ON DELETE SET NULL,
+        FOREIGN KEY(report_id) REFERENCES mission_reports(id) ON DELETE SET NULL
+    )`);
+
+    // 为 field_missions 添加新字段的迁移
+    db.all("PRAGMA table_info(field_missions)", [], (err, columns) => {
+        if (err) return;
+        const columnNames = columns.map(c => c.name);
+        if (!columnNames.includes('mission_type')) {
+            db.run("ALTER TABLE field_missions ADD COLUMN mission_type TEXT DEFAULT 'containment'");
+        }
+        if (!columnNames.includes('chaos_value')) {
+            db.run("ALTER TABLE field_missions ADD COLUMN chaos_value INTEGER DEFAULT 0");
+        }
+        if (!columnNames.includes('scatter_value')) {
+            db.run("ALTER TABLE field_missions ADD COLUMN scatter_value INTEGER DEFAULT 0");
+        }
+        if (!columnNames.includes('branch_id')) {
+            db.run("ALTER TABLE field_missions ADD COLUMN branch_id TEXT");
+        }
+        if (!columnNames.includes('report_status')) {
+            db.run("ALTER TABLE field_missions ADD COLUMN report_status TEXT DEFAULT 'none'");
+        }
+    });
+
+    // 为 character_messages 添加新字段的迁移
+    db.all("PRAGMA table_info(character_messages)", [], (err, columns) => {
+        if (err) return;
+        const columnNames = columns.map(c => c.name);
+        if (!columnNames.includes('message_type')) {
+            db.run("ALTER TABLE character_messages ADD COLUMN message_type TEXT DEFAULT 'mail'");
+        }
+        if (!columnNames.includes('hw_filename')) {
+            db.run("ALTER TABLE character_messages ADD COLUMN hw_filename TEXT");
+        }
+        // 新增：发件人角色ID，用于追踪已发邮件
+        if (!columnNames.includes('from_character_id')) {
+            db.run("ALTER TABLE character_messages ADD COLUMN from_character_id TEXT");
+        }
+        // 新增：收件人名称，用于已发邮件显示
+        if (!columnNames.includes('recipient_name')) {
+            db.run("ALTER TABLE character_messages ADD COLUMN recipient_name TEXT");
+        }
+    });
 
     // 初始化默认配置
     const defaultConfigs = [
@@ -179,9 +341,9 @@ db.get('SELECT * FROM users WHERE username = ?', [NEW_ADMIN_USERNAME], async (er
         const adminHash = await bcrypt.hash(NEW_ADMIN_PASSWORD, BCRYPT_ROUNDS);
         const testHash = await bcrypt.hash('111', BCRYPT_ROUNDS);
         // 参数顺序: id, username, password(旧兼容字段), password_hash, name, is_admin, role, email, email_verified, created_at
-        db.run('INSERT INTO users VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        db.run('INSERT OR IGNORE INTO users VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [999, NEW_ADMIN_USERNAME, NEW_ADMIN_PASSWORD, adminHash, '管理员', 1, ROLE.SUPER_ADMIN, null, 0, Date.now()]);
-        db.run('INSERT INTO users VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        db.run('INSERT OR IGNORE INTO users VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [1, '111', '111', testHash, '测试员', 0, ROLE.PLAYER, null, 0, Date.now()]);
 		}
 	}); 
@@ -819,12 +981,29 @@ app.put('/api/character/:id', optionalAuth, (req, res) => {
                 return res.status(403).json({ success: false, message: '无权编辑此角色卡' });
             }
 
-            db.run('UPDATE characters SET data = ? WHERE id = ?',
-                [JSON.stringify(req.body), req.params.id],
-                function(err) {
-                    if (err) res.status(500).json({ success: false });
-                    else res.json({ success: true });
-                });
+            // 先获取现有数据，保留嘉奖和申诫记录
+            db.get('SELECT data FROM characters WHERE id = ?', [req.params.id], (err, existingRow) => {
+                let existingData = {};
+                try {
+                    if (existingRow && existingRow.data) {
+                        existingData = JSON.parse(existingRow.data);
+                    }
+                } catch (e) {}
+
+                // 合并数据，保留嘉奖/申诫记录
+                const newData = {
+                    ...req.body,
+                    rewards: existingData.rewards || [],
+                    reprimands: existingData.reprimands || []
+                };
+
+                db.run('UPDATE characters SET data = ? WHERE id = ?',
+                    [JSON.stringify(newData), req.params.id],
+                    function(err) {
+                        if (err) res.status(500).json({ success: false });
+                        else res.json({ success: true });
+                    });
+            });
         });
     });
 });
@@ -915,28 +1094,52 @@ app.post('/api/auth/claim', authenticateToken, requireRole(ROLE.MANAGER), (req, 
 });
 
 // 经理获取已授权的角色列表
-// MODIFIED: 增加了 ownerId 的返回
+// MODIFIED: 超级管理员可看到全部角色卡
 app.get('/api/manager/characters', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
-    db.all(`SELECT c.id, c.data, c.user_id, u.name as owner_name
-            FROM characters c
-            JOIN character_authorizations ca ON c.id = ca.character_id
-            JOIN users u ON c.user_id = u.id
-            WHERE ca.manager_id = ?`, [req.user.userId], (err, rows) => {
-        const list = (rows || []).map(row => {
-            let d = {};
-            try { d = JSON.parse(row.data); } catch(e) {}
-            return {
-                id: row.id,
-                name: d.pName || "未命名干员",
-                func: d.pFunc || "---",
-                anom: d.pAnom || "---",
-                real: d.pReal || "---",
-                ownerName: row.owner_name,
-                ownerId: row.user_id // MODIFIED: 返回职员ID
-            };
+    // 超级管理员可看到全部角色卡
+    if (req.user.role >= ROLE.SUPER_ADMIN) {
+        db.all(`SELECT c.id, c.data, c.user_id, u.name as owner_name
+                FROM characters c
+                JOIN users u ON c.user_id = u.id`, [], (err, rows) => {
+            const list = (rows || []).map(row => {
+                let d = {};
+                try { d = JSON.parse(row.data); } catch(e) {}
+                return {
+                    id: row.id,
+                    name: d.pName || "未命名干员",
+                    func: d.pFunc || "---",
+                    anom: d.pAnom || "---",
+                    real: d.pReal || "---",
+                    ownerName: row.owner_name,
+                    ownerId: row.user_id
+                };
+            });
+            res.json(list);
         });
-        res.json(list);
-    });
+    } else {
+        // 普通经理只能看到已授权的角色卡
+        db.all(`SELECT c.id, c.data, c.user_id, u.name as owner_name, ca.id as auth_id
+                FROM characters c
+                JOIN character_authorizations ca ON c.id = ca.character_id
+                JOIN users u ON c.user_id = u.id
+                WHERE ca.manager_id = ?`, [req.user.userId], (err, rows) => {
+            const list = (rows || []).map(row => {
+                let d = {};
+                try { d = JSON.parse(row.data); } catch(e) {}
+                return {
+                    id: row.id,
+                    name: d.pName || "未命名干员",
+                    func: d.pFunc || "---",
+                    anom: d.pAnom || "---",
+                    real: d.pReal || "---",
+                    ownerName: row.owner_name,
+                    ownerId: row.user_id,
+                    authId: row.auth_id
+                };
+            });
+            res.json(list);
+        });
+    }
 });
 
 // 撤销授权
@@ -946,8 +1149,11 @@ app.delete('/api/auth/:authId', authenticateToken, (req, res) => {
             WHERE ca.id = ?`, [req.params.authId], (err, auth) => {
         if (!auth) return res.status(404).json({ success: false });
 
-        // 只有角色所有者或超管可以撤销
-        if (auth.user_id !== req.user.userId && req.user.role < ROLE.SUPER_ADMIN) {
+        // 角色所有者、超管、或被授权的经理本人可以撤销
+        const canRevoke = auth.user_id === req.user.userId ||
+                          req.user.role >= ROLE.SUPER_ADMIN ||
+                          auth.manager_id === req.user.userId;
+        if (!canRevoke) {
             return res.status(403).json({ success: false, message: '无权撤销此授权' });
         }
 
@@ -1058,6 +1264,281 @@ app.put('/api/character/:id/slots', authenticateToken, requireRole(ROLE.MANAGER)
                             anomSlots: data.anomSlots,
                             realSlots: data.realSlots
                         });
+                    });
+            } catch (e) {
+                res.status(500).json({ success: false, message: '数据解析失败' });
+            }
+        });
+    });
+});
+
+// ==========================================
+// 嘉奖/申诫 API（经理）
+// ==========================================
+
+// 获取角色的嘉奖/申诫记录
+app.get('/api/character/:id/records', authenticateToken, (req, res) => {
+    const charId = req.params.id;
+
+    db.get('SELECT data, user_id FROM characters WHERE id = ?', [charId], (err, row) => {
+        if (!row) return res.status(404).json({ error: '角色不存在' });
+
+        // 检查权限：经理需要有授权或任务成员关系，或者是超管，或者是角色所有者
+        const checkAccess = () => {
+            if (req.user.role >= ROLE.SUPER_ADMIN) return Promise.resolve(true);
+            if (req.user.userId === row.user_id) return Promise.resolve(true);
+
+            return new Promise((resolve) => {
+                if (req.user.role < ROLE.MANAGER) {
+                    resolve(false);
+                    return;
+                }
+                // 首先检查授权表
+                db.get('SELECT id FROM character_authorizations WHERE character_id = ? AND manager_id = ?',
+                    [charId, req.user.userId], (err, auth) => {
+                        if (auth) return resolve(true);
+
+                        // 然后检查任务成员关系 - 角色是否在该经理创建的任务中
+                        db.get(`SELECT 1 FROM field_mission_members fmm
+                            JOIN field_missions fm ON fmm.mission_id = fm.id
+                            WHERE fmm.character_id = ? AND fm.created_by = ? AND fm.status = 'active'`,
+                            [charId, req.user.userId], (err, member) => {
+                                resolve(!!member);
+                            });
+                    });
+            });
+        };
+
+        Promise.resolve(checkAccess()).then(hasAccess => {
+            if (!hasAccess) {
+                return res.status(403).json({ error: '无权访问' });
+            }
+
+            try {
+                const data = JSON.parse(row.data);
+                res.json({
+                    rewards: data.rewards || [],
+                    reprimands: data.reprimands || []
+                });
+            } catch (e) {
+                res.json({ rewards: [], reprimands: [] });
+            }
+        });
+    });
+});
+
+// 添加嘉奖记录
+app.post('/api/character/:id/reward', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    const charId = req.params.id;
+    const { reason, count } = req.body;
+    const recordCount = Math.max(1, Math.min(99, parseInt(count) || 1)); // 限制1-99
+
+    if (!reason || !reason.trim()) {
+        return res.status(400).json({ success: false, message: '请填写嘉奖原因' });
+    }
+
+    db.get('SELECT data, user_id FROM characters WHERE id = ?', [charId], (err, row) => {
+        if (!row) return res.status(404).json({ success: false, message: '角色不存在' });
+
+        // 检查权限：需要有授权或是超管，或者角色在经理创建的任务中
+        const checkAccess = () => {
+            if (req.user.role >= ROLE.SUPER_ADMIN) return Promise.resolve(true);
+
+            return new Promise((resolve) => {
+                // 首先检查授权表
+                db.get('SELECT id FROM character_authorizations WHERE character_id = ? AND manager_id = ?',
+                    [charId, req.user.userId], (err, auth) => {
+                        if (auth) return resolve(true);
+
+                        // 然后检查任务成员关系 - 角色是否在该经理创建的任务中
+                        db.get(`SELECT 1 FROM field_mission_members fmm
+                            JOIN field_missions fm ON fmm.mission_id = fm.id
+                            WHERE fmm.character_id = ? AND fm.created_by = ? AND fm.status = 'active'`,
+                            [charId, req.user.userId], (err, member) => {
+                                resolve(!!member);
+                            });
+                    });
+            });
+        };
+
+        Promise.resolve(checkAccess()).then(hasAccess => {
+            if (!hasAccess) {
+                return res.status(403).json({ success: false, message: '无权修改此角色' });
+            }
+
+            try {
+                const data = JSON.parse(row.data);
+
+                // 初始化嘉奖数组
+                if (!data.rewards) data.rewards = [];
+
+                // 添加新记录
+                data.rewards.push({
+                    id: Date.now().toString(),
+                    reason: reason.trim(),
+                    count: recordCount,
+                    date: Date.now(),
+                    addedBy: req.user.username,
+                    addedByName: req.user.username
+                });
+
+                // 更新嘉奖总数 (mvpCount)
+                const currentCount = parseInt(data.mvpCount) || 0;
+                data.mvpCount = (currentCount + recordCount).toString();
+
+                db.run('UPDATE characters SET data = ? WHERE id = ?',
+                    [JSON.stringify(data), charId],
+                    function(err) {
+                        if (err) return res.status(500).json({ success: false });
+                        res.json({ success: true, message: `已添加 ${recordCount} 个嘉奖，当前总计 ${data.mvpCount}` });
+                    });
+            } catch (e) {
+                res.status(500).json({ success: false, message: '数据解析失败' });
+            }
+        });
+    });
+});
+
+// 添加申诫记录
+app.post('/api/character/:id/reprimand', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    const charId = req.params.id;
+    const { reason, count } = req.body;
+    const recordCount = Math.max(1, Math.min(99, parseInt(count) || 1)); // 限制1-99
+
+    if (!reason || !reason.trim()) {
+        return res.status(400).json({ success: false, message: '请填写申诫原因' });
+    }
+
+    db.get('SELECT data, user_id FROM characters WHERE id = ?', [charId], (err, row) => {
+        if (!row) return res.status(404).json({ success: false, message: '角色不存在' });
+
+        // 检查权限：需要有授权或是超管，或者角色在经理创建的任务中
+        const checkAccess = () => {
+            if (req.user.role >= ROLE.SUPER_ADMIN) return Promise.resolve(true);
+
+            return new Promise((resolve) => {
+                // 首先检查授权表
+                db.get('SELECT id FROM character_authorizations WHERE character_id = ? AND manager_id = ?',
+                    [charId, req.user.userId], (err, auth) => {
+                        if (auth) return resolve(true);
+
+                        // 然后检查任务成员关系 - 角色是否在该经理创建的任务中
+                        db.get(`SELECT 1 FROM field_mission_members fmm
+                            JOIN field_missions fm ON fmm.mission_id = fm.id
+                            WHERE fmm.character_id = ? AND fm.created_by = ? AND fm.status = 'active'`,
+                            [charId, req.user.userId], (err, member) => {
+                                resolve(!!member);
+                            });
+                    });
+            });
+        };
+
+        Promise.resolve(checkAccess()).then(hasAccess => {
+            if (!hasAccess) {
+                return res.status(403).json({ success: false, message: '无权修改此角色' });
+            }
+
+            try {
+                const data = JSON.parse(row.data);
+
+                // 初始化申诫数组
+                if (!data.reprimands) data.reprimands = [];
+
+                // 添加新记录
+                data.reprimands.push({
+                    id: Date.now().toString(),
+                    reason: reason.trim(),
+                    count: recordCount,
+                    date: Date.now(),
+                    addedBy: req.user.username,
+                    addedByName: req.user.username
+                });
+
+                // 更新申诫总数 (watchCount)
+                const currentCount = parseInt(data.watchCount) || 0;
+                data.watchCount = (currentCount + recordCount).toString();
+
+                db.run('UPDATE characters SET data = ? WHERE id = ?',
+                    [JSON.stringify(data), charId],
+                    function(err) {
+                        if (err) return res.status(500).json({ success: false });
+                        res.json({ success: true, message: `已添加 ${recordCount} 个申诫，当前总计 ${data.watchCount}` });
+                    });
+            } catch (e) {
+                res.status(500).json({ success: false, message: '数据解析失败' });
+            }
+        });
+    });
+});
+
+// 删除嘉奖/申诫记录
+app.delete('/api/character/:id/record/:recordId', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    const charId = req.params.id;
+    const recordId = req.params.recordId;
+    const { type } = req.query; // 'reward' or 'reprimand'
+
+    if (!type || !['reward', 'reprimand'].includes(type)) {
+        return res.status(400).json({ success: false, message: '无效的记录类型' });
+    }
+
+    db.get('SELECT data, user_id FROM characters WHERE id = ?', [charId], (err, row) => {
+        if (!row) return res.status(404).json({ success: false, message: '角色不存在' });
+
+        // 检查权限：需要有授权或是超管，或者角色在经理创建的任务中
+        const checkAccess = () => {
+            if (req.user.role >= ROLE.SUPER_ADMIN) return Promise.resolve(true);
+
+            return new Promise((resolve) => {
+                // 首先检查授权表
+                db.get('SELECT id FROM character_authorizations WHERE character_id = ? AND manager_id = ?',
+                    [charId, req.user.userId], (err, auth) => {
+                        if (auth) return resolve(true);
+
+                        // 然后检查任务成员关系 - 角色是否在该经理创建的任务中
+                        db.get(`SELECT 1 FROM field_mission_members fmm
+                            JOIN field_missions fm ON fmm.mission_id = fm.id
+                            WHERE fmm.character_id = ? AND fm.created_by = ? AND fm.status = 'active'`,
+                            [charId, req.user.userId], (err, member) => {
+                                resolve(!!member);
+                            });
+                    });
+            });
+        };
+
+        Promise.resolve(checkAccess()).then(hasAccess => {
+            if (!hasAccess) {
+                return res.status(403).json({ success: false, message: '无权修改此角色' });
+            }
+
+            try {
+                const data = JSON.parse(row.data);
+                const arrayKey = type === 'reward' ? 'rewards' : 'reprimands';
+                const countKey = type === 'reward' ? 'mvpCount' : 'watchCount';
+
+                if (!data[arrayKey]) {
+                    return res.status(404).json({ success: false, message: '记录不存在' });
+                }
+
+                // 找到要删除的记录，获取其count值
+                const recordToDelete = data[arrayKey].find(r => r.id === recordId);
+                if (!recordToDelete) {
+                    return res.status(404).json({ success: false, message: '记录不存在' });
+                }
+
+                const deletedCount = parseInt(recordToDelete.count) || 1;
+
+                // 从数组中移除记录
+                data[arrayKey] = data[arrayKey].filter(r => r.id !== recordId);
+
+                // 减少对应的计数
+                const currentCount = parseInt(data[countKey]) || 0;
+                data[countKey] = Math.max(0, currentCount - deletedCount).toString();
+
+                db.run('UPDATE characters SET data = ? WHERE id = ?',
+                    [JSON.stringify(data), charId],
+                    function(err) {
+                        if (err) return res.status(500).json({ success: false });
+                        res.json({ success: true, message: `记录已删除，当前${type === 'reward' ? '嘉奖' : '申诫'}总计 ${data[countKey]}` });
                     });
             } catch (e) {
                 res.status(500).json({ success: false, message: '数据解析失败' });
@@ -1276,33 +1757,66 @@ app.get('/', (req, res) => res.redirect('/login.html'));
 // ==========================================
 
 // 1. 获取当前用户的文件列表（包含权限状态）
-// server.js - 找到这个路由并确认/替换
-// 这个接口只读取目录和数据库权限，绝对不读取 .md 文件的具体内容
+// 支持按特定角色卡筛选：?charId=xxx 只显示该角色卡授权的文件
 app.get('/api/documents/list', authenticateToken, (req, res) => {
+    const charId = req.query.charId; // 可选参数：指定角色卡ID
+
     fs.readdir(HIGH_SECURITY_DIR, (err, files) => {
         if (err) return res.status(500).json({ error: '无法读取文件目录' });
 
         // 1. 只获取 .md 文件名
         const mdFiles = files.filter(f => f.endsWith('.md'));
 
-        // 2. 查询权限 (SQL 查询很快)
-        db.all('SELECT filename FROM document_permissions WHERE user_id = ?', [req.user.userId], (err, rows) => {
+        // 2. 根据是否指定角色卡，选择不同的查询方式
+        let sql, params;
+        if (charId) {
+            // 指定角色卡：只查该角色卡的权限
+            sql = `
+                SELECT cdp.filename
+                FROM character_document_permissions cdp
+                JOIN characters c ON cdp.character_id = c.id
+                WHERE cdp.character_id = ? AND c.user_id = ?
+            `;
+            params = [charId, req.user.userId];
+        } else {
+            // 未指定：合并用户所有角色卡的权限
+            sql = `
+                SELECT DISTINCT cdp.filename
+                FROM character_document_permissions cdp
+                JOIN characters c ON cdp.character_id = c.id
+                WHERE c.user_id = ?
+            `;
+            params = [req.user.userId];
+        }
+
+        db.all(sql, params, (err, rows) => {
             if (err) return res.status(500).json({ error: '数据库错误' });
 
             const allowedFiles = new Set(rows.map(r => r.filename));
-            
-            // 3. 构造返回数据 (仅包含文件名和标题，无 content)
-            const result = mdFiles.map(file => ({
-                filename: file,
-                title: file.replace(/\.md$/i, ''), // 简单的字符串处理
-                allowed: allowedFiles.has(file) || req.user.role >= ROLE.SUPER_ADMIN
-            }));
 
-            // 4. 简单的排序
+            // 3. 构造返回数据
+            let result;
+            if (charId) {
+                // 指定角色卡模式：只返回已授权的文件（不显示未授权的）
+                result = mdFiles
+                    .filter(file => allowedFiles.has(file) || req.user.role >= ROLE.SUPER_ADMIN)
+                    .map(file => ({
+                        filename: file,
+                        title: file.replace(/\.md$/i, ''),
+                        allowed: true
+                    }));
+            } else {
+                // 常规模式：返回所有文件（标记授权状态）
+                result = mdFiles.map(file => ({
+                    filename: file,
+                    title: file.replace(/\.md$/i, ''),
+                    allowed: allowedFiles.has(file) || req.user.role >= ROLE.SUPER_ADMIN
+                }));
+            }
+
+            // 4. 排序
             result.sort((a, b) => {
-                // 有权限的排前面
                 if (a.allowed !== b.allowed) return a.allowed ? -1 : 1;
-                // 同权限按文件名排
                 return a.filename.localeCompare(b.filename);
             });
 
@@ -1312,9 +1826,10 @@ app.get('/api/documents/list', authenticateToken, (req, res) => {
 });
 
 // 2. 读取文件内容 (需权限验证)
+// 按角色卡授权：检查用户任一角色卡是否有权限
 app.get('/api/documents/read/:filename', authenticateToken, (req, res) => {
     const filename = req.params.filename;
-    
+
     // 安全检查：防止路径遍历
     if (filename.includes('..') || filename.includes('/') || !filename.endsWith('.md')) {
         return res.status(400).json({ error: '非法的文件名' });
@@ -1323,8 +1838,13 @@ app.get('/api/documents/read/:filename', authenticateToken, (req, res) => {
     const checkPermission = () => {
         if (req.user.role >= ROLE.SUPER_ADMIN) return Promise.resolve(true);
         return new Promise((resolve) => {
-            db.get('SELECT 1 FROM document_permissions WHERE user_id = ? AND filename = ?', 
-                [req.user.userId, filename], (err, row) => resolve(!!row));
+            const sql = `
+                SELECT 1 FROM character_document_permissions cdp
+                JOIN characters c ON cdp.character_id = c.id
+                WHERE c.user_id = ? AND cdp.filename = ?
+                LIMIT 1
+            `;
+            db.get(sql, [req.user.userId, filename], (err, row) => resolve(!!row));
         });
     };
 
@@ -1472,6 +1992,1461 @@ app.put('/api/manager/user/:userId/permissions', authenticateToken, requireRole(
     }
 });
 
+
+// ==========================================
+// 高墙文件 API (按角色卡授权 - 新版)
+// ==========================================
+
+// 检查经理是否对某个角色卡有授权
+function checkManagerCharacterAuth(managerId, charId) {
+    return new Promise((resolve, reject) => {
+        db.get('SELECT 1 FROM character_authorizations WHERE manager_id = ? AND character_id = ?',
+            [managerId, charId], (err, row) => {
+                if (err) reject(err);
+                else resolve(!!row);
+            });
+    });
+}
+
+// 获取角色卡的文件权限
+app.get('/api/manager/character/:charId/permissions', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    try {
+        const managerId = req.user.userId;
+        const charId = req.params.charId;
+
+        // 检查经理是否有该角色卡的授权
+        const isAuthorized = await checkManagerCharacterAuth(managerId, charId);
+        if (!isAuthorized && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ error: '无权管理该角色卡的权限' });
+        }
+
+        fs.readdir(HIGH_SECURITY_DIR, (err, files) => {
+            if (err) return res.json([]);
+            const mdFiles = files.filter(f => f.endsWith('.md'));
+
+            db.all('SELECT filename FROM character_document_permissions WHERE character_id = ?', [charId], (err, rows) => {
+                const allowedSet = new Set(rows ? rows.map(r => r.filename) : []);
+                const result = mdFiles.map(f => ({
+                    filename: f,
+                    hasPerm: allowedSet.has(f)
+                }));
+                res.json(result);
+            });
+        });
+    } catch (e) {
+        res.status(500).json({ error: '服务器内部错误' });
+    }
+});
+
+// 更新角色卡的文件权限
+app.put('/api/manager/character/:charId/permissions', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    try {
+        const managerId = req.user.userId;
+        const charId = req.params.charId;
+        const { permissions } = req.body;
+
+        // 检查经理是否有该角色卡的授权
+        const isAuthorized = await checkManagerCharacterAuth(managerId, charId);
+        if (!isAuthorized && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权管理该角色卡的权限' });
+        }
+
+        // 获取当前权限，用于对比新增了哪些文件
+        const currentPerms = await new Promise((resolve) => {
+            db.all('SELECT filename FROM character_document_permissions WHERE character_id = ?', [charId], (err, rows) => {
+                resolve(new Set((rows || []).map(r => r.filename)));
+            });
+        });
+
+        // 找出新增的文件
+        const newFiles = permissions.filter(f => !currentPerms.has(f));
+
+        db.serialize(() => {
+            db.run('BEGIN TRANSACTION');
+            db.run('DELETE FROM character_document_permissions WHERE character_id = ?', [charId]);
+
+            const stmt = db.prepare('INSERT INTO character_document_permissions (character_id, filename, granted_at) VALUES (?, ?, ?)');
+            const now = Date.now();
+            permissions.forEach(file => {
+                stmt.run(charId, file, now);
+            });
+            stmt.finalize();
+
+            // 为每个新授权的文件创建通知邮件
+            if (newFiles.length > 0) {
+                const msgStmt = db.prepare('INSERT INTO character_messages (character_id, sender_id, sender_name, subject, content, message_type, hw_filename, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+                newFiles.forEach(file => {
+                    const title = file.replace(/\.md$/i, '');
+                    msgStmt.run(
+                        charId,
+                        managerId,
+                        'OS',
+                        '高墙文件授权通知',
+                        `您已获得查看高墙文件「${title}」的权限。\n\n请在收件箱中点击查看文件详情。`,
+                        'hw_auth',
+                        file,
+                        now
+                    );
+                });
+                msgStmt.finalize();
+            }
+
+            db.run('COMMIT', (err) => {
+                if (err) res.status(500).json({ success: false, message: err.message });
+                else res.json({ success: true, newAuthCount: newFiles.length });
+            });
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, message: '服务器内部错误' });
+    }
+});
+
+// ==========================================
+// 角色卡邮箱 API
+// ==========================================
+
+// 获取角色卡的高墙文件列表（已授权的）
+app.get('/api/character/:id/highwall-files', authenticateToken, (req, res) => {
+    const charId = req.params.id;
+
+    // 检查访问权限
+    db.get('SELECT user_id FROM characters WHERE id = ?', [charId], (err, row) => {
+        if (!row) return res.status(404).json([]);
+
+        // 只有角色所有者、授权的经理、超管可以访问
+        const checkAccess = () => {
+            if (req.user.role >= ROLE.SUPER_ADMIN) return Promise.resolve(true);
+            if (req.user.userId === row.user_id) return Promise.resolve(true);
+
+            return new Promise((resolve) => {
+                if (req.user.role < ROLE.MANAGER) {
+                    resolve(false);
+                    return;
+                }
+                db.get('SELECT 1 FROM character_authorizations WHERE character_id = ? AND manager_id = ?',
+                    [charId, req.user.userId], (err, auth) => resolve(!!auth));
+            });
+        };
+
+        Promise.resolve(checkAccess()).then(hasAccess => {
+            if (!hasAccess) return res.status(403).json([]);
+
+            // 获取该角色卡的已授权高墙文件
+            db.all('SELECT filename, granted_at FROM character_document_permissions WHERE character_id = ?',
+                [charId], (err, rows) => {
+                    if (err) return res.json([]);
+
+                    const files = (rows || []).map(r => ({
+                        filename: r.filename,
+                        title: r.filename.replace(/\.md$/i, ''),
+                        grantedAt: r.granted_at
+                    }));
+
+                    res.json(files);
+                });
+        });
+    });
+});
+
+// 检查角色卡是否已解锁A1高墙文件（用于控制报告提交权限）
+app.get('/api/character/:id/check-a1', authenticateToken, (req, res) => {
+    const charId = req.params.id;
+
+    db.get('SELECT user_id FROM characters WHERE id = ?', [charId], (err, row) => {
+        if (!row) return res.status(404).json({ unlocked: false });
+
+        // 只有角色所有者可以查看
+        if (req.user.userId !== row.user_id && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ unlocked: false });
+        }
+
+        // 检查是否有A1.md的授权（不区分大小写）
+        db.get(`SELECT 1 FROM character_document_permissions
+                WHERE character_id = ? AND LOWER(filename) = 'a1.md'`,
+            [charId], (err, perm) => {
+                res.json({ unlocked: !!perm });
+            });
+    });
+});
+
+// 获取角色卡的站内信
+app.get('/api/character/:id/messages', authenticateToken, (req, res) => {
+    const charId = req.params.id;
+
+    db.get('SELECT user_id FROM characters WHERE id = ?', [charId], (err, row) => {
+        if (!row) return res.status(404).json([]);
+
+        // 只有角色所有者可以查看
+        if (req.user.userId !== row.user_id && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json([]);
+        }
+
+        // 排除已发邮件（message_type = 'sent'），只返回收件箱
+        db.all(`SELECT * FROM character_messages WHERE character_id = ? AND (message_type IS NULL OR message_type != 'sent') ORDER BY created_at DESC`,
+            [charId], (err, rows) => {
+                if (err) return res.json([]);
+                // 转换字段名为驼峰命名
+                const messages = (rows || []).map(r => ({
+                    id: r.id,
+                    characterId: r.character_id,
+                    senderId: r.sender_id,
+                    senderName: r.sender_name || '未知发件人',
+                    subject: r.subject,
+                    content: r.content,
+                    messageType: r.message_type,
+                    hwFilename: r.hw_filename,
+                    read: r.read,
+                    createdAt: r.created_at
+                }));
+                res.json(messages);
+            });
+    });
+});
+
+// 获取角色卡已发邮件
+app.get('/api/character/:id/sent-messages', authenticateToken, (req, res) => {
+    const charId = req.params.id;
+
+    db.get('SELECT user_id FROM characters WHERE id = ?', [charId], (err, row) => {
+        if (!row) return res.status(404).json([]);
+
+        // 只有角色所有者可以查看
+        if (req.user.userId !== row.user_id && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json([]);
+        }
+
+        // 只返回已发邮件（message_type = 'sent'）
+        db.all(`SELECT * FROM character_messages WHERE character_id = ? AND message_type = 'sent' ORDER BY created_at DESC`,
+            [charId], (err, rows) => {
+                if (err) return res.json([]);
+                const messages = (rows || []).map(r => ({
+                    id: r.id,
+                    characterId: r.character_id,
+                    recipientName: r.recipient_name || '未知收件人',
+                    subject: r.subject,
+                    content: r.content,
+                    createdAt: r.created_at
+                }));
+                res.json(messages);
+            });
+    });
+});
+
+// 经理发送站内信给角色卡
+app.post('/api/manager/character/:charId/message', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    try {
+        const managerId = req.user.userId;
+        const charId = req.params.charId;
+        const { subject, content } = req.body;
+
+        if (!subject || !content) {
+            return res.status(400).json({ success: false, message: '标题和内容不能为空' });
+        }
+
+        // 检查经理是否有该角色卡的授权
+        const isAuthorized = await checkManagerCharacterAuth(managerId, charId);
+        if (!isAuthorized && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权向该角色卡发送消息' });
+        }
+
+        // 获取发送者名称
+        const sender = await new Promise((resolve) => {
+            db.get('SELECT name, username FROM users WHERE id = ?', [managerId], (err, row) => {
+                resolve(row ? (row.name || row.username) : '未知');
+            });
+        });
+
+        db.run('INSERT INTO character_messages (character_id, sender_id, sender_name, subject, content, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+            [charId, managerId, sender, subject, content, Date.now()],
+            function(err) {
+                if (err) return res.status(500).json({ success: false, message: err.message });
+                res.json({ success: true, messageId: this.lastID });
+            });
+    } catch (e) {
+        res.status(500).json({ success: false, message: '服务器内部错误' });
+    }
+});
+
+// 标记站内信为已读
+app.put('/api/character/:charId/message/:msgId/read', authenticateToken, (req, res) => {
+    const charId = req.params.charId;
+    const msgId = req.params.msgId;
+
+    db.get('SELECT user_id FROM characters WHERE id = ?', [charId], (err, row) => {
+        if (!row) return res.status(404).json({ success: false });
+
+        if (req.user.userId !== row.user_id && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false });
+        }
+
+        db.run('UPDATE character_messages SET read = 1 WHERE id = ? AND character_id = ?',
+            [msgId, charId], function(err) {
+                if (err) return res.status(500).json({ success: false });
+                res.json({ success: true });
+            });
+    });
+});
+
+// ==========================================
+// 外勤任务 API
+// ==========================================
+
+// 创建外勤任务
+app.post('/api/manager/mission', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    const { name, description, missionType, characterIds } = req.body;
+
+    if (!name || !name.trim()) {
+        return res.status(400).json({ success: false, message: '任务名称不能为空' });
+    }
+
+    // 任务类型: containment(收容) 或 sweep(清扫)
+    const validType = ['containment', 'sweep'].includes(missionType) ? missionType : 'containment';
+
+    const missionId = Date.now().toString();
+    const now = Date.now();
+
+    db.run(`INSERT INTO field_missions
+        (id, name, description, mission_type, status, created_by, created_at, updated_at, report_status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [missionId, name.trim(), description || '', validType, 'active', req.user.userId, now, now, 'none'],
+        function(err) {
+            if (err) return res.status(500).json({ success: false, message: err.message });
+
+            // 如果提供了角色卡ID列表，添加成员
+            if (characterIds && characterIds.length > 0) {
+                const stmt = db.prepare('INSERT OR IGNORE INTO field_mission_members (mission_id, character_id, member_status, joined_at) VALUES (?, ?, ?, ?)');
+                characterIds.forEach(charId => {
+                    stmt.run(missionId, charId, '待命', now);
+                });
+                stmt.finalize();
+            }
+
+            res.json({ success: true, missionId });
+        });
+});
+
+// 获取经理的所有任务
+app.get('/api/manager/missions', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    const managerId = req.user.userId;
+    const includeArchived = req.query.includeArchived === 'true';
+
+    let sql = 'SELECT * FROM field_missions WHERE created_by = ?';
+    if (!includeArchived) {
+        sql += " AND status = 'active'";
+    }
+    sql += ' ORDER BY created_at DESC';
+
+    // 超管可以看到所有任务
+    if (req.user.role >= ROLE.SUPER_ADMIN) {
+        sql = 'SELECT * FROM field_missions';
+        if (!includeArchived) {
+            sql += " WHERE status = 'active'";
+        }
+        sql += ' ORDER BY created_at DESC';
+    }
+
+    db.all(sql, req.user.role >= ROLE.SUPER_ADMIN ? [] : [managerId], (err, missions) => {
+        if (err) return res.status(500).json([]);
+
+        if (!missions || missions.length === 0) {
+            return res.json([]);
+        }
+
+        // 获取每个任务的成员
+        let completed = 0;
+        const result = [];
+
+        missions.forEach(mission => {
+            db.all(`
+                SELECT fmm.*, c.data, c.user_id
+                FROM field_mission_members fmm
+                JOIN characters c ON fmm.character_id = c.id
+                WHERE fmm.mission_id = ?
+            `, [mission.id], (err, members) => {
+                const memberList = (members || []).map(m => {
+                    let d = {};
+                    try { d = JSON.parse(m.data); } catch(e) {}
+                    return {
+                        character_id: m.character_id,
+                        name: d.pName || '未命名',
+                        member_status: m.member_status,
+                        joined_at: m.joined_at
+                    };
+                });
+
+                result.push({
+                    id: mission.id,
+                    name: mission.name,
+                    description: mission.description,
+                    status: mission.status,
+                    members: memberList,
+                    createdAt: mission.created_at,
+                    updatedAt: mission.updated_at
+                });
+
+                completed++;
+                if (completed === missions.length) {
+                    res.json(result);
+                }
+            });
+        });
+    });
+});
+
+// 更新任务信息
+app.put('/api/manager/mission/:id', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    const missionId = req.params.id;
+    const { name, description, status, missionType, chaosValue, scatterValue } = req.body;
+
+    db.get('SELECT created_by FROM field_missions WHERE id = ?', [missionId], (err, mission) => {
+        if (!mission) return res.status(404).json({ success: false, message: '任务不存在' });
+
+        // 只有创建者或超管可以修改
+        if (mission.created_by !== req.user.userId && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权修改此任务' });
+        }
+
+        const updates = [];
+        const params = [];
+
+        if (name !== undefined) {
+            updates.push('name = ?');
+            params.push(name.trim());
+        }
+        if (description !== undefined) {
+            updates.push('description = ?');
+            params.push(description);
+        }
+        if (status !== undefined && ['active', 'archived'].includes(status)) {
+            updates.push('status = ?');
+            params.push(status);
+        }
+        if (missionType !== undefined && ['containment', 'sweep'].includes(missionType)) {
+            updates.push('mission_type = ?');
+            params.push(missionType);
+        }
+        // 混沌值和逸散端（逸散端可以为负数）
+        if (chaosValue !== undefined && !isNaN(parseInt(chaosValue))) {
+            updates.push('chaos_value = ?');
+            params.push(parseInt(chaosValue));
+        }
+        if (scatterValue !== undefined && !isNaN(parseInt(scatterValue))) {
+            updates.push('scatter_value = ?');
+            params.push(parseInt(scatterValue));
+        }
+
+        if (updates.length === 0) {
+            return res.json({ success: true });
+        }
+
+        updates.push('updated_at = ?');
+        params.push(Date.now());
+        params.push(missionId);
+
+        db.run(`UPDATE field_missions SET ${updates.join(', ')} WHERE id = ?`, params, function(err) {
+            if (err) return res.status(500).json({ success: false });
+            res.json({ success: true });
+        });
+    });
+});
+
+// 删除任务
+app.delete('/api/manager/mission/:id', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    const missionId = req.params.id;
+
+    db.get('SELECT created_by FROM field_missions WHERE id = ?', [missionId], (err, mission) => {
+        if (!mission) return res.status(404).json({ success: false, message: '任务不存在' });
+
+        if (mission.created_by !== req.user.userId && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权删除此任务' });
+        }
+
+        db.run('DELETE FROM field_missions WHERE id = ?', [missionId], function(err) {
+            if (err) return res.status(500).json({ success: false });
+            res.json({ success: true });
+        });
+    });
+});
+
+// 添加成员到任务
+app.post('/api/manager/mission/:id/member', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    const missionId = req.params.id;
+    const { characterId } = req.body;
+
+    if (!characterId) {
+        return res.status(400).json({ success: false, message: '角色卡ID不能为空' });
+    }
+
+    db.get('SELECT created_by FROM field_missions WHERE id = ?', [missionId], (err, mission) => {
+        if (!mission) return res.status(404).json({ success: false, message: '任务不存在' });
+
+        if (mission.created_by !== req.user.userId && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权修改此任务' });
+        }
+
+        // 检查特工是否已在任何活跃任务中（一个特工只能在一个未归档任务中）
+        db.get(`
+            SELECT fm.id, fm.name FROM field_mission_members fmm
+            JOIN field_missions fm ON fmm.mission_id = fm.id
+            WHERE fmm.character_id = ? AND fm.status = 'active'
+        `, [characterId], (err, existing) => {
+            if (existing) {
+                return res.status(400).json({
+                    success: false,
+                    message: `该特工已在任务"${existing.name}"中，无法加入其他任务`
+                });
+            }
+
+            db.run('INSERT OR IGNORE INTO field_mission_members (mission_id, character_id, member_status, joined_at) VALUES (?, ?, ?, ?)',
+                [missionId, characterId, '待命', Date.now()],
+                function(err) {
+                    if (err) return res.status(500).json({ success: false });
+
+                    // 更新任务更新时间
+                    db.run('UPDATE field_missions SET updated_at = ? WHERE id = ?', [Date.now(), missionId]);
+
+                    res.json({ success: true });
+                });
+        });
+    });
+});
+
+// 移除成员从任务
+app.delete('/api/manager/mission/:id/member/:charId', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    const missionId = req.params.id;
+    const charId = req.params.charId;
+
+    db.get('SELECT created_by FROM field_missions WHERE id = ?', [missionId], (err, mission) => {
+        if (!mission) return res.status(404).json({ success: false, message: '任务不存在' });
+
+        if (mission.created_by !== req.user.userId && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权修改此任务' });
+        }
+
+        db.run('DELETE FROM field_mission_members WHERE mission_id = ? AND character_id = ?',
+            [missionId, charId],
+            function(err) {
+                if (err) return res.status(500).json({ success: false });
+
+                db.run('UPDATE field_missions SET updated_at = ? WHERE id = ?', [Date.now(), missionId]);
+
+                res.json({ success: true });
+            });
+    });
+});
+
+// 更新成员状态
+app.put('/api/manager/mission/:id/member/:charId/status', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    const missionId = req.params.id;
+    const charId = req.params.charId;
+    const { status } = req.body;
+
+    if (!status) {
+        return res.status(400).json({ success: false, message: '状态不能为空' });
+    }
+
+    db.get('SELECT created_by FROM field_missions WHERE id = ?', [missionId], (err, mission) => {
+        if (!mission) return res.status(404).json({ success: false, message: '任务不存在' });
+
+        if (mission.created_by !== req.user.userId && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权修改此任务' });
+        }
+
+        db.run('UPDATE field_mission_members SET member_status = ? WHERE mission_id = ? AND character_id = ?',
+            [status, missionId, charId],
+            function(err) {
+                if (err) return res.status(500).json({ success: false });
+
+                db.run('UPDATE field_missions SET updated_at = ? WHERE id = ?', [Date.now(), missionId]);
+
+                res.json({ success: true });
+            });
+    });
+});
+
+// 获取任务中特工的完整数据
+app.get('/api/manager/mission/:id/agent/:charId', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    const missionId = req.params.id;
+    const charId = req.params.charId;
+
+    db.get('SELECT created_by FROM field_missions WHERE id = ?', [missionId], (err, mission) => {
+        if (!mission) return res.status(404).json({ success: false, message: '任务不存在' });
+
+        if (mission.created_by !== req.user.userId && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权访问此任务' });
+        }
+
+        // 获取角色数据
+        db.get('SELECT * FROM characters WHERE id = ?', [charId], (err, char) => {
+            if (!char) return res.status(404).json({ success: false, message: '角色不存在' });
+
+            let charData = {};
+            try { charData = JSON.parse(char.data); } catch(e) {}
+
+            // 获取嘉奖记录
+            db.all('SELECT * FROM character_rewards WHERE character_id = ? ORDER BY created_at DESC', [charId], (err, rewards) => {
+                // 获取申诫记录
+                db.all('SELECT * FROM character_reprimands WHERE character_id = ? ORDER BY created_at DESC', [charId], (err, reprimands) => {
+                    res.json({
+                        success: true,
+                        agent: {
+                            id: char.id,
+                            name: charData.pName || '未命名',
+                            // 基础属性
+                            physical: charData.physical || 3,
+                            mental: charData.mental || 3,
+                            social: charData.social || 3,
+                            luck: charData.luck || 3,
+                            hp: charData.hp || 10,
+                            mp: charData.mp || 10,
+                            san: charData.san || 50,
+                            // 次级属性
+                            str: charData.str || 0,
+                            dex: charData.dex || 0,
+                            con: charData.con || 0,
+                            int: charData.intVal || 0,
+                            wis: charData.wis || 0,
+                            cha: charData.cha || 0,
+                            // 异常能力
+                            abilities: charData.anomAbilities || [],
+                            abilitySlots: charData.anomSlots || 3,
+                            // 关系网络
+                            relations: charData.relations || [],
+                            relationSlots: charData.realSlots || 3,
+                            // GM备注
+                            gmNotes: charData.gmNotes || '',
+                            // 嘉奖和申诫
+                            rewards: rewards || [],
+                            reprimands: reprimands || []
+                        }
+                    });
+                });
+            });
+        });
+    });
+});
+
+// ==================== 任务收件箱API ====================
+
+// 获取任务收件箱
+app.get('/api/manager/mission/:id/inbox', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    const missionId = req.params.id;
+
+    db.get('SELECT created_by FROM field_missions WHERE id = ?', [missionId], (err, mission) => {
+        if (!mission) return res.status(404).json({ success: false, message: '任务不存在' });
+
+        if (mission.created_by !== req.user.userId && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权访问此任务' });
+        }
+
+        db.all(`
+            SELECT * FROM mission_inbox
+            WHERE mission_id = ?
+            ORDER BY created_at DESC
+        `, [missionId], (err, messages) => {
+            if (err) return res.status(500).json({ success: false });
+            res.json({ success: true, messages: messages || [] });
+        });
+    });
+});
+
+// 获取任务收件箱未读数
+app.get('/api/manager/mission/:id/inbox/unread-count', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    const missionId = req.params.id;
+
+    db.get('SELECT created_by FROM field_missions WHERE id = ?', [missionId], (err, mission) => {
+        if (!mission) return res.status(404).json({ success: false, message: '任务不存在' });
+
+        if (mission.created_by !== req.user.userId && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权访问此任务' });
+        }
+
+        db.get('SELECT COUNT(*) as count FROM mission_inbox WHERE mission_id = ? AND read = 0', [missionId], (err, row) => {
+            if (err) return res.status(500).json({ success: false });
+            res.json({ success: true, count: row ? row.count : 0 });
+        });
+    });
+});
+
+// 标记任务收件箱邮件已读
+app.put('/api/manager/mission/:id/inbox/:msgId/read', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    const missionId = req.params.id;
+    const msgId = req.params.msgId;
+
+    db.get('SELECT created_by FROM field_missions WHERE id = ?', [missionId], (err, mission) => {
+        if (!mission) return res.status(404).json({ success: false, message: '任务不存在' });
+
+        if (mission.created_by !== req.user.userId && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权操作' });
+        }
+
+        db.run('UPDATE mission_inbox SET read = 1 WHERE id = ? AND mission_id = ?', [msgId, missionId], function(err) {
+            if (err) return res.status(500).json({ success: false });
+            res.json({ success: true });
+        });
+    });
+});
+
+// 删除任务收件箱邮件
+app.delete('/api/manager/mission/:id/inbox/:msgId', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    const missionId = req.params.id;
+    const msgId = req.params.msgId;
+
+    db.get('SELECT created_by FROM field_missions WHERE id = ?', [missionId], (err, mission) => {
+        if (!mission) return res.status(404).json({ success: false, message: '任务不存在' });
+
+        if (mission.created_by !== req.user.userId && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权操作' });
+        }
+
+        db.run('DELETE FROM mission_inbox WHERE id = ? AND mission_id = ?', [msgId, missionId], function(err) {
+            if (err) return res.status(500).json({ success: false });
+            res.json({ success: true });
+        });
+    });
+});
+
+// ==================== 任务报告API ====================
+
+// 获取任务报告列表
+app.get('/api/manager/mission/:id/reports', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    const missionId = req.params.id;
+
+    db.get('SELECT created_by FROM field_missions WHERE id = ?', [missionId], (err, mission) => {
+        if (!mission) return res.status(404).json({ success: false, message: '任务不存在' });
+
+        if (mission.created_by !== req.user.userId && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权访问此任务' });
+        }
+
+        db.all(`
+            SELECT mr.*, c.data as char_data
+            FROM mission_reports mr
+            LEFT JOIN characters c ON mr.submitted_by = c.id
+            WHERE mr.mission_id = ?
+            ORDER BY mr.submitted_at DESC
+        `, [missionId], (err, reports) => {
+            if (err) return res.status(500).json({ success: false });
+
+            // 解析角色名称
+            const result = (reports || []).map(r => {
+                let charName = '未知特工';
+                try {
+                    const charData = JSON.parse(r.char_data || '{}');
+                    charName = charData.pName || '未命名';
+                } catch(e) {}
+
+                return {
+                    id: r.id,
+                    missionId: r.mission_id,
+                    submittedBy: r.submitted_by,
+                    submitterName: charName,
+                    originalData: r.original_data ? JSON.parse(r.original_data) : null,
+                    revisedData: r.revised_data ? JSON.parse(r.revised_data) : null,
+                    annotations: r.annotations ? JSON.parse(r.annotations) : [],
+                    rating: r.rating,
+                    scatterValue: r.scatter_value,
+                    status: r.status,
+                    submittedAt: r.submitted_at,
+                    reviewedAt: r.reviewed_at,
+                    sentAt: r.sent_at
+                };
+            });
+
+            res.json({ success: true, reports: result });
+        });
+    });
+});
+
+// 修订报告（经理）
+app.put('/api/manager/mission/:id/report/:reportId', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    const missionId = req.params.id;
+    const reportId = req.params.reportId;
+    const { revisedData, annotations, rating, scatterValue } = req.body;
+
+    db.get('SELECT created_by FROM field_missions WHERE id = ?', [missionId], (err, mission) => {
+        if (!mission) return res.status(404).json({ success: false, message: '任务不存在' });
+
+        if (mission.created_by !== req.user.userId && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权操作' });
+        }
+
+        const updates = ['reviewed_at = ?', 'status = ?'];
+        const params = [Date.now(), 'reviewed'];
+
+        if (revisedData !== undefined) {
+            updates.push('revised_data = ?');
+            params.push(JSON.stringify(revisedData));
+        }
+        if (annotations !== undefined) {
+            updates.push('annotations = ?');
+            params.push(JSON.stringify(annotations));
+        }
+        if (rating !== undefined) {
+            updates.push('rating = ?');
+            params.push(rating);
+        }
+        if (scatterValue !== undefined) {
+            updates.push('scatter_value = ?');
+            params.push(parseInt(scatterValue) || 0);
+        }
+
+        params.push(reportId, missionId);
+
+        db.run(`UPDATE mission_reports SET ${updates.join(', ')} WHERE id = ? AND mission_id = ?`, params, function(err) {
+            if (err) return res.status(500).json({ success: false, message: err.message });
+
+            // 更新任务状态
+            db.run('UPDATE field_missions SET report_status = ?, updated_at = ? WHERE id = ?',
+                ['reviewed', Date.now(), missionId]);
+
+            res.json({ success: true });
+        });
+    });
+});
+
+// 发送评级给特工
+app.post('/api/manager/mission/:id/report/:reportId/send', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    const missionId = req.params.id;
+    const reportId = req.params.reportId;
+
+    db.get('SELECT created_by FROM field_missions WHERE id = ?', [missionId], (err, mission) => {
+        if (!mission) return res.status(404).json({ success: false, message: '任务不存在' });
+
+        if (mission.created_by !== req.user.userId && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权操作' });
+        }
+
+        // 获取报告信息
+        db.get('SELECT * FROM mission_reports WHERE id = ? AND mission_id = ?', [reportId, missionId], (err, report) => {
+            if (!report) return res.status(404).json({ success: false, message: '报告不存在' });
+
+            const now = Date.now();
+
+            // 更新报告状态
+            db.run('UPDATE mission_reports SET status = ?, sent_at = ? WHERE id = ?', ['sent', now, reportId], function(err) {
+                if (err) return res.status(500).json({ success: false });
+
+                // 更新任务状态
+                db.run('UPDATE field_missions SET report_status = ?, updated_at = ? WHERE id = ?', ['sent', now, missionId]);
+
+                // 向提交者发送通知邮件
+                if (report.submitted_by) {
+                    const subject = '[评级通知] 您的任务报告已评审';
+                    const content = `您提交的任务报告已被经理评审。\n\n评级: ${report.rating || '未评级'}\n逸散端: ${report.scatter_value || 0}`;
+
+                    db.run('INSERT INTO character_messages (character_id, sender_id, sender_name, subject, content, message_type, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                        [report.submitted_by, req.user.userId, '任务系统', subject, content, 'system', now]);
+                }
+
+                res.json({ success: true });
+            });
+        });
+    });
+});
+
+// 归档任务（需报告已发送）
+app.post('/api/manager/mission/:id/archive', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    const missionId = req.params.id;
+
+    db.get('SELECT * FROM field_missions WHERE id = ?', [missionId], (err, mission) => {
+        if (!mission) return res.status(404).json({ success: false, message: '任务不存在' });
+
+        if (mission.created_by !== req.user.userId && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权操作' });
+        }
+
+        // 检查是否有报告
+        db.get('SELECT COUNT(*) as count FROM mission_reports WHERE mission_id = ?', [missionId], (err, reportCount) => {
+            // 如果有报告，检查报告状态
+            if (reportCount && reportCount.count > 0) {
+                db.get('SELECT COUNT(*) as unsent FROM mission_reports WHERE mission_id = ? AND status != ?', [missionId, 'sent'], (err, unsent) => {
+                    if (unsent && unsent.unsent > 0) {
+                        return res.status(400).json({
+                            success: false,
+                            message: '存在未发送的报告评级，请先完成所有报告评审并发送给特工'
+                        });
+                    }
+
+                    // 可以归档
+                    doArchive();
+                });
+            } else {
+                // 无报告，直接归档
+                doArchive();
+            }
+        });
+
+        function doArchive() {
+            const now = Date.now();
+            db.run('UPDATE field_missions SET status = ?, updated_at = ? WHERE id = ?', ['archived', now, missionId], function(err) {
+                if (err) return res.status(500).json({ success: false });
+                res.json({ success: true });
+            });
+        }
+    });
+});
+
+// 角色卡查询所属任务和队友
+app.get('/api/character/:charId/mission', authenticateToken, (req, res) => {
+    const charId = req.params.charId;
+
+    // 验证访问权限
+    db.get('SELECT user_id FROM characters WHERE id = ?', [charId], (err, char) => {
+        if (!char) return res.status(404).json({ error: '角色不存在' });
+
+        if (char.user_id !== req.user.userId && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ error: '无权访问' });
+        }
+
+        // 查找该角色所属的活跃任务
+        db.get(`
+            SELECT fm.*, fmm.member_status
+            FROM field_mission_members fmm
+            JOIN field_missions fm ON fmm.mission_id = fm.id
+            WHERE fmm.character_id = ? AND fm.status = 'active'
+            ORDER BY fm.created_at DESC
+            LIMIT 1
+        `, [charId], (err, mission) => {
+            if (!mission) {
+                return res.json({ inMission: false });
+            }
+
+            // 获取同任务的队友
+            db.all(`
+                SELECT fmm.character_id, fmm.member_status, c.data
+                FROM field_mission_members fmm
+                JOIN characters c ON fmm.character_id = c.id
+                WHERE fmm.mission_id = ?
+            `, [mission.id], (err, members) => {
+                const teammates = (members || []).map(m => {
+                    let d = {};
+                    try { d = JSON.parse(m.data); } catch(e) {}
+                    return {
+                        characterId: m.character_id,
+                        characterName: d.pName || '未命名',
+                        status: m.member_status,
+                        isMe: m.character_id === charId
+                    };
+                });
+
+                res.json({
+                    inMission: true,
+                    missionId: mission.id,
+                    missionName: mission.name,
+                    myStatus: mission.member_status,
+                    teammates
+                });
+            });
+        });
+    });
+});
+
+// ==========================================
+// 角色卡邮件发送 API
+// ==========================================
+
+// 获取可发送对象（经理+队友）
+app.get('/api/character/:charId/send-targets', authenticateToken, (req, res) => {
+    const charId = req.params.charId;
+
+    db.get('SELECT user_id FROM characters WHERE id = ?', [charId], (err, char) => {
+        if (!char) return res.status(404).json({ error: '角色不存在' });
+
+        if (char.user_id !== req.user.userId && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ error: '无权访问' });
+        }
+
+        // 获取授权该角色卡的经理
+        db.all(`
+            SELECT DISTINCT u.id, u.name, u.username
+            FROM character_authorizations ca
+            JOIN users u ON ca.manager_id = u.id
+            WHERE ca.character_id = ?
+        `, [charId], (err, managers) => {
+            const managerList = (managers || []).map(m => ({
+                id: m.id,
+                name: m.name || m.username,
+                type: 'manager'
+            }));
+
+            // 获取同任务的队友
+            db.all(`
+                SELECT c.id, c.data
+                FROM field_mission_members fmm
+                JOIN field_missions fm ON fmm.mission_id = fm.id
+                JOIN field_mission_members fmm2 ON fmm.mission_id = fmm2.mission_id
+                JOIN characters c ON fmm2.character_id = c.id
+                WHERE fmm.character_id = ? AND fm.status = 'active' AND fmm2.character_id != ?
+            `, [charId, charId], (err, teammates) => {
+                const teammateList = (teammates || []).map(t => {
+                    let d = {};
+                    try { d = JSON.parse(t.data); } catch(e) {}
+                    return {
+                        id: t.id,
+                        name: d.pName || '未命名',
+                        type: 'character'
+                    };
+                });
+
+                res.json({
+                    managers: managerList,
+                    teammates: teammateList
+                });
+            });
+        });
+    });
+});
+
+// 发送普通邮件
+app.post('/api/character/:charId/send-mail', authenticateToken, async (req, res) => {
+    const charId = req.params.charId;
+    const { recipientType, recipientId, subject, content } = req.body;
+
+    // 验证权限
+    const char = await new Promise((resolve) => {
+        db.get('SELECT user_id, data FROM characters WHERE id = ?', [charId], (err, row) => resolve(row));
+    });
+
+    if (!char) return res.status(404).json({ success: false, message: '角色不存在' });
+    if (char.user_id !== req.user.userId && req.user.role < ROLE.SUPER_ADMIN) {
+        return res.status(403).json({ success: false, message: '无权操作' });
+    }
+
+    if (!subject || !content) {
+        return res.status(400).json({ success: false, message: '标题和内容不能为空' });
+    }
+
+    let charData = {};
+    try { charData = JSON.parse(char.data); } catch(e) {}
+    const senderName = charData.pName || '未命名角色';
+
+    const now = Date.now();
+
+    // 获取收件人名称（用于已发邮件显示）
+    let recipientName = '未知';
+    if (recipientType === 'manager') {
+        const manager = await new Promise(resolve => {
+            db.get('SELECT name, username FROM users WHERE id = ?', [recipientId], (err, row) => resolve(row));
+        });
+        recipientName = manager ? (manager.name || manager.username) : '经理';
+    } else if (recipientType === 'character') {
+        const recipient = await new Promise(resolve => {
+            db.get('SELECT data FROM characters WHERE id = ?', [recipientId], (err, row) => resolve(row));
+        });
+        if (recipient) {
+            try {
+                const rData = JSON.parse(recipient.data);
+                recipientName = rData.pName || '未命名角色';
+            } catch(e) {}
+        }
+    }
+
+    if (recipientType === 'manager') {
+        // 检查特工是否在某个任务中
+        const activeMission = await new Promise((resolve) => {
+            db.get(`
+                SELECT fm.id as mission_id, fm.created_by as manager_id
+                FROM field_mission_members fmm
+                JOIN field_missions fm ON fmm.mission_id = fm.id
+                WHERE fmm.character_id = ? AND fm.status = 'active'
+            `, [charId], (err, row) => resolve(row));
+        });
+
+        if (activeMission) {
+            // 特工在任务中，发送到任务收件箱
+            db.run('INSERT INTO mission_inbox (mission_id, sender_character_id, sender_name, subject, content, message_type, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                [activeMission.mission_id, charId, senderName, subject, content, 'mail', now],
+                function(err) {
+                    if (err) return res.status(500).json({ success: false, message: err.message });
+                    // 记录已发邮件
+                    db.run('INSERT INTO character_messages (character_id, sender_id, sender_name, subject, content, message_type, from_character_id, recipient_name, read, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?)',
+                        [charId, req.user.userId, senderName, subject, content, 'sent', charId, recipientName, now]);
+                    res.json({ success: true, messageId: this.lastID, sentToMission: true });
+                });
+        } else {
+            // 特工不在任务中，发送到经理全局收件箱
+            db.run('INSERT INTO manager_inbox (manager_id, sender_character_id, sender_name, subject, content, message_type, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                [recipientId, charId, senderName, subject, content, 'mail', now],
+                function(err) {
+                    if (err) return res.status(500).json({ success: false, message: err.message });
+                    // 记录已发邮件
+                    db.run('INSERT INTO character_messages (character_id, sender_id, sender_name, subject, content, message_type, from_character_id, recipient_name, read, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?)',
+                        [charId, req.user.userId, senderName, subject, content, 'sent', charId, recipientName, now]);
+                    res.json({ success: true, messageId: this.lastID, sentToMission: false });
+                });
+        }
+    } else if (recipientType === 'character') {
+        // 发送给队友 - 存入 character_messages
+        db.run('INSERT INTO character_messages (character_id, sender_id, sender_name, subject, content, message_type, from_character_id, recipient_name, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [recipientId, req.user.userId, senderName, subject, content, 'mail', charId, recipientName, now],
+            function(err) {
+                if (err) return res.status(500).json({ success: false, message: err.message });
+                // 记录已发邮件
+                db.run('INSERT INTO character_messages (character_id, sender_id, sender_name, subject, content, message_type, from_character_id, recipient_name, read, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?)',
+                    [charId, req.user.userId, senderName, subject, content, 'sent', charId, recipientName, now]);
+                res.json({ success: true, messageId: this.lastID });
+            });
+    } else {
+        return res.status(400).json({ success: false, message: '无效的收件人类型' });
+    }
+});
+
+// 寄送收容物
+app.post('/api/character/:charId/send-containment', authenticateToken, async (req, res) => {
+    const charId = req.params.charId;
+    const { recipientId, name: containmentName, description } = req.body;
+
+    const char = await new Promise((resolve) => {
+        db.get('SELECT user_id, data FROM characters WHERE id = ?', [charId], (err, row) => resolve(row));
+    });
+
+    if (!char) return res.status(404).json({ success: false, message: '角色不存在' });
+    if (char.user_id !== req.user.userId && req.user.role < ROLE.SUPER_ADMIN) {
+        return res.status(403).json({ success: false, message: '无权操作' });
+    }
+
+    if (!containmentName) {
+        return res.status(400).json({ success: false, message: '收容物名称不能为空' });
+    }
+
+    let charData = {};
+    try { charData = JSON.parse(char.data); } catch(e) {}
+    const senderName = charData.pName || '未命名角色';
+
+    const subject = `[收容物] ${containmentName}`;
+    const content = `收容物名称: ${containmentName}\n\n描述:\n${description || '无'}`;
+    const now = Date.now();
+
+    // 检查特工是否在某个任务中
+    const activeMission = await new Promise((resolve) => {
+        db.get(`
+            SELECT fm.id as mission_id, fm.created_by as manager_id
+            FROM field_mission_members fmm
+            JOIN field_missions fm ON fmm.mission_id = fm.id
+            WHERE fmm.character_id = ? AND fm.status = 'active'
+        `, [charId], (err, row) => resolve(row));
+    });
+
+    if (activeMission) {
+        // 发送到任务收件箱
+        db.run('INSERT INTO mission_inbox (mission_id, sender_character_id, sender_name, subject, content, message_type, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [activeMission.mission_id, charId, senderName, subject, content, 'containment', now],
+            function(err) {
+                if (err) return res.status(500).json({ success: false, message: err.message });
+                res.json({ success: true, messageId: this.lastID, sentToMission: true });
+            });
+    } else {
+        // 发送到经理全局收件箱
+        db.run('INSERT INTO manager_inbox (manager_id, sender_character_id, sender_name, subject, content, message_type, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [recipientId, charId, senderName, subject, content, 'containment', now],
+            function(err) {
+                if (err) return res.status(500).json({ success: false, message: err.message });
+                res.json({ success: true, messageId: this.lastID, sentToMission: false });
+            });
+    }
+});
+
+// 提交任务报告
+app.post('/api/character/:charId/send-report', authenticateToken, async (req, res) => {
+    const charId = req.params.charId;
+    const { recipientId, reportData } = req.body;
+
+    const char = await new Promise((resolve) => {
+        db.get('SELECT user_id, data FROM characters WHERE id = ?', [charId], (err, row) => resolve(row));
+    });
+
+    if (!char) return res.status(404).json({ success: false, message: '角色不存在' });
+    if (char.user_id !== req.user.userId && req.user.role < ROLE.SUPER_ADMIN) {
+        return res.status(403).json({ success: false, message: '无权操作' });
+    }
+
+    let charData = {};
+    try { charData = JSON.parse(char.data); } catch(e) {}
+    const senderName = charData.pName || '未命名角色';
+
+    const subject = `[任务报告] 来自 ${senderName}`;
+    const content = `任务报告已提交，详情请查看报告数据`;
+    const now = Date.now();
+
+    // 检查特工是否在某个任务中
+    const activeMission = await new Promise((resolve) => {
+        db.get(`
+            SELECT fm.id as mission_id, fm.created_by as manager_id
+            FROM field_mission_members fmm
+            JOIN field_missions fm ON fmm.mission_id = fm.id
+            WHERE fmm.character_id = ? AND fm.status = 'active'
+        `, [charId], (err, row) => resolve(row));
+    });
+
+    if (activeMission) {
+        // 创建任务报告记录
+        db.run(`INSERT INTO mission_reports (mission_id, submitted_by, original_data, status, submitted_at)
+                VALUES (?, ?, ?, 'submitted', ?)`,
+            [activeMission.mission_id, charId, JSON.stringify(reportData), now],
+            function(err) {
+                if (err) return res.status(500).json({ success: false, message: err.message });
+
+                const reportId = this.lastID;
+
+                // 同时在任务收件箱创建通知
+                db.run(`INSERT INTO mission_inbox (mission_id, sender_character_id, sender_name, subject, content, message_type, report_id, created_at)
+                        VALUES (?, ?, ?, ?, ?, 'report', ?, ?)`,
+                    [activeMission.mission_id, charId, senderName, subject, content, reportId, now],
+                    function(err) {
+                        if (err) return res.status(500).json({ success: false, message: err.message });
+
+                        // 更新任务报告状态
+                        db.run('UPDATE field_missions SET report_status = ? WHERE id = ?', ['submitted', activeMission.mission_id]);
+
+                        res.json({ success: true, reportId, messageId: this.lastID, sentToMission: true });
+                    });
+            });
+    } else {
+        // 发送到经理全局收件箱（无任务关联）
+        db.run('INSERT INTO manager_inbox (manager_id, sender_character_id, sender_name, subject, content, message_type, report_data, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [recipientId, charId, senderName, subject, content, 'report', JSON.stringify(reportData), now],
+            function(err) {
+                if (err) return res.status(500).json({ success: false, message: err.message });
+                res.json({ success: true, messageId: this.lastID, sentToMission: false });
+            });
+    }
+});
+
+// ==========================================
+// 经理收件箱 API
+// ==========================================
+
+// 获取经理收件箱
+app.get('/api/manager/inbox', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    db.all('SELECT * FROM manager_inbox WHERE manager_id = ? ORDER BY created_at DESC',
+        [req.user.userId], (err, messages) => {
+            if (err) return res.status(500).json([]);
+            res.json(messages || []);
+        });
+});
+
+// 获取经理收件箱未读数
+app.get('/api/manager/inbox/unread-count', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    db.get('SELECT COUNT(*) as count FROM manager_inbox WHERE manager_id = ? AND read = 0',
+        [req.user.userId], (err, row) => {
+            if (err) return res.json({ count: 0 });
+            res.json({ count: row ? row.count : 0 });
+        });
+});
+
+// 获取单封邮件详情
+app.get('/api/manager/inbox/:msgId', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    db.get('SELECT * FROM manager_inbox WHERE id = ? AND manager_id = ?',
+        [req.params.msgId, req.user.userId], (err, msg) => {
+            if (!msg) return res.status(404).json({ error: '邮件不存在' });
+
+            // 如果有报告数据，解析它
+            if (msg.report_data) {
+                try {
+                    msg.reportData = JSON.parse(msg.report_data);
+                } catch(e) {}
+            }
+
+            res.json(msg);
+        });
+});
+
+// 标记经理邮件已读
+app.put('/api/manager/inbox/:msgId/read', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    db.run('UPDATE manager_inbox SET read = 1 WHERE id = ? AND manager_id = ?',
+        [req.params.msgId, req.user.userId], function(err) {
+            if (err) return res.status(500).json({ success: false });
+            res.json({ success: true });
+        });
+});
+
+// 删除经理邮件
+app.delete('/api/manager/inbox/:msgId', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    db.run('DELETE FROM manager_inbox WHERE id = ? AND manager_id = ?',
+        [req.params.msgId, req.user.userId], function(err) {
+            if (err) return res.status(500).json({ success: false });
+            res.json({ success: true });
+        });
+});
+
+// ==================== 分部系统API ====================
+
+// 创建分部（超管）
+app.post('/api/admin/branch', authenticateToken, requireRole(ROLE.SUPER_ADMIN), (req, res) => {
+    const { name, description } = req.body;
+
+    if (!name || !name.trim()) {
+        return res.status(400).json({ success: false, message: '分部名称不能为空' });
+    }
+
+    const branchId = Date.now().toString();
+    const now = Date.now();
+
+    db.run(`INSERT INTO branches (id, name, description, created_by, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?)`,
+        [branchId, name.trim(), description || '', req.user.userId, now, now],
+        function(err) {
+            if (err) return res.status(500).json({ success: false, message: err.message });
+            res.json({ success: true, branchId });
+        });
+});
+
+// 获取所有分部
+app.get('/api/admin/branches', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    db.all(`
+        SELECT b.*,
+            (SELECT COUNT(*) FROM branch_managers WHERE branch_id = b.id) as manager_count,
+            (SELECT COALESCE(SUM(fm.scatter_value), 0)
+             FROM field_missions fm
+             WHERE fm.branch_id = b.id AND fm.status = 'archived') as total_scatter
+        FROM branches b
+        ORDER BY b.created_at DESC
+    `, [], (err, branches) => {
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true, branches: branches || [] });
+    });
+});
+
+// 获取单个分部详情
+app.get('/api/admin/branch/:id', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    const branchId = req.params.id;
+
+    db.get('SELECT * FROM branches WHERE id = ?', [branchId], (err, branch) => {
+        if (!branch) return res.status(404).json({ success: false, message: '分部不存在' });
+
+        // 获取分部经理
+        db.all(`
+            SELECT u.id, u.username, u.name
+            FROM branch_managers bm
+            JOIN users u ON bm.manager_id = u.id
+            WHERE bm.branch_id = ?
+        `, [branchId], (err, managers) => {
+            // 获取分部统计
+            db.get(`
+                SELECT
+                    COUNT(*) as mission_count,
+                    COALESCE(SUM(scatter_value), 0) as total_scatter,
+                    COALESCE(SUM(chaos_value), 0) as total_chaos
+                FROM field_missions
+                WHERE branch_id = ? AND status = 'archived'
+            `, [branchId], (err, stats) => {
+                res.json({
+                    success: true,
+                    branch: {
+                        ...branch,
+                        managers: managers || [],
+                        stats: stats || { mission_count: 0, total_scatter: 0, total_chaos: 0 }
+                    }
+                });
+            });
+        });
+    });
+});
+
+// 更新分部
+app.put('/api/admin/branch/:id', authenticateToken, requireRole(ROLE.SUPER_ADMIN), (req, res) => {
+    const branchId = req.params.id;
+    const { name, description } = req.body;
+
+    const updates = ['updated_at = ?'];
+    const params = [Date.now()];
+
+    if (name !== undefined) {
+        updates.push('name = ?');
+        params.push(name.trim());
+    }
+    if (description !== undefined) {
+        updates.push('description = ?');
+        params.push(description);
+    }
+
+    params.push(branchId);
+
+    db.run(`UPDATE branches SET ${updates.join(', ')} WHERE id = ?`, params, function(err) {
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true });
+    });
+});
+
+// 删除分部
+app.delete('/api/admin/branch/:id', authenticateToken, requireRole(ROLE.SUPER_ADMIN), (req, res) => {
+    const branchId = req.params.id;
+
+    db.run('DELETE FROM branches WHERE id = ?', [branchId], function(err) {
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true });
+    });
+});
+
+// 添加经理到分部
+app.post('/api/admin/branch/:id/manager', authenticateToken, requireRole(ROLE.SUPER_ADMIN), (req, res) => {
+    const branchId = req.params.id;
+    const { managerId } = req.body;
+
+    if (!managerId) {
+        return res.status(400).json({ success: false, message: '经理ID不能为空' });
+    }
+
+    db.run('INSERT OR IGNORE INTO branch_managers (branch_id, manager_id, assigned_at) VALUES (?, ?, ?)',
+        [branchId, managerId, Date.now()],
+        function(err) {
+            if (err) return res.status(500).json({ success: false, message: err.message });
+            res.json({ success: true });
+        });
+});
+
+// 从分部移除经理
+app.delete('/api/admin/branch/:id/manager/:managerId', authenticateToken, requireRole(ROLE.SUPER_ADMIN), (req, res) => {
+    const branchId = req.params.id;
+    const managerId = req.params.managerId;
+
+    db.run('DELETE FROM branch_managers WHERE branch_id = ? AND manager_id = ?',
+        [branchId, managerId],
+        function(err) {
+            if (err) return res.status(500).json({ success: false });
+            res.json({ success: true });
+        });
+});
+
+// 经理获取自己所属分部信息
+app.get('/api/manager/my-branch', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    db.get(`
+        SELECT b.*,
+            (SELECT COALESCE(SUM(fm.scatter_value), 0)
+             FROM field_missions fm
+             WHERE fm.branch_id = b.id AND fm.status = 'archived') as total_scatter
+        FROM branch_managers bm
+        JOIN branches b ON bm.branch_id = b.id
+        WHERE bm.manager_id = ?
+    `, [req.user.userId], (err, branch) => {
+        if (!branch) {
+            return res.json({ success: true, branch: null });
+        }
+        res.json({ success: true, branch });
+    });
+});
+
+// 将任务分配到分部
+app.put('/api/manager/mission/:id/branch', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    const missionId = req.params.id;
+    const { branchId } = req.body;
+
+    db.get('SELECT created_by FROM field_missions WHERE id = ?', [missionId], (err, mission) => {
+        if (!mission) return res.status(404).json({ success: false, message: '任务不存在' });
+
+        if (mission.created_by !== req.user.userId && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权操作' });
+        }
+
+        db.run('UPDATE field_missions SET branch_id = ?, updated_at = ? WHERE id = ?',
+            [branchId || null, Date.now(), missionId],
+            function(err) {
+                if (err) return res.status(500).json({ success: false });
+                res.json({ success: true });
+            });
+    });
+});
 
 app.listen(PORT, () => {
     console.log(`服务器运行中: http://localhost:${PORT}`);

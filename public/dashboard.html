@@ -570,6 +570,9 @@
                 <button class="btn btn-highwall" onclick="enterHighWall()" title="高墙文件">
                     <i class="fas fa-file-shield"></i> <span class="btn-text">高墙</span>
                 </button>
+                <button class="btn btn-console" id="btnManager" style="display:none;" onclick="goManager()" title="经理台">
+                    <i class="fas fa-user-tie"></i> <span class="btn-text">经理台</span>
+                </button>
                 <button class="btn btn-console" id="btnConsole" style="display:none;" onclick="goConsole()" title="管理台">
                     <i class="fas fa-cog"></i> <span class="btn-text" id="btnConsoleText">控制台</span>
                 </button>
@@ -641,9 +644,14 @@
 
         (function initConsoleButton() {
             const btnConsole = document.getElementById('btnConsole');
+<<<<<<< Updated upstream
             const menuConsole = document.getElementById('menuConsole');
 
+=======
+            const btnManager = document.getElementById('btnManager');
+>>>>>>> Stashed changes
             if (userRole >= 2) {
+                // 超管同时显示管理台和经理台
                 btnConsole.style.display = 'inline-flex';
                 btnConsole.classList.add('admin');
                 btnConsole.innerHTML = '<i class="fas fa-shield-alt"></i> <span>管理台</span>';
@@ -653,7 +661,9 @@
                 menuConsole.classList.add('admin');
                 menuConsole.innerHTML = '<i class="fas fa-shield-alt"></i> <span>管理台</span>';
                 btnConsole.innerHTML = '<i class="fas fa-shield-alt"></i> <span class="btn-text">管理台</span>';
+                btnManager.style.display = 'inline-flex';
             } else if (userRole >= 1) {
+<<<<<<< Updated upstream
                 btnConsole.style.display = 'inline-flex';
                 btnConsole.innerHTML = '<i class="fas fa-user-tie"></i> <span>经理台</span>';
                 // 移动端菜单
@@ -682,6 +692,10 @@
                 window.location.href = 'manager.html';
             }
                 btnConsole.innerHTML = '<i class="fas fa-user-tie"></i> <span class="btn-text">经理台</span>';
+=======
+                // 经理只显示经理台
+                btnManager.style.display = 'inline-flex';
+>>>>>>> Stashed changes
             }
         })();
 
@@ -763,22 +777,30 @@
             const overlay = document.getElementById('transition-overlay');
             const loaderText = overlay.querySelector('.loader-text');
 
-            // 更改加载文本
             if (loaderText) {
                 loaderText.innerHTML = '授权认证中<span class="dots"></span>';
             }
 
-            // 激活过渡动画
             overlay.classList.add('active');
 
-            // 在动画播放后跳转页面
             setTimeout(() => {
-                if (userRole >= 2) {
-                    window.location.href = 'admin.html';
-                } else if (userRole >= 1) {
-                    window.location.href = 'manager.html';
-                }
-            }, 1200); // 延迟与打开档案的动画时间一致
+                window.location.href = 'admin.html';
+            }, 1200);
+        }
+
+        function goManager() {
+            const overlay = document.getElementById('transition-overlay');
+            const loaderText = overlay.querySelector('.loader-text');
+
+            if (loaderText) {
+                loaderText.innerHTML = '授权认证中<span class="dots"></span>';
+            }
+
+            overlay.classList.add('active');
+
+            setTimeout(() => {
+                window.location.href = 'manager.html';
+            }, 1200);
         }
 
         function logout() {

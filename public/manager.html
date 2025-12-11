@@ -36,9 +36,365 @@
         .brand-logo .btm { font-size: 12px; letter-spacing: 3px; color: var(--manager-blue); }
         .page-title { font-size: 12px; color: #7f8c8d; margin-top: 5px; text-transform: uppercase; letter-spacing: 1px; }
 
-        .btn-group { display: flex; gap: 10px; }
+        .btn-group { display: flex; gap: 10px; align-items: center; }
         .btn-logout { background: rgba(255,255,255,0.1); color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; transition: 0.2s; font-size: 12px; }
         .btn-logout:hover { background: var(--manager-blue); }
+
+        /* === 分部信息显示 === */
+        .branch-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 8px 15px;
+            background: rgba(39, 174, 96, 0.15);
+            border: 1px solid rgba(39, 174, 96, 0.3);
+            border-radius: 6px;
+            font-size: 12px;
+        }
+        .branch-info .branch-name {
+            color: #2ecc71;
+            font-weight: 600;
+        }
+        .branch-info .branch-scatter {
+            color: #95a5a6;
+        }
+        .branch-info .branch-scatter span {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        /* === 主标签导航 === */
+        .main-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 25px;
+            background: rgba(255,255,255,0.05);
+            padding: 6px;
+            border-radius: 8px;
+        }
+        .main-tab {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            background: transparent;
+            color: rgba(255,255,255,0.6);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .main-tab:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .main-tab.active {
+            background: var(--manager-blue);
+            color: white;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
+        .main-tab i { font-size: 14px; }
+
+        /* === 标签内容区域 === */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* === 外勤任务详情全屏覆盖层 === */
+        .mission-detail-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: var(--deep-bg);
+            background-image: var(--bg-pattern);
+            background-size: 20px 20px;
+            z-index: 9000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            overflow-y: auto;
+        }
+        .mission-detail-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .mission-detail-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .mission-detail-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            background: var(--pure-white);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .btn-back {
+            background: #ecf0f1;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #7f8c8d;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-back:hover { background: #bdc3c7; color: #2c3e50; }
+        .mission-detail-title {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .mission-detail-title h2 {
+            margin: 0;
+            font-size: 22px;
+            color: var(--text-dark);
+        }
+        .mission-detail-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            background: #27ae60;
+            color: white;
+        }
+        .mission-detail-status.archived {
+            background: #95a5a6;
+        }
+        .mission-detail-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .btn-mission-edit, .btn-mission-archive {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-mission-edit {
+            background: var(--manager-blue);
+            color: white;
+        }
+        .btn-mission-edit:hover { background: #2980b9; }
+        .btn-mission-archive {
+            background: #e67e22;
+            color: white;
+        }
+        .btn-mission-archive:hover { background: #d35400; }
+
+        .mission-detail-body {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .mission-detail-section {
+            background: var(--pure-white);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .mission-detail-section h3 {
+            margin: 0 0 15px;
+            font-size: 14px;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .mission-detail-section h3 i { color: var(--manager-blue); }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .section-header h3 { margin-bottom: 0; }
+        .btn-add-agent {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+        .btn-add-agent:hover { background: #219a52; }
+        .mission-desc-text {
+            color: #7f8c8d;
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 0;
+        }
+        .mission-members-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+        .agent-card {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: 0.2s;
+        }
+        .agent-card:hover {
+            border-color: var(--manager-blue);
+            box-shadow: 0 4px 12px rgba(52,152,219,0.15);
+        }
+        .agent-card.clickable { cursor: pointer; }
+        .agent-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--manager-blue), #2980b9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        .agent-info { flex: 1; }
+        .agent-name {
+            font-weight: bold;
+            font-size: 14px;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+        .agent-status-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .agent-status-input {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 12px;
+            width: 100px;
+            color: #27ae60;
+            background: white;
+        }
+        .agent-status-input:focus {
+            outline: none;
+            border-color: #27ae60;
+        }
+        .agent-actions {
+            display: flex;
+            gap: 5px;
+            flex-shrink: 0;
+        }
+        .btn-agent-record {
+            background: #f39c12;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 8px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+        .btn-agent-record:hover { background: #e67e22; }
+        .btn-agent-docs {
+            background: #2c3e50;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 8px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+        .btn-agent-docs:hover { background: #1a252f; }
+        .btn-remove-agent {
+            background: none;
+            border: 1px solid #e0e0e0;
+            color: #bdc3c7;
+            cursor: pointer;
+            padding: 8px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+        .btn-remove-agent:hover { color: #e74c3c; border-color: #e74c3c; }
+
+        /* === 申领物管理样式 === */
+        .requisition-panel {
+            background: var(--pure-white);
+            padding: 20px;
+            border-radius: 6px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #9b59b6;
+        }
+        .requisition-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .requisition-header h3 {
+            margin: 0;
+            font-size: 14px;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .requisition-header h3 i { color: #9b59b6; }
+        .btn-new-requisition {
+            background: #9b59b6;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .btn-new-requisition:hover { background: #8e44ad; }
+        .requisition-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #7f8c8d;
+        }
 
         /* 授权码输入 */
         .auth-panel {
@@ -214,6 +570,16 @@
             background: #2c3e50;
             color: white;
         }
+        /* 移除授权按钮样式 */
+        .btn-remove-auth {
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+        }
+        .btn-remove-auth:hover {
+            background: #e74c3c;
+            color: white;
+        }
 
         .empty-state {
             text-align: center;
@@ -342,6 +708,41 @@
         .doc-item input { margin-right: 10px; }
         .doc-item span { font-size: 13px; color: var(--text-dark); flex: 1; }
 
+        /* 嘉奖/申诫弹窗样式 */
+        #recordModal .modal-box { max-width: 500px; }
+        #recordModal .modal-header { background: linear-gradient(135deg, #27ae60, #2ecc71); }
+        #recordModal .modal-header h3, #recordModal .modal-close { color: white; }
+        .record-tabs { display: flex; gap: 5px; margin-bottom: 15px; }
+        .record-tab { flex: 1; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; transition: all 0.2s; background: #ecf0f1; color: #7f8c8d; }
+        .record-tab.active-reward { background: #27ae60; color: white; }
+        .record-tab.active-reprimand { background: #e74c3c; color: white; }
+        .record-input-area { margin-bottom: 15px; }
+        .record-input-area textarea { width: 100%; padding: 12px; border: 2px solid #ecf0f1; border-radius: 4px; font-size: 13px; resize: none; height: 80px; box-sizing: border-box; font-family: inherit; }
+        .record-input-area textarea:focus { outline: none; border-color: var(--manager-blue); }
+        .record-count-row { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
+        .record-count-row label { font-size: 13px; color: #7f8c8d; }
+        .record-count-input { width: 60px; padding: 8px; border: 2px solid #ecf0f1; border-radius: 4px; font-size: 14px; text-align: center; }
+        .record-count-input:focus { outline: none; border-color: var(--manager-blue); }
+        .btn-add-record { width: 100%; padding: 10px; border: none; border-radius: 4px; font-size: 13px; font-weight: bold; cursor: pointer; transition: all 0.2s; }
+        .btn-add-record.reward { background: #27ae60; color: white; }
+        .btn-add-record.reward:hover { background: #219a52; }
+        .btn-add-record.reprimand { background: #e74c3c; color: white; }
+        .btn-add-record.reprimand:hover { background: #c0392b; }
+        .record-count-badge { display: inline-block; background: #27ae60; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; margin-left: 5px; }
+        .record-count-badge.reprimand { background: #e74c3c; }
+        .record-history { border-top: 1px solid #ecf0f1; padding-top: 15px; margin-top: 15px; }
+        .record-history h4 { font-size: 12px; color: #7f8c8d; text-transform: uppercase; margin-bottom: 10px; }
+        .record-list { max-height: 200px; overflow-y: auto; }
+        .record-entry { padding: 10px; background: #f8f9fa; border-radius: 4px; margin-bottom: 8px; position: relative; border-left: 3px solid #27ae60; }
+        .record-entry.reprimand { border-left-color: #e74c3c; }
+        .record-entry .record-reason { font-size: 13px; color: var(--text-dark); margin-bottom: 5px; }
+        .record-entry .record-meta { font-size: 11px; color: #95a5a6; }
+        .record-entry .btn-delete-record { position: absolute; top: 8px; right: 8px; background: none; border: none; color: #bdc3c7; cursor: pointer; font-size: 12px; padding: 2px 5px; }
+        .record-entry .btn-delete-record:hover { color: #e74c3c; }
+        .record-empty { text-align: center; padding: 20px; color: #95a5a6; font-size: 13px; }
+        .btn-records { background: rgba(39, 174, 96, 0.1); border: 1px solid #27ae60; color: #27ae60; }
+        .btn-records:hover { background: #27ae60; color: white; }
+
         /* === 普通文档加载过渡 (新增) === */
         #transition-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #0f172a; z-index: 8000; pointer-events: none; clip-path: inset(50% 0 50% 0); transition: clip-path 0.8s cubic-bezier(0.8, 0, 0.2, 1); display: flex; flex-direction: column; justify-content: center; align-items: center; }
         #transition-overlay.active { pointer-events: all; clip-path: inset(0 0 0 0); }
@@ -354,6 +755,773 @@
         .loader-text { font-family: "Noto Sans SC", sans-serif; font-size: 16px; letter-spacing: 2px; font-weight: 900; display: flex; align-items: center; justify-content: center; }
         .dots::after { content: ''; width: 1.5em; text-align: left; display: inline-block; animation: dot-steps 1.5s infinite steps(4, end); }
         @keyframes dot-steps { 0%, 20% { content: ''; } 40% { content: '.'; } 60% { content: '..'; } 80%, 100% { content: '...'; } }
+
+        /* === 收件箱按钮样式 === */
+        .btn-inbox {
+            background: rgba(142, 68, 173, 0.2);
+            color: #9b59b6;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 12px;
+            position: relative;
+        }
+        .btn-inbox:hover { background: #9b59b6; color: white; }
+        .inbox-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #e74c3c;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 16px;
+            text-align: center;
+            display: none;
+        }
+        .inbox-badge.show { display: block; }
+
+        /* === 外勤任务区块样式 === */
+        .mission-panel {
+            background: var(--pure-white);
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #27ae60;
+        }
+        .mission-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .mission-header h3 {
+            margin: 0;
+            font-size: 14px;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .mission-header h3 i { color: #27ae60; }
+        .btn-new-mission {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .btn-new-mission:hover { background: #219a52; }
+        .mission-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            padding: 5px;
+            border-radius: 6px;
+        }
+        .mission-tabs button {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            background: transparent;
+            color: #7f8c8d;
+            transition: 0.2s;
+        }
+        .mission-tabs button.active {
+            background: white;
+            color: #27ae60;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .mission-list { display: flex; flex-direction: column; gap: 15px; }
+        .mission-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            transition: all 0.2s;
+        }
+        .mission-card.clickable {
+            cursor: pointer;
+        }
+        .mission-card.clickable:hover {
+            border-color: #27ae60;
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.15);
+        }
+        .mission-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        .mission-card-title { font-weight: bold; color: var(--text-dark); font-size: 15px; }
+        .mission-card-desc { font-size: 12px; color: #7f8c8d; margin-bottom: 10px; }
+        .mission-type-badge {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 10px;
+            vertical-align: middle;
+            margin-left: 6px;
+        }
+        .mission-type-badge.containment {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+        .mission-type-badge.sweep {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+        .mission-quick-actions { display: flex; gap: 5px; }
+        .mission-card-footer {
+            display: flex;
+            align-items: center;
+            padding-top: 12px;
+            border-top: 1px dashed #e0e0e0;
+            gap: 15px;
+        }
+        .mission-member-count {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #27ae60;
+            font-weight: 600;
+            flex: 1;
+            overflow: hidden;
+        }
+        .mission-member-count i { font-size: 14px; flex-shrink: 0; }
+        .mission-member-count span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mission-enter-hint {
+            color: #bdc3c7;
+            transition: 0.2s;
+        }
+        .mission-card.clickable:hover .mission-enter-hint {
+            color: #27ae60;
+            transform: translateX(3px);
+        }
+        .mission-members { display: flex; flex-wrap: wrap; gap: 8px; }
+        .mission-member {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            padding: 5px 10px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .mission-member-status {
+            font-size: 10px;
+            color: white;
+            background: #27ae60;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+        .mission-member .btn-remove-member {
+            background: none;
+            border: none;
+            color: #bdc3c7;
+            cursor: pointer;
+            padding: 0 2px;
+            font-size: 12px;
+        }
+        .mission-member .btn-remove-member:hover { color: #e74c3c; }
+        .mission-empty { text-align: center; padding: 30px; color: #95a5a6; font-size: 13px; }
+        .btn-add-member {
+            background: transparent;
+            border: 1px dashed #bdc3c7;
+            color: #7f8c8d;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-add-member:hover { border-color: #27ae60; color: #27ae60; }
+
+        /* === 任务收件箱样式 === */
+        .mission-inbox-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .mission-inbox-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .mission-inbox-item:hover { background: #f8f9fa; }
+        .mission-inbox-item.unread { background: #fff8e1; }
+        .mission-inbox-item.unread:hover { background: #fff3cd; }
+        .mission-inbox-sender {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            flex-shrink: 0;
+            margin-right: 12px;
+        }
+        .mission-inbox-content { flex: 1; min-width: 0; }
+        .mission-inbox-subject {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-dark);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mission-inbox-preview {
+            font-size: 12px;
+            color: #95a5a6;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 2px;
+        }
+        .mission-inbox-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+            margin-left: 10px;
+        }
+        .mission-inbox-time { font-size: 11px; color: #bdc3c7; }
+        .mission-inbox-type {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            background: #ecf0f1;
+            color: #7f8c8d;
+        }
+        .mission-inbox-type.mail { background: #e8f4fc; color: #3498db; }
+        .mission-inbox-type.containment { background: #fdecea; color: #e74c3c; }
+        .mission-inbox-type.report { background: #e8f8f5; color: #27ae60; }
+        .inbox-badge {
+            background: #e74c3c;
+            color: white;
+            font-size: 11px;
+            padding: 2px 7px;
+            border-radius: 10px;
+            margin-left: 8px;
+        }
+        .inbox-empty {
+            text-align: center;
+            padding: 30px;
+            color: #bdc3c7;
+            font-size: 13px;
+        }
+        .btn-refresh-inbox {
+            background: none;
+            border: none;
+            color: #95a5a6;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+        .btn-refresh-inbox:hover { color: #3498db; background: #ecf0f1; }
+
+        /* === 任务数值管理样式 === */
+        .mission-values-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .value-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .value-input-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #7f8c8d;
+        }
+        .value-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+        .value-btn {
+            width: 32px;
+            height: 36px;
+            border: 1px solid #ddd;
+            background: #f8f9fa;
+            color: #7f8c8d;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .value-btn:first-child { border-radius: 6px 0 0 6px; border-right: none; }
+        .value-btn:last-child { border-radius: 0 6px 6px 0; border-left: none; }
+        .value-btn:hover { background: #e9ecef; color: var(--text-dark); }
+        .value-input-wrapper input {
+            width: 70px;
+            height: 36px;
+            border: 1px solid #ddd;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .value-input-wrapper input:focus { outline: none; border-color: #3498db; }
+        .value-hint {
+            font-size: 10px;
+            color: #95a5a6;
+        }
+        .btn-save-values {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-save-values:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(39,174,96,0.3); }
+
+        /* === 特工详情弹窗样式 === */
+        #agentDetailModal .modal-box.large { max-width: 700px; max-height: 85vh; }
+        .agent-detail-content { padding: 15px; overflow-y: auto; max-height: 65vh; }
+        .agent-detail-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .agent-detail-section h4 {
+            margin: 0 0 12px 0;
+            font-size: 14px;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .agent-detail-section.half { flex: 1; }
+        .agent-detail-row { display: flex; gap: 15px; }
+        .agent-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+        }
+        .stat-card.hp { border-color: #e74c3c; background: #fef2f2; }
+        .stat-card.mp { border-color: #3498db; background: #eff6ff; }
+        .stat-card.san { border-color: #9b59b6; background: #faf5ff; }
+        .stat-label { display: block; font-size: 11px; color: #7f8c8d; margin-bottom: 4px; }
+        .stat-value { display: block; font-size: 18px; font-weight: bold; color: var(--text-dark); }
+        .record-mini-list { max-height: 150px; overflow-y: auto; }
+        .record-mini-item {
+            background: white;
+            border-radius: 6px;
+            padding: 8px 10px;
+            margin-bottom: 6px;
+            font-size: 12px;
+            border-left: 3px solid #ddd;
+        }
+        .record-mini-item.reward { border-left-color: #f1c40f; }
+        .record-mini-item.reprimand { border-left-color: #e74c3c; }
+        .record-mini-item .record-reason { color: var(--text-dark); }
+        .record-mini-item .record-date { color: #95a5a6; font-size: 10px; margin-top: 4px; }
+        .no-records { text-align: center; padding: 15px; color: #bdc3c7; font-size: 12px; }
+        .ability-list, .relation-list { display: flex; flex-wrap: wrap; gap: 8px; }
+        .ability-tag {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+        }
+        .relation-tag {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+        }
+        .gm-notes-box {
+            background: #fffbeb;
+            border: 1px dashed #f59e0b;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 13px;
+            color: #92400e;
+            white-space: pre-wrap;
+            min-height: 50px;
+        }
+
+        /* === 任务报告样式 === */
+        .mission-reports-list { max-height: 300px; overflow-y: auto; }
+        .report-empty { text-align: center; padding: 30px; color: #bdc3c7; font-size: 13px; }
+        .report-item {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        .report-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .report-submitter { font-weight: 600; color: var(--text-dark); }
+        .report-time { font-size: 12px; color: #95a5a6; }
+        .report-status {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        .report-status.submitted { background: #fff3cd; color: #856404; }
+        .report-status.reviewed { background: #d1ecf1; color: #0c5460; }
+        .report-status.sent { background: #d4edda; color: #155724; }
+        .report-rating-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        .report-rating-input {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .report-rating-input label { font-size: 12px; color: #7f8c8d; }
+        .report-rating-input input, .report-rating-input select {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .report-rating-input input[type="number"] { width: 80px; }
+        .report-annotation {
+            margin-top: 10px;
+        }
+        .report-annotation textarea {
+            width: 100%;
+            min-height: 60px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            resize: vertical;
+        }
+        .report-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .btn-report {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-report.save { background: #3498db; color: white; }
+        .btn-report.save:hover { background: #2980b9; }
+        .btn-report.send { background: #27ae60; color: white; }
+        .btn-report.send:hover { background: #219a52; }
+        .btn-report:disabled { background: #bdc3c7; cursor: not-allowed; }
+        .report-status-badge {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 8px;
+        }
+        .report-status-badge.none { display: none; }
+        .report-status-badge.submitted { background: #fff3cd; color: #856404; }
+        .report-status-badge.reviewed { background: #d1ecf1; color: #0c5460; }
+        .report-status-badge.sent { background: #d4edda; color: #155724; }
+
+        /* === 收件箱弹窗样式 === */
+        #inboxModal .modal-box { max-width: 600px; max-height: 80vh; display: flex; flex-direction: column; }
+        #inboxModal .modal-header { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+        #inboxModal .modal-header h3, #inboxModal .modal-close { color: white; }
+        #inboxModal .modal-body { flex: 1; overflow-y: auto; }
+        .inbox-list { display: flex; flex-direction: column; gap: 10px; }
+        .inbox-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+            border-left: 3px solid #9b59b6;
+        }
+        .inbox-item:hover { background: #f0f0f0; }
+        .inbox-item.unread { background: #f3e5f5; border-left-color: #e74c3c; }
+        .inbox-item-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .inbox-item-sender { font-weight: bold; font-size: 13px; color: var(--text-dark); }
+        .inbox-item-time { font-size: 11px; color: #95a5a6; }
+        .inbox-item-subject { font-size: 14px; color: var(--text-dark); margin-bottom: 5px; }
+        .inbox-item-preview { font-size: 12px; color: #7f8c8d; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .inbox-item-type { font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: 8px; }
+        .inbox-item-type.mail { background: #e8f5e9; color: #27ae60; }
+        .inbox-item-type.report { background: #fff3e0; color: #e67e22; }
+        .inbox-item-type.containment { background: #e3f2fd; color: #2196f3; }
+        .inbox-empty { text-align: center; padding: 40px; color: #95a5a6; }
+
+        /* === 外勤任务弹窗样式 === */
+        #missionModal .modal-header { background: linear-gradient(135deg, #27ae60, #2ecc71); }
+        #missionModal .modal-header h3, #missionModal .modal-close { color: white; }
+        .mission-form label { display: block; font-size: 12px; color: #7f8c8d; margin: 12px 0 6px; text-transform: uppercase; }
+        .mission-form input, .mission-form textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ecf0f1;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .mission-form input:focus, .mission-form textarea:focus { outline: none; border-color: #27ae60; }
+        .mission-form textarea { min-height: 80px; resize: vertical; }
+        #missionModal .btn-modal-confirm { background: #27ae60; }
+        #missionModal .btn-modal-confirm:hover { background: #219a52; }
+
+        /* === 邮件详情弹窗样式 === */
+        #mailDetailModal .modal-box { max-width: 550px; }
+        #mailDetailModal .modal-header { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+        #mailDetailModal .modal-header h3, #mailDetailModal .modal-close { color: white; }
+        .mail-detail-meta { font-size: 12px; color: #7f8c8d; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #ecf0f1; }
+        .mail-detail-content { font-size: 14px; line-height: 1.6; color: var(--text-dark); white-space: pre-wrap; max-height: 300px; overflow-y: auto; }
+        .mail-report-data { background: #f8f9fa; padding: 15px; border-radius: 6px; margin-top: 15px; font-size: 13px; }
+        .mail-report-data h5 { margin: 0 0 10px; color: #e67e22; font-size: 13px; }
+        .mail-report-section { margin-bottom: 10px; }
+        .mail-report-section strong { color: #7f8c8d; font-size: 11px; }
+
+        /* === 任务卡片增强样式 === */
+        .mission-info h4 { margin: 0 0 4px; font-size: 15px; color: var(--text-dark); }
+        .mission-desc { margin: 0; font-size: 12px; color: #7f8c8d; }
+        .mission-actions { display: flex; gap: 5px; }
+        .btn-mission-action {
+            background: transparent;
+            border: 1px solid #ddd;
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+            cursor: pointer;
+            color: #7f8c8d;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-mission-action:hover { border-color: #3498db; color: #3498db; }
+        .btn-mission-action.archive:hover { border-color: #e67e22; color: #e67e22; }
+        .btn-mission-action.delete:hover { border-color: #e74c3c; color: #e74c3c; }
+
+        /* 成员项样式 */
+        .member-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+        }
+        .member-item:last-child { margin-bottom: 0; }
+        .member-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+        .member-name {
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--text-dark);
+            white-space: nowrap;
+        }
+        .member-status-input {
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 11px;
+            width: 100px;
+            text-align: center;
+            color: #27ae60;
+            background: #f8f9fa;
+        }
+        .member-status-input:focus {
+            outline: none;
+            border-color: #27ae60;
+            background: white;
+        }
+        .btn-remove-member {
+            background: none;
+            border: none;
+            color: #bdc3c7;
+            cursor: pointer;
+            padding: 5px;
+            font-size: 12px;
+            transition: 0.2s;
+        }
+        .btn-remove-member:hover { color: #e74c3c; }
+        .no-members {
+            text-align: center;
+            padding: 15px;
+            color: #95a5a6;
+            font-size: 12px;
+        }
+
+        /* 成员选择列表 */
+        .member-select-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid #ecf0f1;
+            margin-bottom: 8px;
+        }
+        .member-select-item:hover {
+            background: #e8f5e9;
+            border-color: #27ae60;
+        }
+
+        /* 收件箱项增强 */
+        .inbox-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+        }
+        .inbox-item-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9b59b6;
+            flex-shrink: 0;
+        }
+        .inbox-item.unread .inbox-item-icon {
+            background: #e8def8;
+        }
+        .inbox-item-content { flex: 1; overflow: hidden; }
+        .inbox-item-subject {
+            font-weight: bold;
+            font-size: 14px;
+            color: var(--text-dark);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 4px;
+        }
+        .inbox-item-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: #95a5a6;
+        }
+        .inbox-item-sender { font-weight: 500; color: #7f8c8d; }
+        .inbox-item-type {
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            background: #f0f0f0;
+            color: #7f8c8d;
+        }
+        .inbox-unread-dot {
+            width: 10px;
+            height: 10px;
+            background: #e74c3c;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* 邮件详情增强 */
+        .mail-detail-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .mail-detail-meta div { display: flex; gap: 5px; }
+
+        /* 报告数据展示样式 */
+        .report-section {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #e0e0e0;
+        }
+        .report-section:last-child { border-bottom: none; }
+        .report-section h4 {
+            margin: 0 0 8px;
+            font-size: 12px;
+            color: #e67e22;
+            text-transform: uppercase;
+        }
+        .report-status {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            font-size: 13px;
+            color: #27ae60;
+        }
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        .report-table td, .report-table th {
+            padding: 6px 8px;
+            border: 1px solid #e0e0e0;
+            text-align: left;
+        }
+        .report-table th { background: #f8f9fa; font-weight: 500; color: #7f8c8d; }
+        .report-table td:first-child { width: 80px; color: #7f8c8d; }
+        .report-rating {
+            display: flex;
+            gap: 20px;
+            font-size: 13px;
+        }
+        .report-rating strong { color: var(--text-dark); }
     </style>
 </head>
 <body>
@@ -376,6 +1544,14 @@
             <div class="page-title">// 经理控制台</div>
         </div>
         <div class="btn-group">
+            <div class="branch-info" id="branchInfo" style="display:none;">
+                <span class="branch-name"><i class="fas fa-building"></i> <span id="branchNameDisplay">--</span></span>
+                <span class="branch-scatter">总逸散端: <span id="branchScatterDisplay">0</span></span>
+            </div>
+            <button class="btn-inbox" onclick="openInboxModal()">
+                <i class="fas fa-envelope"></i> 收件箱
+                <span class="inbox-badge" id="inboxBadge">0</span>
+            </button>
             <button class="btn-logout" onclick="goToDashboard()">
                 <i class="fas fa-folder"></i> 我的档案
             </button>
@@ -383,24 +1559,166 @@
         </div>
     </header>
 
-    <!-- 授权码认领 -->
-    <div class="auth-panel">
-        <h3><i class="fas fa-key"></i> 认领授权</h3>
-        <div class="auth-row">
-            <input type="text" id="authCodeInput" placeholder="输入授权码 或 粘贴授权链接">
-            <button class="btn-claim" onclick="claimAuth()"><i class="fas fa-plus"></i> 认领</button>
+    <!-- 主标签导航 -->
+    <div class="main-tabs">
+        <button class="main-tab active" onclick="switchMainTab('characters')" data-tab="characters">
+            <i class="fas fa-users"></i> 已授权角色档案
+        </button>
+        <button class="main-tab" onclick="switchMainTab('missions')" data-tab="missions">
+            <i class="fas fa-tasks"></i> 外勤任务
+        </button>
+        <button class="main-tab" onclick="switchMainTab('requisitions')" data-tab="requisitions">
+            <i class="fas fa-box"></i> 申领物管理
+        </button>
+    </div>
+
+    <!-- ========== 页面1: 已授权角色档案 ========== -->
+    <div class="tab-content active" id="tabCharacters">
+        <!-- 授权码认领 -->
+        <div class="auth-panel">
+            <h3><i class="fas fa-key"></i> 认领授权</h3>
+            <div class="auth-row">
+                <input type="text" id="authCodeInput" placeholder="输入授权码 或 粘贴授权链接">
+                <button class="btn-claim" onclick="claimAuth()"><i class="fas fa-plus"></i> 认领</button>
+            </div>
+        </div>
+
+        <div class="section-title">
+            <i class="fas fa-users"></i> 已授权的角色档案
+        </div>
+
+        <div id="charList" class="char-grid">
+            <div class="loading">
+                <i class="fas fa-circle-notch fa-spin"></i>
+                <p>加载中...</p>
+            </div>
         </div>
     </div>
 
-    <!-- 已授权角色列表 -->
-    <div class="section-title">
-        <i class="fas fa-users"></i> 已授权的角色档案
+    <!-- ========== 页面2: 外勤任务 ========== -->
+    <div class="tab-content" id="tabMissions">
+        <div class="mission-panel">
+            <div class="mission-header">
+                <h3><i class="fas fa-tasks"></i> 外勤任务管理</h3>
+                <button class="btn-new-mission" onclick="openMissionModal()"><i class="fas fa-plus"></i> 创建任务</button>
+            </div>
+            <div class="mission-tabs">
+                <button class="active" onclick="switchMissionTab('active')">进行中</button>
+                <button onclick="switchMissionTab('archived')">已归档</button>
+            </div>
+            <div id="missionList" class="mission-list">
+                <div class="mission-empty"><i class="fas fa-clipboard-list"></i><br>暂无外勤任务</div>
+            </div>
+        </div>
     </div>
 
-    <div id="charList" class="char-grid">
-        <div class="loading">
-            <i class="fas fa-circle-notch fa-spin"></i>
-            <p>加载中...</p>
+    <!-- ========== 页面3: 申领物管理 ========== -->
+    <div class="tab-content" id="tabRequisitions">
+        <div class="requisition-panel">
+            <div class="requisition-header">
+                <h3><i class="fas fa-box"></i> 申领物管理</h3>
+                <button class="btn-new-requisition" onclick="openRequisitionModal()"><i class="fas fa-plus"></i> 新增申领物</button>
+            </div>
+            <div id="requisitionList" class="requisition-list">
+                <div class="requisition-empty">
+                    <i class="fas fa-box-open" style="font-size:48px;margin-bottom:15px;opacity:0.3;"></i>
+                    <p>暂无申领物记录</p>
+                    <p style="font-size:12px;color:#95a5a6;">功能开发中...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== 外勤任务详情全屏覆盖层 ========== -->
+<div id="missionDetailOverlay" class="mission-detail-overlay">
+    <div class="mission-detail-container">
+        <div class="mission-detail-header">
+            <button class="btn-back" onclick="closeMissionDetail()">
+                <i class="fas fa-arrow-left"></i> 返回任务列表
+            </button>
+            <div class="mission-detail-title">
+                <h2 id="missionDetailName">任务名称</h2>
+                <span class="mission-detail-status" id="missionDetailStatus">进行中</span>
+            </div>
+            <div class="mission-detail-actions">
+                <button class="btn-mission-edit" onclick="editCurrentMission()"><i class="fas fa-edit"></i> 编辑</button>
+                <button class="btn-mission-archive" onclick="archiveCurrentMission()"><i class="fas fa-archive"></i> 归档</button>
+            </div>
+        </div>
+
+        <div class="mission-detail-body">
+            <!-- 任务描述 -->
+            <div class="mission-detail-section">
+                <h3><i class="fas fa-info-circle"></i> 任务描述</h3>
+                <p id="missionDetailDesc" class="mission-desc-text">暂无描述</p>
+            </div>
+
+            <!-- 任务成员 -->
+            <div class="mission-detail-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-user-friends"></i> 任务特工</h3>
+                    <button class="btn-add-agent" onclick="openAddMemberModal(currentMissionDetailId)">
+                        <i class="fas fa-user-plus"></i> 添加特工
+                    </button>
+                </div>
+                <div id="missionDetailMembers" class="mission-members-grid">
+                    <div class="no-members">暂无成员</div>
+                </div>
+            </div>
+
+            <!-- 任务数值管理 -->
+            <div class="mission-detail-section">
+                <h3><i class="fas fa-chart-line"></i> 任务数值</h3>
+                <div class="mission-values-row">
+                    <div class="value-input-group">
+                        <label>混沌值</label>
+                        <div class="value-input-wrapper">
+                            <button class="value-btn" onclick="adjustMissionValue('chaos', -1)"><i class="fas fa-minus"></i></button>
+                            <input type="number" id="missionChaosValue" value="0" min="0">
+                            <button class="value-btn" onclick="adjustMissionValue('chaos', 1)"><i class="fas fa-plus"></i></button>
+                        </div>
+                    </div>
+                    <div class="value-input-group">
+                        <label>逸散端</label>
+                        <div class="value-input-wrapper">
+                            <button class="value-btn" onclick="adjustMissionValue('scatter', -1)"><i class="fas fa-minus"></i></button>
+                            <input type="number" id="missionScatterValue" value="0">
+                            <button class="value-btn" onclick="adjustMissionValue('scatter', 1)"><i class="fas fa-plus"></i></button>
+                        </div>
+                        <span class="value-hint">可为负数</span>
+                    </div>
+                    <button class="btn-save-values" onclick="saveMissionValues()">
+                        <i class="fas fa-save"></i> 保存数值
+                    </button>
+                </div>
+            </div>
+
+            <!-- 任务报告 -->
+            <div class="mission-detail-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-file-alt"></i> 任务报告 <span class="report-status-badge" id="reportStatusBadge"></span></h3>
+                    <button class="btn-refresh-inbox" onclick="loadMissionReports(currentMissionDetailId)">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <div id="missionReportsList" class="mission-reports-list">
+                    <div class="report-empty"><i class="fas fa-file-alt"></i><br>等待特工提交报告...</div>
+                </div>
+            </div>
+
+            <!-- 任务收件箱 -->
+            <div class="mission-detail-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-envelope"></i> 任务收件箱 <span class="inbox-badge" id="missionInboxBadge" style="display:none;">0</span></h3>
+                    <button class="btn-refresh-inbox" onclick="loadMissionInbox(currentMissionDetailId)">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <div id="missionInboxList" class="mission-inbox-list">
+                    <div class="inbox-empty"><i class="fas fa-envelope-open"></i><br>暂无邮件</div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -452,10 +1770,10 @@
             <button class="modal-close" onclick="closeDocModal()">&times;</button>
         </div>
         <div class="modal-body">
-            <p class="modal-desc">管理 <strong id="docAuthUserName"></strong> 的阅览权限</p>
-            
+            <p class="modal-desc">管理 <strong id="docAuthCharName"></strong> 的高墙文件权限</p>
+
             <input type="text" class="doc-search" id="docSearch" placeholder="搜索文件..." onkeyup="filterDocs()">
-            
+
             <div class="doc-list" id="docAuthList">
                 <div style="padding:20px;text-align:center;"><i class="fas fa-circle-notch fa-spin"></i></div>
             </div>
@@ -467,6 +1785,217 @@
     </div>
 </div>
 
+<!-- 嘉奖/申诫弹窗 -->
+<div id="recordModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3><i class="fas fa-medal"></i> 职员记录</h3>
+            <button class="modal-close" onclick="closeRecordModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p class="modal-desc">管理 <strong id="recordCharName"></strong> 的嘉奖与申诫记录</p>
+
+            <!-- 标签切换 -->
+            <div class="record-tabs">
+                <button class="record-tab active-reward" id="tabReward" onclick="switchRecordTab('reward')">
+                    <i class="fas fa-award"></i> 嘉奖
+                </button>
+                <button class="record-tab" id="tabReprimand" onclick="switchRecordTab('reprimand')">
+                    <i class="fas fa-exclamation-triangle"></i> 申诫
+                </button>
+            </div>
+
+            <!-- 添加记录 -->
+            <div class="record-input-area">
+                <textarea id="recordReasonInput" placeholder="输入原因..."></textarea>
+                <div class="record-count-row">
+                    <label>数量:</label>
+                    <input type="number" id="recordCountInput" class="record-count-input" value="1" min="1" max="99">
+                </div>
+                <button class="btn-add-record reward" id="btnAddRecord" onclick="addRecord()">
+                    <i class="fas fa-plus"></i> 添加嘉奖
+                </button>
+            </div>
+
+            <!-- 历史记录 -->
+            <div class="record-history">
+                <h4><i class="fas fa-history"></i> 历史记录</h4>
+                <div class="record-list" id="recordList">
+                    <div class="record-empty">暂无记录</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 外勤任务弹窗 -->
+<div id="missionModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3><i class="fas fa-tasks"></i> <span id="missionModalTitle">创建任务</span></h3>
+            <button class="modal-close" onclick="closeMissionModal()">&times;</button>
+        </div>
+        <div class="modal-body mission-form">
+            <input type="hidden" id="missionEditId">
+            <label>任务名称 *</label>
+            <input type="text" id="missionName" placeholder="输入任务名称">
+            <label>任务类型 *</label>
+            <select id="missionType" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px;margin-bottom:15px;">
+                <option value="containment">收容任务</option>
+                <option value="sweep">清扫任务</option>
+            </select>
+            <label>任务描述</label>
+            <textarea id="missionDesc" placeholder="输入任务描述（可选）"></textarea>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-modal btn-modal-cancel" onclick="closeMissionModal()">取消</button>
+            <button class="btn-modal btn-modal-confirm" onclick="saveMission()"><i class="fas fa-save"></i> 保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- 添加成员弹窗 -->
+<div id="addMemberModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header" style="background: linear-gradient(135deg, #27ae60, #2ecc71);">
+            <h3 style="color:white;"><i class="fas fa-user-plus"></i> 添加成员</h3>
+            <button class="modal-close" style="color:white;" onclick="closeAddMemberModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p class="modal-desc">选择要添加到任务的角色卡</p>
+            <div id="memberSelectList" style="max-height:300px;overflow-y:auto;">
+                <div style="text-align:center;padding:20px;color:#95a5a6;">加载中...</div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-modal btn-modal-cancel" onclick="closeAddMemberModal()">关闭</button>
+        </div>
+    </div>
+</div>
+
+<!-- 收件箱弹窗 -->
+<div id="inboxModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3><i class="fas fa-envelope"></i> 收件箱</h3>
+            <button class="modal-close" onclick="closeInboxModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="inboxList" class="inbox-list">
+                <div class="inbox-empty"><i class="fas fa-envelope-open" style="font-size:32px;margin-bottom:10px;"></i><br>收件箱为空</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 邮件详情弹窗 -->
+<div id="mailDetailModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3><i class="fas fa-envelope-open-text"></i> <span id="mailDetailSubject">邮件详情</span></h3>
+            <button class="modal-close" onclick="closeMailDetailModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="mail-detail-meta">
+                <div><strong>发件人：</strong><span id="mailDetailSender"></span></div>
+                <div><strong>时间：</strong><span id="mailDetailTime"></span></div>
+                <div><strong>类型：</strong><span id="mailDetailType"></span></div>
+            </div>
+            <div class="mail-detail-content" id="mailDetailContent"></div>
+            <div class="mail-report-data" id="mailReportData" style="display:none;"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-modal btn-modal-cancel" onclick="closeMailDetailModal()">关闭</button>
+        </div>
+    </div>
+</div>
+
+<!-- 特工详情弹窗 -->
+<div id="agentDetailModal" class="modal-overlay">
+    <div class="modal-box large">
+        <div class="modal-header" style="background: linear-gradient(135deg, #3498db, #2980b9);">
+            <h3 style="color:white;"><i class="fas fa-user-secret"></i> 特工档案 - <span id="agentDetailName">--</span></h3>
+            <button class="modal-close" style="color:white;" onclick="closeAgentDetailModal()">&times;</button>
+        </div>
+        <div class="modal-body agent-detail-content">
+            <!-- 基础属性 -->
+            <div class="agent-detail-section">
+                <h4><i class="fas fa-chart-bar"></i> 属性数值</h4>
+                <div class="agent-stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-label">体质</span>
+                        <span class="stat-value" id="agentPhysical">3</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">精神</span>
+                        <span class="stat-value" id="agentMental">3</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">社交</span>
+                        <span class="stat-value" id="agentSocial">3</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">幸运</span>
+                        <span class="stat-value" id="agentLuck">3</span>
+                    </div>
+                    <div class="stat-card hp">
+                        <span class="stat-label">HP</span>
+                        <span class="stat-value" id="agentHp">10</span>
+                    </div>
+                    <div class="stat-card mp">
+                        <span class="stat-label">MP</span>
+                        <span class="stat-value" id="agentMp">10</span>
+                    </div>
+                    <div class="stat-card san">
+                        <span class="stat-label">SAN</span>
+                        <span class="stat-value" id="agentSan">50</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 嘉奖和申诫 -->
+            <div class="agent-detail-row">
+                <div class="agent-detail-section half">
+                    <h4><i class="fas fa-award" style="color:#f1c40f;"></i> 嘉奖记录 (<span id="agentRewardCount">0</span>)</h4>
+                    <div id="agentRewardsList" class="record-mini-list">
+                        <div class="no-records">暂无嘉奖</div>
+                    </div>
+                </div>
+                <div class="agent-detail-section half">
+                    <h4><i class="fas fa-exclamation-triangle" style="color:#e74c3c;"></i> 申诫记录 (<span id="agentReprimandCount">0</span>)</h4>
+                    <div id="agentReprimandsList" class="record-mini-list">
+                        <div class="no-records">暂无申诫</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 异常能力 -->
+            <div class="agent-detail-section">
+                <h4><i class="fas fa-bolt" style="color:#9b59b6;"></i> 异常能力 (<span id="agentAbilityCount">0</span>/<span id="agentAbilitySlots">3</span>)</h4>
+                <div id="agentAbilitiesList" class="ability-list">
+                    <div class="no-records">暂无异常能力</div>
+                </div>
+            </div>
+
+            <!-- 关系网络 -->
+            <div class="agent-detail-section">
+                <h4><i class="fas fa-users" style="color:#27ae60;"></i> 关系网络 (<span id="agentRelationCount">0</span>/<span id="agentRelationSlots">3</span>)</h4>
+                <div id="agentRelationsList" class="relation-list">
+                    <div class="no-records">暂无关系</div>
+                </div>
+            </div>
+
+            <!-- GM备注 -->
+            <div class="agent-detail-section">
+                <h4><i class="fas fa-sticky-note"></i> GM备注</h4>
+                <div id="agentGmNotes" class="gm-notes-box">暂无备注</div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-modal btn-modal-cancel" onclick="closeAgentDetailModal()">关闭</button>
+        </div>
+    </div>
+</div>
 
 <script>
     const token = localStorage.getItem('ta_token');
@@ -538,6 +2067,10 @@
         container.innerHTML = chars.map(c => {
             const safeCharName = c.name.replace(/'/g, "\\'");
             const safeOwnerName = c.ownerName.replace(/'/g, "\\'");
+            const removeAuthBtn = c.authId ? `
+                    <button class="btn-card-action btn-remove-auth" onclick="event.stopPropagation(); removeAuthorization(${c.authId}, '${safeCharName}')" title="移除授权">
+                        <i class="fas fa-user-minus"></i>
+                    </button>` : '';
 
             return `
             <div class="char-card">
@@ -562,12 +2095,16 @@
                     </div>
                 </div>
                 <div class="card-footer">
-                    <button class="btn-card-action btn-docs" onclick="event.stopPropagation(); openDocModal(${c.ownerId}, '${safeOwnerName}')" title="高墙授权">
+                    <button class="btn-card-action btn-records" onclick="event.stopPropagation(); openRecordModal('${c.id}', '${safeCharName}')" title="嘉奖/申诫">
+                        <i class="fas fa-medal"></i>
+                    </button>
+                    <button class="btn-card-action btn-docs" onclick="event.stopPropagation(); openDocModal('${c.id}', '${safeCharName}')" title="高墙授权">
                         <i class="fas fa-file-shield"></i>
                     </button>
                     <button class="btn-card-action btn-slots" onclick="event.stopPropagation(); openSlotModal('${c.id}', '${safeCharName}')" title="槽位管理">
                         <i class="fas fa-unlock-alt"></i>
                     </button>
+                    ${removeAuthBtn}
                     <button class="btn-card-action btn-view" onclick="openSheet('${c.id}')">
                         <i class="fas fa-edit"></i> 编辑
                     </button>
@@ -633,7 +2170,31 @@
         localStorage.clear();
         window.location.href = 'login.html';
     }
-    
+
+    // 移除授权
+    async function removeAuthorization(authId, charName) {
+        if (!confirm(`确定要移除对 "${charName}" 的授权吗？\n移除后将无法再查看和编辑该角色。`)) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/auth/${authId}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                showToast('授权已移除', true);
+                loadCharacters();
+            } else {
+                showToast(data.message || '移除失败');
+            }
+        } catch (e) {
+            showToast('移除失败');
+        }
+    }
+
     // 回车提交
     document.getElementById('authCodeInput').addEventListener('keydown', function(e) {
         if (e.key === 'Enter') claimAuth();
@@ -717,21 +2278,21 @@
     }
     
     // ==========================================
-    // 高墙文件授权功能
+    // 高墙文件授权功能（按角色卡授权）
     // ==========================================
-    let currentDocUserId = null;
+    let currentDocCharId = null;
 
-    async function openDocModal(userId, userName) {
-        currentDocUserId = userId;
-        document.getElementById('docAuthUserName').textContent = userName;
+    async function openDocModal(charId, charName) {
+        currentDocCharId = charId;
+        document.getElementById('docAuthCharName').textContent = charName;
         document.getElementById('docSearch').value = '';
-        
+
         const listContainer = document.getElementById('docAuthList');
         listContainer.innerHTML = '<div style="padding:20px;text-align:center;"><i class="fas fa-circle-notch fa-spin"></i> 加载中...</div>';
         document.getElementById('docAuthModal').classList.add('show');
 
         try {
-            const res = await fetch(`/api/manager/user/${userId}/permissions`, {
+            const res = await fetch(`/api/manager/character/${charId}/permissions`, {
                 headers: getAuthHeaders()
             });
             if (!res.ok) throw new Error('无法获取权限列表');
@@ -768,25 +2329,25 @@
 
     function closeDocModal() {
         document.getElementById('docAuthModal').classList.remove('show');
-        currentDocUserId = null;
+        currentDocCharId = null;
     }
 
     async function saveDocPermissions() {
-        if (!currentDocUserId) return;
+        if (!currentDocCharId) return;
 
         const selectedFiles = Array.from(document.querySelectorAll('#docAuthList input:checked')).map(cb => cb.value);
-        
+
         const btn = document.querySelector('#docAuthModal .btn-modal-confirm');
         btn.textContent = '保存中...';
         btn.disabled = true;
 
         try {
-            const res = await fetch(`/api/manager/user/${currentDocUserId}/permissions`, {
+            const res = await fetch(`/api/manager/character/${currentDocCharId}/permissions`, {
                 method: 'PUT',
                 headers: getAuthHeaders(),
                 body: JSON.stringify({ permissions: selectedFiles })
             });
-            
+
             const data = await res.json();
             if (data.success) {
                 showToast('权限已更新', true);
@@ -803,11 +2364,1456 @@
     }
 
     // ==========================================
+    // 嘉奖/申诫记录功能
+    // ==========================================
+    let currentRecordCharId = null;
+    let currentRecordTab = 'reward'; // 'reward' or 'reprimand'
+    let currentRecords = { rewards: [], reprimands: [] };
+
+    async function openRecordModal(charId, charName) {
+        currentRecordCharId = charId;
+        currentRecordTab = 'reward';
+        document.getElementById('recordCharName').textContent = charName;
+        document.getElementById('recordReasonInput').value = '';
+
+        // 重置标签状态
+        document.getElementById('tabReward').className = 'record-tab active-reward';
+        document.getElementById('tabReprimand').className = 'record-tab';
+        updateAddButton();
+
+        // 显示弹窗
+        document.getElementById('recordModal').classList.add('show');
+
+        // 加载记录
+        await loadRecords();
+    }
+
+    function closeRecordModal() {
+        document.getElementById('recordModal').classList.remove('show');
+        currentRecordCharId = null;
+    }
+
+    function switchRecordTab(tab) {
+        currentRecordTab = tab;
+
+        const tabReward = document.getElementById('tabReward');
+        const tabReprimand = document.getElementById('tabReprimand');
+
+        if (tab === 'reward') {
+            tabReward.className = 'record-tab active-reward';
+            tabReprimand.className = 'record-tab';
+        } else {
+            tabReward.className = 'record-tab';
+            tabReprimand.className = 'record-tab active-reprimand';
+        }
+
+        updateAddButton();
+        renderRecords();
+    }
+
+    function updateAddButton() {
+        const btn = document.getElementById('btnAddRecord');
+        if (currentRecordTab === 'reward') {
+            btn.className = 'btn-add-record reward';
+            btn.innerHTML = '<i class="fas fa-plus"></i> 添加嘉奖';
+        } else {
+            btn.className = 'btn-add-record reprimand';
+            btn.innerHTML = '<i class="fas fa-plus"></i> 添加申诫';
+        }
+    }
+
+    async function loadRecords() {
+        const listEl = document.getElementById('recordList');
+        listEl.innerHTML = '<div style="text-align:center;padding:20px;"><i class="fas fa-circle-notch fa-spin"></i></div>';
+
+        try {
+            const res = await fetch(`/api/character/${currentRecordCharId}/records`, {
+                headers: getAuthHeaders()
+            });
+
+            if (!res.ok) throw new Error('加载失败');
+
+            currentRecords = await res.json();
+            renderRecords();
+        } catch (e) {
+            listEl.innerHTML = '<div class="record-empty" style="color:#e74c3c;">加载失败</div>';
+        }
+    }
+
+    function renderRecords() {
+        const listEl = document.getElementById('recordList');
+        const records = currentRecordTab === 'reward' ? currentRecords.rewards : currentRecords.reprimands;
+
+        if (!records || records.length === 0) {
+            listEl.innerHTML = `<div class="record-empty">暂无${currentRecordTab === 'reward' ? '嘉奖' : '申诫'}记录</div>`;
+            return;
+        }
+
+        // 按时间倒序排列
+        const sorted = [...records].sort((a, b) => b.date - a.date);
+
+        listEl.innerHTML = sorted.map(r => {
+            const date = new Date(r.date).toLocaleString('zh-CN', {
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit'
+            });
+            const countBadge = (r.count && r.count > 1)
+                ? `<span class="record-count-badge ${currentRecordTab === 'reprimand' ? 'reprimand' : ''}">x${r.count}</span>`
+                : '';
+            return `
+                <div class="record-entry ${currentRecordTab === 'reprimand' ? 'reprimand' : ''}">
+                    <div class="record-reason">${escapeHtml(r.reason)}${countBadge}</div>
+                    <div class="record-meta">
+                        <i class="fas fa-clock"></i> ${date}
+                        ${r.addedByName ? `&nbsp;&nbsp;<i class="fas fa-user"></i> ${escapeHtml(r.addedByName)}` : ''}
+                    </div>
+                    <button class="btn-delete-record" onclick="deleteRecord('${r.id}')" title="删除">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    async function addRecord() {
+        const reason = document.getElementById('recordReasonInput').value.trim();
+        const count = parseInt(document.getElementById('recordCountInput').value) || 1;
+
+        if (!reason) {
+            showToast('请输入原因');
+            return;
+        }
+
+        if (count < 1 || count > 99) {
+            showToast('数量必须在1-99之间');
+            return;
+        }
+
+        const endpoint = currentRecordTab === 'reward' ? 'reward' : 'reprimand';
+        const btn = document.getElementById('btnAddRecord');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> 添加中...';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch(`/api/character/${currentRecordCharId}/${endpoint}`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ reason, count })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                showToast(data.message || '添加成功', true);
+                document.getElementById('recordReasonInput').value = '';
+                document.getElementById('recordCountInput').value = '1';
+                await loadRecords();
+            } else {
+                throw new Error(data.message || '添加失败');
+            }
+        } catch (e) {
+            showToast(e.message);
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    }
+
+    async function deleteRecord(recordId) {
+        if (!confirm('确定要删除这条记录吗？')) return;
+
+        try {
+            const res = await fetch(`/api/character/${currentRecordCharId}/record/${recordId}?type=${currentRecordTab}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                showToast('记录已删除', true);
+                await loadRecords();
+            } else {
+                throw new Error(data.message || '删除失败');
+            }
+        } catch (e) {
+            showToast(e.message);
+        }
+    }
+
+    // ==========================================
+    // 外勤任务管理
+    // ==========================================
+
+    let currentMissionTab = 'active';
+    let currentMissionId = null;
+    let missionsList = [];
+    let inboxMessages = [];
+
+    async function loadMissions() {
+        try {
+            const res = await fetch('/api/manager/missions', {
+                headers: getAuthHeaders()
+            });
+            if (!res.ok) throw new Error('加载任务失败');
+            missionsList = await res.json();
+            renderMissions();
+        } catch (e) {
+            console.error('加载任务失败:', e);
+        }
+    }
+
+    function renderMissions() {
+        const container = document.getElementById('missionList');
+        const filtered = missionsList.filter(m => m.status === currentMissionTab);
+
+        if (filtered.length === 0) {
+            container.innerHTML = `<div class="mission-empty"><i class="fas fa-clipboard-list"></i><br>${currentMissionTab === 'active' ? '暂无进行中的任务' : '暂无已归档任务'}</div>`;
+            return;
+        }
+
+        container.innerHTML = filtered.map(mission => {
+            const memberCount = mission.members ? mission.members.length : 0;
+            const memberPreview = mission.members && mission.members.length > 0
+                ? mission.members.slice(0, 3).map(m => escapeHtml(m.name)).join('、') + (mission.members.length > 3 ? '...' : '')
+                : '暂无成员';
+            const missionTypeName = mission.mission_type === 'sweep' ? '清扫' : '收容';
+            const missionTypeClass = mission.mission_type === 'sweep' ? 'sweep' : 'containment';
+
+            return `
+                <div class="mission-card clickable" data-id="${mission.id}" onclick="openMissionDetail('${mission.id}')">
+                    <div class="mission-card-header">
+                        <div class="mission-info">
+                            <h4>${escapeHtml(mission.name)} <span class="mission-type-badge ${missionTypeClass}">${missionTypeName}</span></h4>
+                            ${mission.description ? `<p class="mission-desc">${escapeHtml(mission.description)}</p>` : ''}
+                        </div>
+                        <div class="mission-quick-actions" onclick="event.stopPropagation()">
+                            ${mission.status === 'active' ? `
+                                <button class="btn-mission-action" onclick="event.stopPropagation();archiveMission('${mission.id}')" title="归档">
+                                    <i class="fas fa-archive"></i>
+                                </button>
+                            ` : `
+                                <button class="btn-mission-action" onclick="event.stopPropagation();restoreMission('${mission.id}')" title="恢复">
+                                    <i class="fas fa-undo"></i>
+                                </button>
+                                <button class="btn-mission-action delete" onclick="event.stopPropagation();deleteMission('${mission.id}')" title="删除">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                    <div class="mission-card-footer">
+                        <div class="mission-member-count">
+                            <i class="fas fa-users"></i>
+                            <span>${memberPreview}</span>
+                        </div>
+                        <div class="mission-enter-hint">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function switchMissionTab(tab) {
+        currentMissionTab = tab;
+        document.querySelectorAll('.mission-tabs button').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        renderMissions();
+    }
+
+    function openMissionModal(editId = null) {
+        currentMissionId = editId;
+        document.getElementById('missionEditId').value = editId || '';
+        document.getElementById('missionModalTitle').textContent = editId ? '编辑任务' : '创建任务';
+
+        if (editId) {
+            const mission = missionsList.find(m => m.id === editId);
+            if (mission) {
+                document.getElementById('missionName').value = mission.name;
+                document.getElementById('missionType').value = mission.mission_type || 'containment';
+                document.getElementById('missionDesc').value = mission.description || '';
+            }
+        } else {
+            document.getElementById('missionName').value = '';
+            document.getElementById('missionType').value = 'containment';
+            document.getElementById('missionDesc').value = '';
+        }
+
+        document.getElementById('missionModal').classList.add('show');
+    }
+
+    function closeMissionModal() {
+        document.getElementById('missionModal').classList.remove('show');
+        currentMissionId = null;
+    }
+
+    function editMission(missionId) {
+        openMissionModal(missionId);
+    }
+
+    async function saveMission() {
+        const name = document.getElementById('missionName').value.trim();
+        const missionType = document.getElementById('missionType').value;
+        const description = document.getElementById('missionDesc').value.trim();
+        const editId = document.getElementById('missionEditId').value;
+
+        if (!name) {
+            showToast('请输入任务名称');
+            return;
+        }
+
+        try {
+            const url = editId ? `/api/manager/mission/${editId}` : '/api/manager/mission';
+            const method = editId ? 'PUT' : 'POST';
+
+            const res = await fetch(url, {
+                method,
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ name, description, missionType })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                showToast(editId ? '任务已更新' : '任务已创建', true);
+                closeMissionModal();
+                await loadMissions();
+            } else {
+                throw new Error(data.message || '保存失败');
+            }
+        } catch (e) {
+            showToast(e.message);
+        }
+    }
+
+    async function archiveMission(missionId) {
+        if (!confirm('确定要归档此任务吗？')) return;
+
+        try {
+            const res = await fetch(`/api/manager/mission/${missionId}`, {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ status: 'archived' })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                showToast('任务已归档', true);
+                await loadMissions();
+            } else {
+                throw new Error(data.message || '归档失败');
+            }
+        } catch (e) {
+            showToast(e.message);
+        }
+    }
+
+    async function restoreMission(missionId) {
+        try {
+            const res = await fetch(`/api/manager/mission/${missionId}`, {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ status: 'active' })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                showToast('任务已恢复', true);
+                await loadMissions();
+            } else {
+                throw new Error(data.message || '恢复失败');
+            }
+        } catch (e) {
+            showToast(e.message);
+        }
+    }
+
+    async function deleteMission(missionId) {
+        if (!confirm('确定要永久删除此任务吗？此操作不可撤销。')) return;
+
+        try {
+            const res = await fetch(`/api/manager/mission/${missionId}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                showToast('任务已删除', true);
+                await loadMissions();
+            } else {
+                throw new Error(data.message || '删除失败');
+            }
+        } catch (e) {
+            showToast(e.message);
+        }
+    }
+
+    // ==========================================
+    // 成员管理
+    // ==========================================
+
+    let addMemberMissionId = null;
+
+    async function openAddMemberModal(missionId) {
+        addMemberMissionId = missionId;
+        const container = document.getElementById('memberSelectList');
+        container.innerHTML = '<div style="text-align:center;padding:20px;color:#95a5a6;"><i class="fas fa-spinner fa-spin"></i> 加载中...</div>';
+        document.getElementById('addMemberModal').classList.add('show');
+
+        try {
+            // 获取所有已授权的角色
+            const res = await fetch('/api/manager/characters', {
+                headers: getAuthHeaders()
+            });
+            if (!res.ok) throw new Error('加载角色失败');
+            const characters = await res.json();
+
+            // 获取当前任务的成员
+            const mission = missionsList.find(m => m.id === missionId);
+            const existingIds = mission?.members?.map(m => m.character_id) || [];
+
+            // 过滤掉已在任务中的角色
+            const available = characters.filter(c => !existingIds.includes(c.id));
+
+            if (available.length === 0) {
+                container.innerHTML = '<div style="text-align:center;padding:20px;color:#95a5a6;">没有可添加的角色</div>';
+                return;
+            }
+
+            container.innerHTML = available.map(char => `
+                <div class="member-select-item" onclick="addMemberToMission('${char.id}', '${escapeHtml(char.name)}')">
+                    <i class="fas fa-user-circle" style="font-size:24px;color:#3498db;margin-right:10px;"></i>
+                    <span>${escapeHtml(char.name)}</span>
+                </div>
+            `).join('');
+
+        } catch (e) {
+            container.innerHTML = `<div style="text-align:center;padding:20px;color:#e74c3c;">加载失败: ${e.message}</div>`;
+        }
+    }
+
+    function closeAddMemberModal() {
+        document.getElementById('addMemberModal').classList.remove('show');
+        addMemberMissionId = null;
+    }
+
+    async function addMemberToMission(charId, charName) {
+        if (!addMemberMissionId) return;
+
+        try {
+            const res = await fetch(`/api/manager/mission/${addMemberMissionId}/member`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ characterId: charId })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                showToast(`已添加 ${charName}`, true);
+                closeAddMemberModal();
+                await loadMissions();
+
+                // 如果在任务详情页，刷新成员列表
+                if (currentMissionDetailId && currentMissionDetailId === addMemberMissionId) {
+                    const mission = missionsList.find(m => m.id === currentMissionDetailId);
+                    if (mission) {
+                        renderMissionDetailMembers(mission.members || []);
+                    }
+                }
+            } else {
+                throw new Error(data.message || '添加失败');
+            }
+        } catch (e) {
+            showToast(e.message);
+        }
+    }
+
+    async function removeMember(missionId, charId) {
+        if (!confirm('确定要从任务中移除此成员吗？')) return;
+
+        try {
+            const res = await fetch(`/api/manager/mission/${missionId}/member/${charId}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                showToast('成员已移除', true);
+                await loadMissions();
+            } else {
+                throw new Error(data.message || '移除失败');
+            }
+        } catch (e) {
+            showToast(e.message);
+        }
+    }
+
+    async function updateMemberStatus(missionId, charId, status) {
+        try {
+            const res = await fetch(`/api/manager/mission/${missionId}/member/${charId}/status`, {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ status })
+            });
+
+            const data = await res.json();
+            if (!data.success) {
+                throw new Error(data.message || '更新失败');
+            }
+            // 静默更新本地数据
+            const mission = missionsList.find(m => m.id === missionId);
+            if (mission) {
+                const member = mission.members?.find(m => m.character_id === charId);
+                if (member) member.member_status = status;
+            }
+        } catch (e) {
+            showToast(e.message);
+        }
+    }
+
+    // ==========================================
+    // 经理收件箱
+    // ==========================================
+
+    async function loadInbox() {
+        try {
+            const res = await fetch('/api/manager/inbox', {
+                headers: getAuthHeaders()
+            });
+            if (!res.ok) throw new Error('加载收件箱失败');
+            inboxMessages = await res.json();
+            updateInboxBadge();
+        } catch (e) {
+            console.error('加载收件箱失败:', e);
+        }
+    }
+
+    function updateInboxBadge() {
+        const unread = inboxMessages.filter(m => !m.read).length;
+        const badge = document.getElementById('inboxBadge');
+        badge.textContent = unread;
+        badge.style.display = unread > 0 ? 'flex' : 'none';
+    }
+
+    function openInboxModal() {
+        renderInboxList();
+        document.getElementById('inboxModal').classList.add('show');
+    }
+
+    function closeInboxModal() {
+        document.getElementById('inboxModal').classList.remove('show');
+    }
+
+    function renderInboxList() {
+        const container = document.getElementById('inboxList');
+
+        if (inboxMessages.length === 0) {
+            container.innerHTML = '<div class="inbox-empty"><i class="fas fa-envelope-open" style="font-size:32px;margin-bottom:10px;"></i><br>收件箱为空</div>';
+            return;
+        }
+
+        container.innerHTML = inboxMessages.map(msg => {
+            const typeLabel = getMessageTypeLabel(msg.message_type);
+            const timeStr = new Date(msg.created_at).toLocaleString('zh-CN');
+
+            return `
+                <div class="inbox-item ${msg.read ? '' : 'unread'}" onclick="openMailDetail(${msg.id})">
+                    <div class="inbox-item-icon">
+                        <i class="fas ${getMessageTypeIcon(msg.message_type)}"></i>
+                    </div>
+                    <div class="inbox-item-content">
+                        <div class="inbox-item-subject">${escapeHtml(msg.subject || '(无主题)')}</div>
+                        <div class="inbox-item-meta">
+                            <span class="inbox-item-sender">${escapeHtml(msg.sender_name || '未知')}</span>
+                            <span class="inbox-item-type">${typeLabel}</span>
+                            <span class="inbox-item-time">${timeStr}</span>
+                        </div>
+                    </div>
+                    ${msg.read ? '' : '<div class="inbox-unread-dot"></div>'}
+                </div>
+            `;
+        }).join('');
+    }
+
+    function getMessageTypeLabel(type) {
+        switch (type) {
+            case 'mail': return '信件';
+            case 'report': return '任务报告';
+            case 'containment': return '收容物';
+            default: return '邮件';
+        }
+    }
+
+    function getMessageTypeIcon(type) {
+        switch (type) {
+            case 'mail': return 'fa-envelope';
+            case 'report': return 'fa-file-alt';
+            case 'containment': return 'fa-box';
+            default: return 'fa-envelope';
+        }
+    }
+
+    async function openMailDetail(msgId) {
+        const msg = inboxMessages.find(m => m.id === msgId);
+        if (!msg) return;
+
+        // 标记已读
+        if (!msg.read) {
+            await markInboxRead(msgId);
+        }
+
+        document.getElementById('mailDetailSubject').textContent = msg.subject || '(无主题)';
+        document.getElementById('mailDetailSender').textContent = msg.sender_name || '未知';
+        document.getElementById('mailDetailTime').textContent = new Date(msg.created_at).toLocaleString('zh-CN');
+        document.getElementById('mailDetailType').textContent = getMessageTypeLabel(msg.message_type);
+
+        const contentEl = document.getElementById('mailDetailContent');
+        const reportEl = document.getElementById('mailReportData');
+
+        contentEl.innerHTML = escapeHtml(msg.content || '').replace(/\n/g, '<br>');
+
+        // 如果是任务报告，显示报告数据
+        if (msg.message_type === 'report' && msg.report_data) {
+            try {
+                const reportData = typeof msg.report_data === 'string' ? JSON.parse(msg.report_data) : msg.report_data;
+                reportEl.style.display = 'block';
+                reportEl.innerHTML = renderReportData(reportData);
+            } catch (e) {
+                reportEl.style.display = 'none';
+            }
+        } else {
+            reportEl.style.display = 'none';
+        }
+
+        closeInboxModal();
+        document.getElementById('mailDetailModal').classList.add('show');
+    }
+
+    function renderReportData(data) {
+        return `
+            <div class="report-section">
+                <h4>异常状态</h4>
+                <div class="report-status">
+                    ${data.status?.neutralized ? '✓ 已中和' : ''}
+                    ${data.status?.captured ? '✓ 已捕获' : ''}
+                    ${data.status?.escaped ? '✓ 已逃脱' : ''}
+                    ${data.status?.other ? `✓ 其他: ${escapeHtml(data.status.otherText || '')}` : ''}
+                </div>
+            </div>
+            <div class="report-section">
+                <h4>异常分析</h4>
+                <table class="report-table">
+                    <tr><td>代号</td><td>${escapeHtml(data.analysis?.codename || '-')}</td></tr>
+                    <tr><td>行为</td><td>${escapeHtml(data.analysis?.behavior || '-')}</td></tr>
+                    <tr><td>焦点</td><td>${escapeHtml(data.analysis?.focus || '-')}</td></tr>
+                    <tr><td>领域</td><td>${escapeHtml(data.analysis?.domain || '-')}</td></tr>
+                </table>
+            </div>
+            ${data.散逸端?.length > 0 ? `
+            <div class="report-section">
+                <h4>散逸端</h4>
+                <table class="report-table">
+                    <tr><th>姓名</th><th>数量</th><th>备注</th></tr>
+                    ${data.散逸端.map(row => `<tr><td>${escapeHtml(row.name || '-')}</td><td>${escapeHtml(row.count || '-')}</td><td>${escapeHtml(row.note || '-')}</td></tr>`).join('')}
+                </table>
+            </div>
+            ` : ''}
+            <div class="report-section">
+                <h4>评估</h4>
+                <div class="report-rating">
+                    <span>最终评级: <strong>${escapeHtml(data.rating || '-')}</strong></span>
+                    <span>混沌池: <strong>${escapeHtml(data.chaosPool || '-')}</strong></span>
+                </div>
+            </div>
+            ${data.mvp ? `<div class="report-section"><h4>MVP</h4><p>${escapeHtml(data.mvp)}</p></div>` : ''}
+            ${data.probation ? `<div class="report-section"><h4>察看期</h4><p>${escapeHtml(data.probation)}</p></div>` : ''}
+            ${data.participants ? `<div class="report-section"><h4>参与者</h4><p>${escapeHtml(data.participants)}</p></div>` : ''}
+            ${data.可选目标?.length > 0 ? `
+            <div class="report-section">
+                <h4>可选目标</h4>
+                <table class="report-table">
+                    <tr><th>目标</th><th>奖励</th><th>按特工</th></tr>
+                    ${data.可选目标.map(row => `<tr><td>${escapeHtml(row.target || '-')}</td><td>${escapeHtml(row.reward || '-')}</td><td>${escapeHtml(row.agent || '-')}</td></tr>`).join('')}
+                </table>
+            </div>
+            ` : ''}
+        `;
+    }
+
+    async function markInboxRead(msgId) {
+        try {
+            await fetch(`/api/manager/inbox/${msgId}/read`, {
+                method: 'PUT',
+                headers: getAuthHeaders()
+            });
+            const msg = inboxMessages.find(m => m.id === msgId);
+            if (msg) msg.read = 1;
+            updateInboxBadge();
+            renderInboxList();
+        } catch (e) {
+            console.error('标记已读失败:', e);
+        }
+    }
+
+    function closeMailDetailModal() {
+        document.getElementById('mailDetailModal').classList.remove('show');
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // ==========================================
+    // 主标签页切换
+    // ==========================================
+
+    function switchMainTab(tabName) {
+        // 切换按钮状态
+        document.querySelectorAll('.main-tab').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.dataset.tab === tabName) {
+                btn.classList.add('active');
+            }
+        });
+
+        // 切换内容区域
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+
+        const tabMap = {
+            'characters': 'tabCharacters',
+            'missions': 'tabMissions',
+            'requisitions': 'tabRequisitions'
+        };
+
+        const targetTab = document.getElementById(tabMap[tabName]);
+        if (targetTab) {
+            targetTab.classList.add('active');
+        }
+
+        // 切换到任务页时重新加载任务列表
+        if (tabName === 'missions') {
+            loadMissions();
+        }
+    }
+
+    // ==========================================
+    // 外勤任务详情全屏覆盖层
+    // ==========================================
+
+    let currentMissionDetailId = null;
+    let currentMissionDetailData = null;
+
+    function openMissionDetail(missionId) {
+        currentMissionDetailId = missionId;
+        const mission = missionsList.find(m => m.id === missionId);
+        if (!mission) {
+            showToast('任务不存在');
+            return;
+        }
+        currentMissionDetailData = mission;
+
+        // 填充详情
+        document.getElementById('missionDetailName').textContent = mission.name;
+        document.getElementById('missionDetailDesc').textContent = mission.description || '暂无描述';
+
+        const statusEl = document.getElementById('missionDetailStatus');
+        statusEl.textContent = mission.status === 'active' ? '进行中' : '已归档';
+        statusEl.className = 'mission-detail-status' + (mission.status === 'archived' ? ' archived' : '');
+
+        // 更新按钮显示
+        const archiveBtn = document.querySelector('.btn-mission-archive');
+        if (mission.status === 'archived') {
+            archiveBtn.innerHTML = '<i class="fas fa-undo"></i> 恢复';
+            archiveBtn.onclick = restoreCurrentMission;
+        } else {
+            archiveBtn.innerHTML = '<i class="fas fa-archive"></i> 归档';
+            archiveBtn.onclick = archiveCurrentMission;
+        }
+
+        // 渲染成员列表
+        renderMissionDetailMembers(mission.members || []);
+
+        // 填充任务数值
+        document.getElementById('missionChaosValue').value = mission.chaos_value || 0;
+        document.getElementById('missionScatterValue').value = mission.scatter_value || 0;
+
+        // 加载任务报告
+        loadMissionReports(missionId);
+
+        // 加载任务收件箱
+        loadMissionInbox(missionId);
+
+        // 显示覆盖层
+        document.getElementById('missionDetailOverlay').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeMissionDetail() {
+        document.getElementById('missionDetailOverlay').classList.remove('active');
+        document.body.style.overflow = '';
+        currentMissionDetailId = null;
+        currentMissionDetailData = null;
+    }
+
+    function renderMissionDetailMembers(members) {
+        const container = document.getElementById('missionDetailMembers');
+
+        if (!members || members.length === 0) {
+            container.innerHTML = '<div class="no-members">暂无成员，点击上方"添加特工"按钮添加</div>';
+            return;
+        }
+
+        container.innerHTML = members.map(member => {
+            const initial = (member.name || '?').charAt(0).toUpperCase();
+            const safeName = escapeHtml(member.name).replace(/'/g, "\\'");
+            return `
+                <div class="agent-card clickable" data-char-id="${member.character_id}" onclick="openAgentDetail('${member.character_id}')">
+                    <div class="agent-avatar">${initial}</div>
+                    <div class="agent-info">
+                        <div class="agent-name">${escapeHtml(member.name)}</div>
+                        <div class="agent-status-row" onclick="event.stopPropagation()">
+                            <input type="text" class="agent-status-input"
+                                value="${escapeHtml(member.member_status || '待命')}"
+                                placeholder="状态"
+                                onchange="updateMemberStatusInDetail('${member.character_id}', this.value)">
+                        </div>
+                    </div>
+                    <div class="agent-actions" onclick="event.stopPropagation()">
+                        <button class="btn-agent-record" onclick="openRecordModal('${member.character_id}', '${safeName}')" title="嘉奖/申诫">
+                            <i class="fas fa-medal"></i>
+                        </button>
+                        <button class="btn-agent-docs" onclick="openDocModal('${member.character_id}', '${safeName}')" title="高墙授权">
+                            <i class="fas fa-file-shield"></i>
+                        </button>
+                        <button class="btn-remove-agent" onclick="removeMemberFromDetail('${member.character_id}')" title="移除">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // ==================== 任务报告管理 ====================
+    let missionReports = [];
+
+    async function loadMissionReports(missionId) {
+        if (!missionId) return;
+
+        try {
+            const res = await fetch(`/api/manager/mission/${missionId}/reports`, {
+                headers: getAuthHeaders()
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                missionReports = data.reports || [];
+                renderMissionReports();
+            }
+        } catch (e) {
+            console.error('加载任务报告失败', e);
+        }
+    }
+
+    function renderMissionReports() {
+        const container = document.getElementById('missionReportsList');
+        const badge = document.getElementById('reportStatusBadge');
+
+        // 更新状态徽章
+        if (missionReports.length === 0) {
+            badge.className = 'report-status-badge none';
+            badge.textContent = '';
+        } else {
+            const hasUnreviewed = missionReports.some(r => r.status === 'submitted');
+            const hasUnsent = missionReports.some(r => r.status === 'reviewed');
+            const allSent = missionReports.every(r => r.status === 'sent');
+
+            if (hasUnreviewed) {
+                badge.className = 'report-status-badge submitted';
+                badge.textContent = '待评审';
+            } else if (hasUnsent) {
+                badge.className = 'report-status-badge reviewed';
+                badge.textContent = '待发送';
+            } else if (allSent) {
+                badge.className = 'report-status-badge sent';
+                badge.textContent = '已完成';
+            }
+        }
+
+        if (missionReports.length === 0) {
+            container.innerHTML = '<div class="report-empty"><i class="fas fa-file-alt"></i><br>等待特工提交报告...</div>';
+            return;
+        }
+
+        container.innerHTML = missionReports.map(report => {
+            const statusNames = { submitted: '待评审', reviewed: '已评审', sent: '已发送' };
+            const statusName = statusNames[report.status] || '未知';
+            const date = new Date(report.submittedAt);
+            const timeStr = date.toLocaleString();
+            const isSent = report.status === 'sent';
+
+            return `
+                <div class="report-item" data-report-id="${report.id}">
+                    <div class="report-item-header">
+                        <div>
+                            <span class="report-submitter">${escapeHtml(report.submitterName)}</span>
+                            <span class="report-time">${timeStr}</span>
+                        </div>
+                        <span class="report-status ${report.status}">${statusName}</span>
+                    </div>
+                    <div class="report-rating-row">
+                        <div class="report-rating-input">
+                            <label>评级</label>
+                            <select id="reportRating_${report.id}" ${isSent ? 'disabled' : ''}>
+                                <option value="">选择评级</option>
+                                <option value="S" ${report.rating === 'S' ? 'selected' : ''}>S</option>
+                                <option value="A" ${report.rating === 'A' ? 'selected' : ''}>A</option>
+                                <option value="B" ${report.rating === 'B' ? 'selected' : ''}>B</option>
+                                <option value="C" ${report.rating === 'C' ? 'selected' : ''}>C</option>
+                                <option value="D" ${report.rating === 'D' ? 'selected' : ''}>D</option>
+                                <option value="F" ${report.rating === 'F' ? 'selected' : ''}>F</option>
+                            </select>
+                        </div>
+                        <div class="report-rating-input">
+                            <label>逸散端</label>
+                            <input type="number" id="reportScatter_${report.id}" value="${report.scatterValue || 0}" ${isSent ? 'disabled' : ''}>
+                        </div>
+                    </div>
+                    <div class="report-annotation">
+                        <textarea id="reportAnnotation_${report.id}" placeholder="添加批注..." ${isSent ? 'disabled' : ''}>${escapeHtml((report.annotations || []).join('\n'))}</textarea>
+                    </div>
+                    <div class="report-actions">
+                        ${!isSent ? `
+                            <button class="btn-report save" onclick="saveReportReview(${report.id})">
+                                <i class="fas fa-save"></i> 保存评审
+                            </button>
+                            <button class="btn-report send" onclick="sendReportRating(${report.id})" ${report.status === 'submitted' ? 'disabled title="请先保存评审"' : ''}>
+                                <i class="fas fa-paper-plane"></i> 发送评级
+                            </button>
+                        ` : `
+                            <span style="color:#27ae60;font-size:12px;"><i class="fas fa-check-circle"></i> 已发送给特工</span>
+                        `}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    async function saveReportReview(reportId) {
+        if (!currentMissionDetailId) return;
+
+        const rating = document.getElementById(`reportRating_${reportId}`).value;
+        const scatterValue = parseInt(document.getElementById(`reportScatter_${reportId}`).value) || 0;
+        const annotationText = document.getElementById(`reportAnnotation_${reportId}`).value;
+        const annotations = annotationText.trim() ? annotationText.split('\n').filter(a => a.trim()) : [];
+
+        try {
+            const res = await fetch(`/api/manager/mission/${currentMissionDetailId}/report/${reportId}`, {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ rating, scatterValue, annotations })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                showToast('评审已保存', true);
+                await loadMissionReports(currentMissionDetailId);
+            } else {
+                throw new Error(data.message || '保存失败');
+            }
+        } catch (e) {
+            showToast(e.message);
+        }
+    }
+
+    async function sendReportRating(reportId) {
+        if (!currentMissionDetailId) return;
+        if (!confirm('确定要发送评级给特工吗？发送后将无法修改。')) return;
+
+        try {
+            const res = await fetch(`/api/manager/mission/${currentMissionDetailId}/report/${reportId}/send`, {
+                method: 'POST',
+                headers: getAuthHeaders()
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                showToast('评级已发送', true);
+                await loadMissionReports(currentMissionDetailId);
+            } else {
+                throw new Error(data.message || '发送失败');
+            }
+        } catch (e) {
+            showToast(e.message);
+        }
+    }
+
+    // ==================== 任务收件箱 ====================
+    let missionInboxMessages = [];
+
+    async function loadMissionInbox(missionId) {
+        if (!missionId) return;
+
+        try {
+            const res = await fetch(`/api/manager/mission/${missionId}/inbox`, {
+                headers: getAuthHeaders()
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                missionInboxMessages = data.messages || [];
+                renderMissionInbox();
+            }
+        } catch (e) {
+            console.error('加载任务收件箱失败', e);
+        }
+    }
+
+    function renderMissionInbox() {
+        const container = document.getElementById('missionInboxList');
+        const badge = document.getElementById('missionInboxBadge');
+
+        const unreadCount = missionInboxMessages.filter(m => !m.read).length;
+        if (unreadCount > 0) {
+            badge.textContent = unreadCount;
+            badge.style.display = 'inline';
+        } else {
+            badge.style.display = 'none';
+        }
+
+        if (missionInboxMessages.length === 0) {
+            container.innerHTML = '<div class="inbox-empty"><i class="fas fa-envelope-open"></i><br>暂无邮件</div>';
+            return;
+        }
+
+        container.innerHTML = missionInboxMessages.map(msg => {
+            const initial = (msg.sender_name || '?').charAt(0).toUpperCase();
+            const typeNames = { mail: '邮件', containment: '收容物', report: '报告' };
+            const typeName = typeNames[msg.message_type] || '邮件';
+            const date = new Date(msg.created_at);
+            const timeStr = `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2,'0')}`;
+
+            return `
+                <div class="mission-inbox-item ${msg.read ? '' : 'unread'}" onclick="openMissionMail(${msg.id})">
+                    <div class="mission-inbox-sender">${initial}</div>
+                    <div class="mission-inbox-content">
+                        <div class="mission-inbox-subject">${escapeHtml(msg.subject || '无标题')}</div>
+                        <div class="mission-inbox-preview">${escapeHtml(msg.sender_name || '未知')}: ${escapeHtml((msg.content || '').substring(0, 50))}</div>
+                    </div>
+                    <div class="mission-inbox-meta">
+                        <span class="mission-inbox-time">${timeStr}</span>
+                        <span class="mission-inbox-type ${msg.message_type}">${typeName}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    async function openMissionMail(msgId) {
+        const msg = missionInboxMessages.find(m => m.id === msgId);
+        if (!msg) return;
+
+        // 标记已读
+        if (!msg.read && currentMissionDetailId) {
+            try {
+                await fetch(`/api/manager/mission/${currentMissionDetailId}/inbox/${msgId}/read`, {
+                    method: 'PUT',
+                    headers: getAuthHeaders()
+                });
+                msg.read = 1;
+                renderMissionInbox();
+            } catch (e) {}
+        }
+
+        // 使用现有的邮件详情弹窗
+        document.getElementById('mailDetailSubject').textContent = msg.subject || '无标题';
+        document.getElementById('mailDetailSender').textContent = msg.sender_name || '未知';
+        document.getElementById('mailDetailTime').textContent = new Date(msg.created_at).toLocaleString();
+
+        const typeNames = { mail: '普通邮件', containment: '收容物申领', report: '任务报告' };
+        document.getElementById('mailDetailType').textContent = typeNames[msg.message_type] || '邮件';
+
+        document.getElementById('mailDetailContent').textContent = msg.content || '';
+
+        // 如果是报告类型，显示报告数据
+        const reportDataEl = document.getElementById('mailReportData');
+        if (msg.message_type === 'report' && msg.report_id) {
+            reportDataEl.innerHTML = `<div style="margin-top:10px;padding:10px;background:#f0f0f0;border-radius:8px;">
+                <strong>报告ID:</strong> ${msg.report_id}<br>
+                <button class="btn-modal btn-modal-confirm" onclick="viewMissionReport(${msg.report_id})" style="margin-top:10px;">查看完整报告</button>
+            </div>`;
+            reportDataEl.style.display = 'block';
+        } else {
+            reportDataEl.style.display = 'none';
+        }
+
+        document.getElementById('mailDetailModal').classList.add('show');
+    }
+
+    async function viewMissionReport(reportId) {
+        if (!currentMissionDetailId) return;
+
+        try {
+            const res = await fetch(`/api/manager/mission/${currentMissionDetailId}/reports`, {
+                headers: getAuthHeaders()
+            });
+            if (!res.ok) throw new Error('加载失败');
+
+            const reports = await res.json();
+            const report = reports.find(r => r.id === reportId);
+
+            if (!report) {
+                showToast('报告不存在');
+                return;
+            }
+
+            // 解析报告数据
+            let reportData = {};
+            try {
+                reportData = typeof report.report_data === 'string' ? JSON.parse(report.report_data) : report.report_data;
+            } catch(e) {}
+
+            // 构建报告内容HTML
+            let statusText = [];
+            if (reportData.neutralized) statusText.push('已中和');
+            if (reportData.captured) statusText.push('已捕获');
+            if (reportData.escaped) statusText.push('已逃脱');
+            if (reportData.otherStatus) statusText.push(reportData.otherStatus);
+
+            const reportHtml = `
+                <div style="background:#fff;padding:20px;border-radius:8px;max-height:70vh;overflow-y:auto;">
+                    <h3 style="margin:0 0 15px;color:#2c3e50;border-bottom:2px solid #3498db;padding-bottom:10px;">
+                        <i class="fas fa-file-alt"></i> 任务报告
+                    </h3>
+                    <p style="color:#7f8c8d;font-size:12px;margin-bottom:15px;">
+                        提交者: ${escapeHtml(report.sender_name)} |
+                        时间: ${new Date(report.created_at).toLocaleString('zh-CN')}
+                    </p>
+
+                    <div style="margin-bottom:15px;">
+                        <strong>异常状态:</strong> ${statusText.join(', ') || '未填写'}
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
+                        <div><strong>代号:</strong> ${escapeHtml(reportData.codename || '-')}</div>
+                        <div><strong>行为:</strong> ${escapeHtml(reportData.behavior || '-')}</div>
+                        <div><strong>焦点:</strong> ${escapeHtml(reportData.focus || '-')}</div>
+                        <div><strong>领域:</strong> ${escapeHtml(reportData.domain || '-')}</div>
+                    </div>
+
+                    <div style="margin-bottom:15px;">
+                        <strong>MVP推荐:</strong> ${escapeHtml(reportData.mvpName || '无')}
+                    </div>
+
+                    <div style="margin-bottom:15px;">
+                        <strong>任务简述:</strong>
+                        <div style="background:#f8f9fa;padding:10px;border-radius:4px;margin-top:5px;white-space:pre-wrap;">${escapeHtml(reportData.summary || '无')}</div>
+                    </div>
+
+                    <div style="margin-bottom:15px;">
+                        <strong>特殊情况说明:</strong>
+                        <div style="background:#f8f9fa;padding:10px;border-radius:4px;margin-top:5px;white-space:pre-wrap;">${escapeHtml(reportData.special || '无')}</div>
+                    </div>
+
+                    <button class="btn-modal btn-modal-cancel" onclick="this.closest('.report-view-overlay').remove()" style="width:100%;margin-top:10px;">关闭</button>
+                </div>
+            `;
+
+            // 创建覆盖层显示报告
+            const overlay = document.createElement('div');
+            overlay.className = 'report-view-overlay';
+            overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:10001;display:flex;align-items:center;justify-content:center;padding:20px;';
+            overlay.innerHTML = `<div style="max-width:600px;width:100%;">${reportHtml}</div>`;
+            overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+            document.body.appendChild(overlay);
+
+        } catch (e) {
+            console.error('加载报告失败:', e);
+            showToast('加载报告失败');
+        }
+    }
+
+    async function deleteMissionMail(msgId) {
+        if (!currentMissionDetailId) return;
+        if (!confirm('确定要删除这封邮件吗？')) return;
+
+        try {
+            const res = await fetch(`/api/manager/mission/${currentMissionDetailId}/inbox/${msgId}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                showToast('邮件已删除', true);
+                closeMailDetailModal();
+                await loadMissionInbox(currentMissionDetailId);
+            }
+        } catch (e) {
+            showToast('删除失败');
+        }
+    }
+
+    // ==================== 任务数值管理 ====================
+    function adjustMissionValue(type, delta) {
+        const inputId = type === 'chaos' ? 'missionChaosValue' : 'missionScatterValue';
+        const input = document.getElementById(inputId);
+        let value = parseInt(input.value) || 0;
+        value += delta;
+        // 混沌值不能为负，逸散端可以为负
+        if (type === 'chaos' && value < 0) value = 0;
+        input.value = value;
+    }
+
+    async function saveMissionValues() {
+        if (!currentMissionDetailId) return;
+
+        const chaosValue = parseInt(document.getElementById('missionChaosValue').value) || 0;
+        const scatterValue = parseInt(document.getElementById('missionScatterValue').value) || 0;
+
+        try {
+            const res = await fetch(`/api/manager/mission/${currentMissionDetailId}`, {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ chaosValue, scatterValue })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                showToast('数值已保存', true);
+                // 更新本地数据
+                if (currentMissionDetailData) {
+                    currentMissionDetailData.chaos_value = chaosValue;
+                    currentMissionDetailData.scatter_value = scatterValue;
+                }
+                await loadMissions();
+            } else {
+                throw new Error(data.message || '保存失败');
+            }
+        } catch (e) {
+            showToast(e.message);
+        }
+    }
+
+    // ==================== 特工详情 ====================
+    async function openAgentDetail(charId) {
+        if (!currentMissionDetailId) return;
+
+        try {
+            const res = await fetch(`/api/manager/mission/${currentMissionDetailId}/agent/${charId}`, {
+                headers: getAuthHeaders()
+            });
+
+            const data = await res.json();
+            if (!data.success) throw new Error(data.message || '加载失败');
+
+            const agent = data.agent;
+
+            // 填充基础信息
+            document.getElementById('agentDetailName').textContent = agent.name;
+            document.getElementById('agentPhysical').textContent = agent.physical;
+            document.getElementById('agentMental').textContent = agent.mental;
+            document.getElementById('agentSocial').textContent = agent.social;
+            document.getElementById('agentLuck').textContent = agent.luck;
+            document.getElementById('agentHp').textContent = agent.hp;
+            document.getElementById('agentMp').textContent = agent.mp;
+            document.getElementById('agentSan').textContent = agent.san;
+
+            // 嘉奖记录
+            document.getElementById('agentRewardCount').textContent = agent.rewards.length;
+            const rewardsList = document.getElementById('agentRewardsList');
+            if (agent.rewards.length > 0) {
+                rewardsList.innerHTML = agent.rewards.map(r => `
+                    <div class="record-mini-item reward">
+                        <div class="record-reason">${escapeHtml(r.reason || '无备注')}</div>
+                        <div class="record-date">${new Date(r.created_at).toLocaleDateString()}</div>
+                    </div>
+                `).join('');
+            } else {
+                rewardsList.innerHTML = '<div class="no-records">暂无嘉奖</div>';
+            }
+
+            // 申诫记录
+            document.getElementById('agentReprimandCount').textContent = agent.reprimands.length;
+            const reprimandsList = document.getElementById('agentReprimandsList');
+            if (agent.reprimands.length > 0) {
+                reprimandsList.innerHTML = agent.reprimands.map(r => `
+                    <div class="record-mini-item reprimand">
+                        <div class="record-reason">${escapeHtml(r.reason || '无备注')}</div>
+                        <div class="record-date">${new Date(r.created_at).toLocaleDateString()}</div>
+                    </div>
+                `).join('');
+            } else {
+                reprimandsList.innerHTML = '<div class="no-records">暂无申诫</div>';
+            }
+
+            // 异常能力
+            document.getElementById('agentAbilityCount').textContent = agent.abilities.length;
+            document.getElementById('agentAbilitySlots').textContent = agent.abilitySlots;
+            const abilitiesList = document.getElementById('agentAbilitiesList');
+            if (agent.abilities.length > 0) {
+                abilitiesList.innerHTML = agent.abilities.map(a => `
+                    <span class="ability-tag" title="${escapeHtml(a.desc || '')}">${escapeHtml(a.name || '未命名')}</span>
+                `).join('');
+            } else {
+                abilitiesList.innerHTML = '<div class="no-records">暂无异常能力</div>';
+            }
+
+            // 关系网络
+            document.getElementById('agentRelationCount').textContent = agent.relations.length;
+            document.getElementById('agentRelationSlots').textContent = agent.relationSlots;
+            const relationsList = document.getElementById('agentRelationsList');
+            if (agent.relations.length > 0) {
+                relationsList.innerHTML = agent.relations.map(r => `
+                    <span class="relation-tag" title="${escapeHtml(r.desc || '')}">${escapeHtml(r.name || '未命名')}</span>
+                `).join('');
+            } else {
+                relationsList.innerHTML = '<div class="no-records">暂无关系</div>';
+            }
+
+            // GM备注
+            document.getElementById('agentGmNotes').textContent = agent.gmNotes || '暂无备注';
+
+            document.getElementById('agentDetailModal').classList.add('show');
+        } catch (e) {
+            showToast(e.message);
+        }
+    }
+
+    function closeAgentDetailModal() {
+        document.getElementById('agentDetailModal').classList.remove('show');
+    }
+
+    async function updateMemberStatusInDetail(charId, status) {
+        if (!currentMissionDetailId) return;
+        await updateMemberStatus(currentMissionDetailId, charId, status);
+    }
+
+    async function removeMemberFromDetail(charId) {
+        if (!currentMissionDetailId) return;
+        if (!confirm('确定要从任务中移除此特工吗？')) return;
+
+        try {
+            const res = await fetch(`/api/manager/mission/${currentMissionDetailId}/member/${charId}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                showToast('特工已移除', true);
+                await loadMissions();
+                // 刷新详情页面
+                const mission = missionsList.find(m => m.id === currentMissionDetailId);
+                if (mission) {
+                    renderMissionDetailMembers(mission.members || []);
+                }
+            } else {
+                throw new Error(data.message || '移除失败');
+            }
+        } catch (e) {
+            showToast(e.message);
+        }
+    }
+
+    function editCurrentMission() {
+        if (!currentMissionDetailId) return;
+        closeMissionDetail();
+        openMissionModal(currentMissionDetailId);
+    }
+
+    async function archiveCurrentMission() {
+        if (!currentMissionDetailId) return;
+        if (!confirm('确定要归档此任务吗？\n\n注意：如果有未发送的报告评级，需先完成所有评审并发送给特工后才能归档。')) return;
+
+        try {
+            const res = await fetch(`/api/manager/mission/${currentMissionDetailId}/archive`, {
+                method: 'POST',
+                headers: getAuthHeaders()
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                showToast('任务已归档', true);
+                closeMissionDetail();
+                await loadMissions();
+            } else {
+                throw new Error(data.message || '归档失败');
+            }
+        } catch (e) {
+            showToast(e.message);
+        }
+    }
+
+    async function restoreCurrentMission() {
+        if (!currentMissionDetailId) return;
+
+        try {
+            const res = await fetch(`/api/manager/mission/${currentMissionDetailId}`, {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ status: 'active' })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                showToast('任务已恢复', true);
+                closeMissionDetail();
+                await loadMissions();
+            } else {
+                throw new Error(data.message || '恢复失败');
+            }
+        } catch (e) {
+            showToast(e.message);
+        }
+    }
+
+    // 申领物管理（预留）
+    function openRequisitionModal() {
+        showToast('申领物管理功能开发中...');
+    }
+
+    // ==========================================
+    // 分部信息
+    // ==========================================
+    async function loadMyBranch() {
+        try {
+            const res = await fetch('/api/manager/my-branch', {
+                headers: getAuthHeaders()
+            });
+            const data = await res.json();
+            if (data.success && data.branch) {
+                document.getElementById('branchInfo').style.display = 'flex';
+                document.getElementById('branchNameDisplay').textContent = data.branch.name;
+                document.getElementById('branchScatterDisplay').textContent = data.branch.total_scatter || 0;
+            }
+        } catch (e) {
+            console.error('加载分部信息失败', e);
+        }
+    }
+
+    // ==========================================
     // 初始化和事件监听
     // ==========================================
-    
+
     // 初始化页面
     loadCharacters();
+    loadMissions();
+    loadInbox();
+    loadMyBranch();
     checkUrlAuth();
     
     // 通用：点击遮罩关闭弹窗
