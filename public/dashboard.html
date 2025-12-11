@@ -368,6 +368,8 @@
             top: 0; left: 0; 
             width: 100vw; height: 100vh;
             background: #0f172a; 
+		}
+		
         /* === 移动端适配优化 === */
         @media (max-width: 768px) {
             header { flex-direction: column; align-items: flex-start; gap: 15px; margin-bottom: 20px; padding-bottom: 15px; }
@@ -642,18 +644,11 @@
         const userRole = parseInt(localStorage.getItem('ta_role') || '0');
         if(!uid) window.location.href = 'login.html';
 
-        (function initConsoleButton() {
+		(function initConsoleButton() {
             const btnConsole = document.getElementById('btnConsole');
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-            const menuConsole = document.getElementById('menuConsole');
+            const menuConsole = document.getElementById('menuConsole'); // 保留菜单变量
+            const btnManager = document.getElementById('btnManager');   // 保留经理按钮变量
 
-=======
-            const btnManager = document.getElementById('btnManager');
->>>>>>> Stashed changes
-=======
-            const btnManager = document.getElementById('btnManager');
->>>>>>> Stashed changes
             if (userRole >= 2) {
                 // 超管同时显示管理台和经理台
                 btnConsole.style.display = 'inline-flex';
