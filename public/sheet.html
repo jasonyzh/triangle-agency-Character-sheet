@@ -586,6 +586,20 @@
         color: white;
     }
     .mail-reader-btn.danger:hover { transform: translateY(-2px); }
+    .mail-reader-btn.success {
+        background: linear-gradient(135deg, #27ae60, #2ecc71);
+        border: none;
+        color: white;
+        box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
+    }
+    .mail-reader-btn.success:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(39, 174, 96, 0.5); }
+    .mail-reader-btn.warning {
+        background: linear-gradient(135deg, #e67e22, #f39c12);
+        border: none;
+        color: white;
+        box-shadow: 0 4px 15px rgba(230, 126, 34, 0.4);
+    }
+    .mail-reader-btn.warning:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(230, 126, 34, 0.5); }
 
     /* 眼睛眨眼动画 */
     .mail-eye-blink {
@@ -728,7 +742,7 @@
         cursor: pointer;
     }
     .report-status-item:hover { background: #f0f0f0; }
-    .report-status-item input[type="checkbox"] {
+    .report-status-item input[type="radio"] {
         width: 18px; height: 18px;
         accent-color: #c0392b;
     }
@@ -771,6 +785,37 @@
     .report-table input {
         padding: 6px 8px;
         font-size: 13px;
+    }
+    .report-table th:last-child {
+        width: 40px;
+    }
+    .btn-add-row {
+        float: right;
+        background: #27ae60;
+        color: white;
+        border: none;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 11px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .btn-add-row:hover {
+        background: #219a52;
+    }
+    .btn-remove-row {
+        background: #e74c3c;
+        color: white;
+        border: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 11px;
+        transition: background 0.2s;
+    }
+    .btn-remove-row:hover {
+        background: #c0392b;
     }
 
 	.nav-arrow { position: fixed; top: 50%; transform: translateY(-50%); font-size: 60px; color: var(--signal-red); cursor: pointer; z-index: 900; padding: 20px; display: none; transition: all 0.2s ease; opacity: 0.8; user-select: none; }
@@ -855,8 +900,8 @@
             color: var(--signal-red) !important;
         }
         
-        /* 7. 报告中的复选框 */
-        .report-status-item input[type="checkbox"] {
+        /* 7. 报告中的单选按钮 */
+        .report-status-item input[type="radio"] {
             accent-color: var(--signal-red) !important;
         }
         .report-section h5 {
@@ -1032,10 +1077,10 @@
 <div class="panel">
 <h2><i class="fas fa-chart-bar"></i> 进度追踪</h2>
 <div class="track-header">
-<div class="track-stat"><label>MVP</label><input type="text" id="pComm" placeholder="0"></div>
+<div class="track-stat"><label>MVP</label><input type="text" id="pComm" placeholder="0" readonly></div>
 <div class="track-stat clickable-stat" onclick="showRecordHistory('reward')"><label>嘉奖</label><input type="text" id="mvpCount" placeholder="0" readonly></div>
 <div class="track-stat clickable-stat" onclick="showRecordHistory('reprimand')"><label>申诫</label><input type="text" id="watchCount" placeholder="0" readonly></div>
-<div class="track-stat"><label>察看期</label><input type="text" id="pRep" placeholder="0"></div>
+<div class="track-stat"><label>察看期</label><input type="text" id="pRep" placeholder="0" readonly></div>
 </div>
 <div class="track-sec"><h3 class="c-func" style="font-size:12px; margin:5px 0;">职能</h3><div class="track-row"><div class="p-grid"><div class="p-cell f-cell" data-idx="1"></div><div class="p-cell f-cell" data-idx="2"></div><div class="p-cell f-cell" data-idx="3"><span>A3</span></div><div class="p-cell f-cell" data-idx="4"></div><div class="p-cell f-cell" data-idx="5"></div><div class="p-cell f-cell" data-idx="6"><span>D4</span></div><div class="p-cell f-cell" data-idx="7"></div><div class="p-cell f-cell" data-idx="8"></div><div class="p-cell f-cell" data-idx="9"><span>G3</span></div><div class="p-cell f-cell" data-idx="10"></div></div><div class="p-grid"><div class="p-cell f-cell" data-idx="11"></div><div class="p-cell f-cell" data-idx="12"><span>J3</span></div><div class="p-cell f-cell" data-idx="13"></div><div class="p-cell f-cell" data-idx="14"></div><div class="p-cell f-cell" data-idx="15"><span>N3</span></div><div class="p-cell f-cell" data-idx="16"></div><div class="p-cell f-cell" data-idx="17"></div><div class="p-cell f-cell" data-idx="18"><span>Q3</span></div><div class="p-cell f-cell" data-idx="19"></div><div class="p-cell f-cell" data-idx="20"></div></div><div class="p-grid"><div class="p-cell f-cell" data-idx="21"><span>T3</span></div><div class="p-cell f-cell" data-idx="22"></div><div class="p-cell f-cell" data-idx="23"></div><div class="p-cell f-cell" data-idx="24"><span>W8</span></div><div class="p-cell f-cell" data-idx="25"></div><div class="p-cell f-cell" data-idx="26"></div><div class="p-cell f-cell" data-idx="27"><span>Y2</span></div><div class="p-cell f-cell" data-idx="28"></div><div class="p-cell f-cell" data-idx="29"></div><div class="p-cell f-cell" data-idx="30"></div></div></div><div class="track-rule">当你获得任务MVP时，在你的职能记录条上标记1格，且无需从其他记录条上移除一格。</div><div class="track-rule">每当你在职能记录条上标记一格时，将任意一项资质的"资质保证上限"提升1点，最高不超过9点。</div></div>
 <div class="track-sec"><h3 class="c-real" style="font-size:12px; margin:5px 0;">现实</h3><div class="track-row"><div class="p-grid"><div class="p-cell r-cell" data-idx="1"><span>C4</span></div><div class="p-cell r-cell" data-idx="2"></div><div class="p-cell r-cell" data-idx="3"></div><div class="p-cell r-cell" data-idx="4"><span>L11</span></div><div class="p-cell r-cell" data-idx="5"></div><div class="p-cell r-cell" data-idx="6"></div><div class="p-cell r-cell" data-idx="7"></div><div class="p-cell r-cell" data-idx="8"><span>E2</span></div><div class="p-cell r-cell" data-idx="9"></div><div class="p-cell r-cell" data-idx="10"><span>O4</span></div></div><div class="p-grid"><div class="p-cell r-cell" data-idx="11"></div><div class="p-cell r-cell" data-idx="12"><span>J3</span></div><div class="p-cell r-cell" data-idx="13"></div><div class="p-cell r-cell" data-idx="14"><span>T6</span></div><div class="p-cell r-cell" data-idx="15"></div><div class="p-cell r-cell" data-idx="16"><span>V2</span></div><div class="p-cell r-cell" data-idx="17"></div><div class="p-cell r-cell" data-idx="18"></div><div class="p-cell r-cell" data-idx="19"></div><div class="p-cell r-cell" data-idx="20"><span>X3</span></div></div><div class="p-grid"><div class="p-cell r-cell" data-idx="21"></div><div class="p-cell r-cell" data-idx="22"><span>H5</span></div><div class="p-cell r-cell" data-idx="23"></div><div class="p-cell r-cell" data-idx="24"></div><div class="p-cell r-cell" data-idx="25"></div><div class="p-cell r-cell" data-idx="26"></div><div class="p-cell r-cell" data-idx="27"><span>E3</span></div><div class="p-cell r-cell" data-idx="28"></div><div class="p-cell r-cell" data-idx="29"></div><div class="p-cell r-cell" data-idx="30"></div></div></div><div class="track-rule">当你既未获得任务MVP也未进入察看期时，你可以将你与任意一段关系的连结提升1点。</div><div class="track-rule">每当你在现实记录条上标记一格时，将你与任意一段"关系"的"连结"提升1点，然后对关系网内的每段关系重复此操作。</div></div>
@@ -1075,7 +1120,7 @@
 			<div class="mail-tabs">
 				<button class="mail-tab active" onclick="switchMailTab('inbox')"><i class="fas fa-inbox"></i><span>收件箱</span></button>
 				<button class="mail-tab" onclick="switchMailTab('sent')"><i class="fas fa-paper-plane"></i><span>已发邮件</span></button>
-				<button class="mail-tab" onclick="switchMailTab('compose')"><i class="fas fa-pen"></i><span>写信</span></button>
+				<button class="mail-tab" id="tab-compose" onclick="switchMailTab('compose')"><i class="fas fa-pen"></i><span>写信</span></button>
 				<button class="mail-tab" id="tab-highwall" onclick="switchMailTab('highwall')" style="display:none;"><i class="fas fa-file-shield"></i><span>高墙文件</span></button>
 			</div>
             <div class="mail-content" id="mailContent">
@@ -1460,6 +1505,7 @@ async function goBack() {
 let currentMailTab = 'inbox';
 let mailData = { inbox: [], sent: [], highwallFiles: [] };
 let isA1Unlocked = false; // 是否解锁了A1高墙文件（控制报告提交权限）
+let canSendMessages = true; // 是否有发信权限（经理可控制）
 
 function openMailModal() {
     document.getElementById('mail-full-modal').classList.add('active');
@@ -1585,7 +1631,8 @@ function renderInbox(container) {
             preview: m.content ? m.content.substring(0, 50) : '',
             time: m.createdAt,
             read: m.read,
-            hwFilename: m.hwFilename
+            hwFilename: m.hwFilename,
+            reportId: m.reportId
         });
     });
 
@@ -1710,22 +1757,22 @@ function renderCompose(container) {
                 <h5>异常状态</h5>
                 <div class="report-status-grid">
                     <label class="report-status-item">
-                        <input type="checkbox" id="rpt-neutralized">
+                        <input type="radio" name="rpt-status" value="neutralized" id="rpt-neutralized">
                         <span class="status-icon">🔫</span>
                         <div class="status-info"><h6>已中和</h6><small>无影响</small></div>
                     </label>
                     <label class="report-status-item">
-                        <input type="checkbox" id="rpt-captured">
+                        <input type="radio" name="rpt-status" value="captured" id="rpt-captured">
                         <span class="status-icon">💼</span>
                         <div class="status-info"><h6>已捕获</h6><small>+3 嘉奖</small></div>
                     </label>
                     <label class="report-status-item">
-                        <input type="checkbox" id="rpt-escaped">
+                        <input type="radio" name="rpt-status" value="escaped" id="rpt-escaped">
                         <span class="status-icon">🚪</span>
                         <div class="status-info"><h6>已逃脱</h6><small>+3 申诫</small></div>
                     </label>
                     <label class="report-status-item">
-                        <input type="checkbox" id="rpt-other-check">
+                        <input type="radio" name="rpt-status" value="other" id="rpt-other-check">
                         <span class="status-icon">📝</span>
                         <div class="status-info"><h6>其他</h6><input type="text" id="rpt-other-text" placeholder="..." style="width:80px;padding:2px 5px;font-size:11px;" onclick="event.stopPropagation()"></div>
                     </label>
@@ -1741,13 +1788,16 @@ function renderCompose(container) {
             </div>
 
             <div class="report-section">
-                <h5>散逸端</h5>
+                <h5>散逸端 <button type="button" class="btn-add-row" onclick="addScatterRow()"><i class="fas fa-plus"></i> 添加</button></h5>
                 <table class="report-table">
-                    <thead><tr><th>姓名</th><th>数量</th><th>备注</th></tr></thead>
-                    <tbody>
-                        <tr><td><input type="text" id="rpt-scat1-name"></td><td><input type="text" id="rpt-scat1-qty"></td><td><input type="text" id="rpt-scat1-note"></td></tr>
-                        <tr><td><input type="text" id="rpt-scat2-name"></td><td><input type="text" id="rpt-scat2-qty"></td><td><input type="text" id="rpt-scat2-note"></td></tr>
-                        <tr><td><input type="text" id="rpt-scat3-name"></td><td><input type="text" id="rpt-scat3-qty"></td><td><input type="text" id="rpt-scat3-note"></td></tr>
+                    <thead><tr><th>名称</th><th>数量</th><th>备注</th><th></th></tr></thead>
+                    <tbody id="scatterTableBody">
+                        <tr class="scatter-row">
+                            <td><input type="text" class="scat-name" placeholder="物品名称"></td>
+                            <td><input type="text" class="scat-qty" placeholder="数量"></td>
+                            <td><input type="text" class="scat-note" placeholder="备注"></td>
+                            <td><button type="button" class="btn-remove-row" onclick="removeScatterRow(this)"><i class="fas fa-times"></i></button></td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -1755,7 +1805,7 @@ function renderCompose(container) {
             <div class="report-section">
                 <h5>评优信息</h5>
                 <div class="report-row"><label>最终评级</label><input type="text" id="rpt-rating" placeholder="仅供GM使用"></div>
-                <div class="report-row"><label>混沌池</label><input type="number" id="rpt-chaos" value="-2"></div>
+                <div class="report-row"><label>混沌池</label><input type="number" id="rpt-chaos" value="0"></div>
                 <div class="report-row"><label>MVP</label><input type="text" id="rpt-mvp"></div>
                 <div class="report-row"><label>察看期</label><input type="text" id="rpt-probation"></div>
                 <label style="margin-top:10px;">参与者</label>
@@ -1899,13 +1949,57 @@ function closeSuccessModal() {
 
 
 
+// 散逸端动态行管理
+function addScatterRow() {
+    const tbody = document.getElementById('scatterTableBody');
+    const newRow = document.createElement('tr');
+    newRow.className = 'scatter-row';
+    newRow.innerHTML = `
+        <td><input type="text" class="scat-name" placeholder="物品名称"></td>
+        <td><input type="text" class="scat-qty" placeholder="数量"></td>
+        <td><input type="text" class="scat-note" placeholder="备注"></td>
+        <td><button type="button" class="btn-remove-row" onclick="removeScatterRow(this)"><i class="fas fa-times"></i></button></td>
+    `;
+    tbody.appendChild(newRow);
+}
+
+function removeScatterRow(btn) {
+    const tbody = document.getElementById('scatterTableBody');
+    const rows = tbody.querySelectorAll('.scatter-row');
+    // 保留至少一行
+    if (rows.length > 1) {
+        btn.closest('tr').remove();
+    } else {
+        showToast('至少保留一行', 'error');
+    }
+}
+
+function getScatteringData() {
+    const rows = document.querySelectorAll('#scatterTableBody .scatter-row');
+    const data = [];
+    rows.forEach(row => {
+        const name = row.querySelector('.scat-name').value.trim();
+        const qty = row.querySelector('.scat-qty').value.trim();
+        const note = row.querySelector('.scat-note').value.trim();
+        if (name) {
+            data.push({ name, qty, note });
+        }
+    });
+    return data;
+}
+
 async function sendReport() {
+    // 获取选中的单选按钮值
+    const selectedStatus = document.querySelector('input[name="rpt-status"]:checked');
+    const statusValue = selectedStatus ? selectedStatus.value : null;
+
     const reportData = {
         status: {
-            neutralized: document.getElementById('rpt-neutralized').checked,
-            captured: document.getElementById('rpt-captured').checked,
-            escaped: document.getElementById('rpt-escaped').checked,
-            other: document.getElementById('rpt-other-check').checked ? document.getElementById('rpt-other-text').value : null
+            selected: statusValue,
+            neutralized: statusValue === 'neutralized',
+            captured: statusValue === 'captured',
+            escaped: statusValue === 'escaped',
+            other: statusValue === 'other' ? document.getElementById('rpt-other-text').value : null
         },
         analysis: {
             codename: document.getElementById('rpt-codename').value,
@@ -1913,11 +2007,7 @@ async function sendReport() {
             focus: document.getElementById('rpt-focus').value,
             domain: document.getElementById('rpt-domain').value
         },
-        scattering: [
-            { name: document.getElementById('rpt-scat1-name').value, qty: document.getElementById('rpt-scat1-qty').value, note: document.getElementById('rpt-scat1-note').value },
-            { name: document.getElementById('rpt-scat2-name').value, qty: document.getElementById('rpt-scat2-qty').value, note: document.getElementById('rpt-scat2-note').value },
-            { name: document.getElementById('rpt-scat3-name').value, qty: document.getElementById('rpt-scat3-qty').value, note: document.getElementById('rpt-scat3-note').value }
-        ].filter(s => s.name),
+        scattering: getScatteringData(),
         evaluation: {
             rating: document.getElementById('rpt-rating').value,
             chaosPool: document.getElementById('rpt-chaos').value,
@@ -1944,12 +2034,13 @@ async function sendReport() {
         });
 
         if (!res.ok) {
+            const errorData = await res.json();
             if (res.status === 409) {
-                 const errorData = await res.json();
-                 showToast(errorData.message || '您已提交过报告', 'error');
+                 alert(errorData.message || '您已提交过报告，无法重复提交');
             } else {
-                throw new Error('提交失败，请稍后重试');
+                alert(errorData.message || '提交失败，请稍后重试');
             }
+            return;
         } else {
             // 提交成功！显示弹窗并设置延时关闭
             const modal = document.getElementById('reportSuccessModal');
@@ -2172,6 +2263,19 @@ function openMailReader(mailData) {
                 <i class="fas fa-file-shield"></i> 查看高墙文件
             </button>
         `;
+    } else if (mailData.type === 'rating_notice' && mailData.reportId) {
+        // 任务初评通知 - 显示接受/申诉按钮
+        actionsEl.innerHTML = `
+            <button class="mail-reader-btn secondary" onclick="closeMailReader()">
+                <i class="fas fa-times"></i> 关闭
+            </button>
+            <button class="mail-reader-btn success" onclick="acceptRating(${mailData.reportId})">
+                <i class="fas fa-check"></i> 接受评级
+            </button>
+            <button class="mail-reader-btn warning" onclick="showAppealForm(${mailData.reportId})">
+                <i class="fas fa-exclamation-triangle"></i> 申诉
+            </button>
+        `;
     } else {
         actionsEl.innerHTML = `
             <button class="mail-reader-btn secondary" onclick="closeMailReader()">
@@ -2286,8 +2390,106 @@ function openMessage(msgId) {
             content: msg.content,
             time: msg.createdAt,
             read: msg.read,
-            hwFilename: msg.hwFilename
+            hwFilename: msg.hwFilename,
+            reportId: msg.reportId
         });
+    }
+}
+
+// 接受任务评级
+async function acceptRating(reportId) {
+    if (!charId || !reportId) return;
+
+    if (!confirm('确定接受此评级吗？')) return;
+
+    try {
+        const res = await fetch(`/api/character/${charId}/accept-rating/${reportId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('ta_token')
+            }
+        });
+
+        const data = await res.json();
+        if (data.success) {
+            alert(data.message || '已接受评级');
+            closeMailReader();
+            loadMailbox(); // 刷新邮件
+        } else {
+            alert(data.message || '操作失败');
+        }
+    } catch (e) {
+        console.error('接受评级失败:', e);
+        alert('操作失败');
+    }
+}
+
+// 显示申诉表单
+function showAppealForm(reportId) {
+    const actionsEl = document.getElementById('mail-reader-actions');
+    actionsEl.innerHTML = `
+        <div class="appeal-form">
+            <textarea id="appealReasonInput" placeholder="请输入申诉理由..." rows="3" style="width:100%;margin-bottom:10px;padding:8px;border-radius:6px;border:1px solid #555;background:#2a2a2a;color:#fff;resize:none;"></textarea>
+            <div style="display:flex;gap:10px;justify-content:flex-end;">
+                <button class="mail-reader-btn secondary" onclick="cancelAppeal(${reportId})">
+                    <i class="fas fa-times"></i> 取消
+                </button>
+                <button class="mail-reader-btn warning" onclick="submitAppeal(${reportId})">
+                    <i class="fas fa-paper-plane"></i> 提交申诉
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+// 取消申诉，恢复原按钮
+function cancelAppeal(reportId) {
+    const actionsEl = document.getElementById('mail-reader-actions');
+    actionsEl.innerHTML = `
+        <button class="mail-reader-btn secondary" onclick="closeMailReader()">
+            <i class="fas fa-times"></i> 关闭
+        </button>
+        <button class="mail-reader-btn success" onclick="acceptRating(${reportId})">
+            <i class="fas fa-check"></i> 接受评级
+        </button>
+        <button class="mail-reader-btn warning" onclick="showAppealForm(${reportId})">
+            <i class="fas fa-exclamation-triangle"></i> 申诉
+        </button>
+    `;
+}
+
+// 提交申诉
+async function submitAppeal(reportId) {
+    if (!charId || !reportId) return;
+
+    const reason = document.getElementById('appealReasonInput').value.trim();
+    if (!reason) {
+        alert('请输入申诉理由');
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/character/${charId}/appeal-rating/${reportId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('ta_token')
+            },
+            body: JSON.stringify({ reason })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+            alert(data.message || '申诉已提交');
+            closeMailReader();
+            loadMailbox(); // 刷新邮件
+        } else {
+            alert(data.message || '申诉失败');
+        }
+    } catch (e) {
+        console.error('提交申诉失败:', e);
+        alert('操作失败');
     }
 }
 
@@ -2459,6 +2661,13 @@ function populateData(d){
     if(!document.getElementById('list-item').children.length)addItem(null, false);
     (d.pf||[]).forEach(i=>document.querySelector(`.f-cell[data-idx="${i}"]`)?.classList.add('active'));(d.pr||[]).forEach(i=>document.querySelector(`.r-cell[data-idx="${i}"]`)?.classList.add('active'));(d.pa||[]).forEach(i=>document.querySelector(`.a-cell[data-idx="${i}"]`)?.classList.add('active'));(d.pf_ign||[]).forEach(i=>document.querySelector(`.f-cell[data-idx="${i}"]`)?.classList.add('ignored'));(d.pr_ign||[]).forEach(i=>document.querySelector(`.r-cell[data-idx="${i}"]`)?.classList.add('ignored'));(d.pa_ign||[]).forEach(i=>document.querySelector(`.a-cell[data-idx="${i}"]`)?.classList.add('ignored'));
     updateSlotButtons();
+
+    // 处理发信权限
+    canSendMessages = d.canSendMessages !== false; // 默认允许发信
+    const composeTab = document.getElementById('tab-compose');
+    if (composeTab) {
+        composeTab.style.display = canSendMessages ? '' : 'none';
+    }
 }
 function gatherData(){const d={pName:document.getElementById('pName').value,pAnom:document.getElementById('pAnom').value,pReal:document.getElementById('pReal').value,pFunc:document.getElementById('pFunc').value,pTrig1:document.getElementById('pTrig1').innerHTML,pTrig2:document.getElementById('pTrig2').innerHTML,pTrig3:document.getElementById('pTrig3').innerHTML,perm1:document.getElementById('perm1').value,perm2:document.getElementById('perm2').value,perm3:document.getElementById('perm3').value,pComm:document.getElementById('pComm').value,pRep:document.getElementById('pRep').value,mvpCount:document.getElementById('mvpCount').value,watchCount:document.getElementById('watchCount').value,noteTitle:document.getElementById('noteTitle').value,noteBody:document.getElementById('noteBody').innerHTML,qs:[],attrs:{},anoms:[],reals:[],items:[],pf:[],pr:[],pa:[],pf_ign:[],pr_ign:[],pa_ign:[],anomSlots:SLOT_LIMITS.anomSlots,realSlots:SLOT_LIMITS.realSlots};for(let i=1;i<=7;i++)d.qs.push(document.getElementById(`q${i}`).innerHTML);ATTRS.forEach(a=>{const r=document.querySelector(`.attr-input[data-attr="${a}"]`).parentElement,m=[];r.querySelectorAll('.dot.marked').forEach(dt=>m.push(parseInt(dt.dataset.i)));d.attrs[a]={v:r.querySelector('input').value,m:m};});document.querySelectorAll('#list-anom .card').forEach(c=>{d.anoms.push({name:c.querySelector('.f-name').value,trig:c.querySelector('.f-trig').value,qual:c.querySelector('.f-qual').value,succ:c.querySelector('.f-succ').innerHTML,fail:c.querySelector('.f-fail').innerHTML,chk:c.querySelector('.f-chk').checked,tdesc:c.querySelector('.f-tdesc').value,t1:c.querySelector('.f-t1').value,t1v:c.querySelector('.f-t1-val').value,t2:c.querySelector('.f-t2').value,t2v:c.querySelector('.f-t2-val').value,p1:Array.from(c.querySelectorAll('.d1 .sq-dot')).map(e=>e.classList.contains('active')),p2:Array.from(c.querySelectorAll('.d2 .sq-dot')).map(e=>e.classList.contains('active'))});});document.querySelectorAll('#list-real .card').forEach(c=>{let l=0;c.querySelectorAll('.r-dots .dot').forEach((e,i)=>{if(e.classList.contains('active'))l=i+1});d.reals.push({name:c.querySelector('.f-name').value,actor:c.querySelector('.f-actor').value,desc:c.querySelector('.f-desc').innerHTML,act:c.querySelector('.f-act').checked,conn:c.querySelector('.f-conn').innerHTML,lvl:l});});document.querySelectorAll('#list-item .card').forEach(c=>{d.items.push({item:c.querySelector('.f-item').value,pd:c.querySelector('.f-pd').value,eff:c.querySelector('.f-eff').innerHTML});});document.querySelectorAll('.f-cell.active').forEach(e=>d.pf.push(parseInt(e.dataset.idx)));document.querySelectorAll('.r-cell.active').forEach(e=>d.pr.push(parseInt(e.dataset.idx)));document.querySelectorAll('.a-cell.active').forEach(e=>d.pa.push(parseInt(e.dataset.idx)));document.querySelectorAll('.f-cell.ignored').forEach(e=>d.pf_ign.push(parseInt(e.dataset.idx)));document.querySelectorAll('.r-cell.ignored').forEach(e=>d.pr_ign.push(parseInt(e.dataset.idx)));document.querySelectorAll('.a-cell.ignored').forEach(e=>d.pa_ign.push(parseInt(e.dataset.idx)));return d;}
 function showToast(msg, type='success') {
@@ -2543,9 +2752,14 @@ async function showRecordHistory(type) {
             }
         }
 
-        const records = type === 'reward'
+        let records = type === 'reward'
             ? (cachedRecords?.rewards || [])
             : (cachedRecords?.reprimands || []);
+
+        // 确保 records 是数组（可能因为旧数据是数字）
+        if (!Array.isArray(records)) {
+            records = [];
+        }
 
         if (records.length === 0) {
             contentEl.innerHTML = `<div class="record-empty">暂无${type === 'reward' ? '嘉奖' : '申诫'}记录</div>`;

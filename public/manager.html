@@ -545,6 +545,68 @@
             color: var(--text-dark);
         }
 
+        /* 角色卡片属性区域 */
+        .card-stats {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .stat-item {
+            flex: 1;
+            text-align: center;
+            padding: 8px 4px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        .stat-label {
+            display: block;
+            color: #7f8c8d;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+        .stat-value {
+            font-weight: 700;
+            color: var(--text-dark);
+            font-size: 14px;
+        }
+
+        /* 角色卡片奖惩记录 */
+        .card-records {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .record-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .record-badge.commend {
+            background: rgba(39, 174, 96, 0.1);
+            color: #27ae60;
+        }
+        .record-badge.reprimand {
+            background: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+        }
+        .record-badge.mvp {
+            background: rgba(241, 196, 15, 0.1);
+            color: #f39c12;
+        }
+        .record-badge.probation {
+            background: rgba(155, 89, 182, 0.1);
+            color: #9b59b6;
+        }
+        .record-badge i {
+            font-size: 10px;
+        }
+
         .card-footer {
             padding: 10px 15px;
             background: #f8f9fa;
@@ -595,6 +657,35 @@
         }
         .btn-remove-auth:hover {
             background: var(--manager-blue);
+            color: white;
+        }
+        /* 发放奖惩按钮样式 */
+        .btn-reward {
+            background: rgba(241, 196, 15, 0.1);
+            border: 1px solid #f1c40f;
+            color: #f1c40f;
+        }
+        .btn-reward:hover {
+            background: #f1c40f;
+            color: #2c3e50;
+        }
+        /* 发信权限按钮样式 */
+        .btn-msg-perm {
+            background: rgba(39, 174, 96, 0.1);
+            border: 1px solid #27ae60;
+            color: #27ae60;
+        }
+        .btn-msg-perm:hover {
+            background: #27ae60;
+            color: white;
+        }
+        .btn-msg-perm.disabled {
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+        }
+        .btn-msg-perm.disabled:hover {
+            background: #e74c3c;
             color: white;
         }
 
@@ -791,7 +882,7 @@
             border-color: var(--manager-blue);
         }
         
-        .inbox-badge {
+        .btn-nav .inbox-badge {
             position: absolute;
             top: -5px;
             right: -5px;
@@ -802,10 +893,11 @@
             padding: 2px 6px;
             border-radius: 10px;
             min-width: 16px;
-            text-align: center;
             display: none;
+            align-items: center;
+            justify-content: center;
         }
-        .inbox-badge.show { display: block; }
+        .btn-nav .inbox-badge.show { display: inline-flex; }
 
         /* === 外勤任务区块样式 === */
         .mission-panel {
@@ -939,6 +1031,50 @@
         .mission-card.clickable:hover .mission-enter-hint {
             color: var(--manager-blue);
             transform: translateX(3px);
+        }
+        /* 归档任务报告信息 */
+        .mission-report-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed #e8e8e8;
+        }
+        .mission-report-summary span {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+        .mission-report-summary .report-rating {
+            background: linear-gradient(135deg, #f1c40f, #f39c12);
+            color: white;
+            font-weight: 700;
+            padding: 3px 10px;
+        }
+        .mission-report-summary .report-scatter {
+            background: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+        }
+        .mission-report-summary .report-commend {
+            background: rgba(39, 174, 96, 0.1);
+            color: #27ae60;
+        }
+        .mission-report-summary .report-reprimand {
+            background: rgba(231, 76, 60, 0.1);
+            color: #c0392b;
+        }
+        .mission-report-summary .report-mvp {
+            background: rgba(241, 196, 15, 0.15);
+            color: #d4a017;
+        }
+        .mission-report-summary .report-probation {
+            background: rgba(142, 68, 173, 0.1);
+            color: #8e44ad;
         }
         .mission-members { display: flex; flex-wrap: wrap; gap: 8px; }
         .mission-member {
@@ -1914,8 +2050,10 @@
     /* 颜色定义 */
     .btn-nav.admin { background: #d63031; } /* 管理台 - 红色 */
     .btn-nav.archive { background: #3498db; } /* 档案库 - 蓝色 */
-    .btn-nav.inbox { background: #8e44ad; } /* 收件箱 - 紫色 */
+    .btn-nav.inbox { background: #8e44ad; position: relative; } /* 收件箱 - 紫色 */
     .btn-nav.logout { background: #fff; color: #555; border: 1px solid #eee; }
+    .btn-nav.messaging-toggle { background: #27ae60; } /* 私信开启 - 绿色 */
+    .btn-nav.messaging-toggle.disabled { background: #e74c3c; } /* 私信关闭 - 红色 */
     
     /* 2. 移动端菜单触发器 */
     /* =========================================
@@ -2092,10 +2230,20 @@
     .menu-item.admin:hover { background: rgba(214, 48, 49, 0.15) !important; color: #d63031 !important; }
 
     /* 收件箱 (紫色) */
-    .menu-item.inbox { 
+    .menu-item.inbox {
         border-left: 3px solid #8e44ad !important;
     }
     .menu-item.inbox:hover { background: rgba(142, 68, 173, 0.15) !important; color: #8e44ad !important; }
+
+    /* 私信开关 */
+    .menu-item.messaging-toggle {
+        border-left: 3px solid #27ae60 !important;
+    }
+    .menu-item.messaging-toggle:hover { background: rgba(39, 174, 96, 0.15) !important; color: #27ae60 !important; }
+    .menu-item.messaging-toggle.disabled {
+        border-left: 3px solid #e74c3c !important;
+    }
+    .menu-item.messaging-toggle.disabled:hover { background: rgba(231, 76, 60, 0.15) !important; color: #e74c3c !important; }
 
     /* 退出登录 */
     .menu-item.logout {
@@ -2226,6 +2374,1166 @@
             border-color: var(--manager-blue) !important;
             color: var(--manager-blue) !important;
         }
+
+        /* ========== 报告评审模态框样式 ========== */
+        .report-review-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(10, 15, 25, 0.95);
+            backdrop-filter: blur(8px);
+            z-index: 9500;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .report-review-overlay.show { display: flex; }
+
+        .report-review-modal {
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 1300px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.15), 0 10px 30px rgba(0,0,0,0.1);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: scale(0.95) translateY(-20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .report-review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 24px;
+            border-bottom: 1px solid #e0e0e0;
+            background: #f8f9fa;
+            border-radius: 16px 16px 0 0;
+        }
+
+        .report-review-header .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .report-review-header h3 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 17px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .report-review-header h3 i {
+            color: var(--manager-blue);
+        }
+
+        .report-submitter-info {
+            color: #555;
+            font-size: 12px;
+            padding: 5px 14px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+        }
+
+        .btn-close-modal {
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            color: #666;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-close-modal:hover {
+            background: rgba(231, 76, 60, 0.1);
+            border-color: rgba(231, 76, 60, 0.4);
+            color: #e74c3c;
+        }
+
+        .report-review-body {
+            display: grid;
+            grid-template-columns: 1fr 300px 280px;
+            grid-template-rows: 1fr;
+            gap: 0;
+            flex: 1;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        /* 桌面端抽屉布局 - 三列独立滚动 */
+        #drawer-report {
+            grid-column: 1;
+            grid-row: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid rgba(255,255,255,0.06);
+        }
+        #drawer-review {
+            grid-column: 2;
+            grid-row: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid rgba(255,255,255,0.06);
+        }
+        #drawer-responses {
+            grid-column: 3;
+            grid-row: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .report-content-section {
+            padding: 20px 24px;
+            overflow-y: auto;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .report-content-section h4 {
+            margin: 0 0 16px 0;
+            color: #2c3e50;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .report-content-section h4 i {
+            color: var(--manager-blue);
+        }
+
+        .report-content-display {
+            color: #444;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        /* 报告内容块通用样式 */
+        .report-block {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 14px;
+            border: 1px solid #e0e0e0;
+            transition: all 0.2s;
+        }
+        .report-block:hover {
+            border-color: rgba(52, 152, 219, 0.5);
+            background: #f0f4f8;
+        }
+
+        .block-header {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--manager-blue);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* 状态标签 */
+        .status-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .status-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-tag.neutralized {
+            background: rgba(39, 174, 96, 0.15);
+            color: #2ecc71;
+            border: 1px solid rgba(39, 174, 96, 0.3);
+        }
+        .status-tag.captured {
+            background: rgba(52, 152, 219, 0.15);
+            color: #3498db;
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+        .status-tag.escaped {
+            background: rgba(231, 76, 60, 0.15);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+        }
+        .status-tag.other {
+            background: rgba(241, 196, 15, 0.15);
+            color: #f1c40f;
+            border: 1px solid rgba(241, 196, 15, 0.3);
+        }
+
+        /* 分析网格 */
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .analysis-item {
+            background: #fff;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid #e8e8e8;
+        }
+        .analysis-item label {
+            display: block;
+            font-size: 10px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .analysis-item span {
+            color: #333;
+            font-size: 13px;
+        }
+
+        /* 散逸端列表 */
+        .scatter-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .scatter-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: #fff;
+            border-radius: 6px;
+            border: 1px solid #e8e8e8;
+        }
+        .scatter-name {
+            color: #333;
+            font-weight: 500;
+        }
+        .scatter-qty {
+            color: var(--manager-blue);
+            font-weight: 600;
+            font-size: 12px;
+        }
+        .scatter-note {
+            color: #888;
+            font-size: 11px;
+            margin-left: auto;
+        }
+
+        /* 评优网格 */
+        .eval-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .eval-item {
+            background: #fff;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid #e8e8e8;
+        }
+        .eval-item label {
+            display: block;
+            font-size: 10px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .eval-item span {
+            color: #333;
+            font-size: 13px;
+        }
+        .rating-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .rating-badge.rating-s { background: linear-gradient(135deg, #f1c40f, #f39c12); color: #000; }
+        .rating-badge.rating-a { background: linear-gradient(135deg, #9b59b6, #8e44ad); color: #fff; }
+        .rating-badge.rating-b { background: linear-gradient(135deg, #3498db, #2980b9); color: #fff; }
+        .rating-badge.rating-c { background: linear-gradient(135deg, #2ecc71, #27ae60); color: #fff; }
+        .rating-badge.rating-d { background: linear-gradient(135deg, #95a5a6, #7f8c8d); color: #fff; }
+        .rating-badge.rating-f { background: linear-gradient(135deg, #e74c3c, #c0392b); color: #fff; }
+
+        .eval-participants {
+            padding-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        .eval-participants label {
+            font-size: 10px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .eval-participants p {
+            margin: 6px 0 0;
+            color: #bdc3c7;
+        }
+
+        /* 目标列表 */
+        .objectives-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .objective-item {
+            padding: 10px 12px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 6px;
+        }
+        .objective-target {
+            color: #ecf0f1;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+        .objective-details {
+            display: flex;
+            gap: 16px;
+            font-size: 11px;
+        }
+        .objective-details span {
+            color: #7f8c8d;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .objective-details i {
+            color: var(--manager-blue);
+        }
+
+        /* 空值提示 */
+        .empty-hint {
+            color: #5a6a7a;
+            font-style: italic;
+            font-size: 12px;
+        }
+
+        /* 空状态和原始数据 */
+        .report-empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #7f8c8d;
+        }
+        .report-empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        .report-empty-state p {
+            font-size: 16px;
+            color: #bdc3c7;
+            margin: 0 0 8px;
+        }
+        .report-empty-state span {
+            font-size: 12px;
+        }
+
+        .report-raw-data {
+            background: rgba(0,0,0,0.4);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+        .report-raw-data h5 {
+            margin: 0 0 12px;
+            color: var(--manager-blue);
+            font-size: 12px;
+        }
+        .report-raw-data pre {
+            margin: 0;
+            padding: 12px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 6px;
+            font-size: 11px;
+            color: #7f8c8d;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        /* 评审操作区 */
+        .report-review-section {
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            flex: 1;
+            min-height: 0;
+            border-left: 1px solid #e0e0e0;
+        }
+
+        .report-review-section h4 {
+            margin: 0 0 20px 0;
+            color: #2c3e50;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .report-review-section h4 i {
+            color: var(--manager-blue);
+        }
+
+        .review-field {
+            margin-bottom: 18px;
+        }
+
+        .review-field label {
+            display: block;
+            margin-bottom: 8px;
+            color: #666;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .review-field select {
+            width: 100%;
+            padding: 11px 14px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            color: #333;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .review-field select:focus {
+            border-color: var(--manager-blue);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+        }
+        .review-field select:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .scatter-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .scatter-btn {
+            width: 38px;
+            height: 38px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        .scatter-btn:hover:not(:disabled) {
+            background: var(--manager-blue);
+            border-color: var(--manager-blue);
+            transform: scale(1.05);
+        }
+        .scatter-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .scatter-input-wrapper input {
+            flex: 1;
+            padding: 10px 12px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            color: #333;
+            font-size: 15px;
+            text-align: center;
+            font-weight: 600;
+        }
+        .scatter-input-wrapper input:focus {
+            border-color: var(--manager-blue);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+        }
+        .scatter-input-wrapper input:disabled {
+            opacity: 0.4;
+        }
+
+        .annotation-field textarea {
+            width: 100%;
+            padding: 12px 14px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            color: #333;
+            font-size: 13px;
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+            line-height: 1.6;
+            box-sizing: border-box;
+        }
+        .annotation-field textarea:focus {
+            border-color: var(--manager-blue);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+        }
+        .annotation-field textarea:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .annotation-field textarea::placeholder {
+            color: #aaa;
+        }
+
+        .review-status-info {
+            padding: 12px 14px;
+            background: rgba(39, 174, 96, 0.1);
+            border: 1px solid rgba(39, 174, 96, 0.3);
+            border-radius: 8px;
+            color: #27ae60;
+            font-size: 12px;
+            text-align: center;
+            display: none;
+        }
+        .review-status-info.show { display: block; }
+
+        .report-review-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 24px;
+            border-top: 1px solid #e0e0e0;
+            background: #f8f9fa;
+            border-radius: 0 0 16px 16px;
+        }
+
+        .footer-left {
+            color: #666;
+            font-size: 11px;
+        }
+
+        .footer-right {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-review-save, .btn-review-send {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-review-save {
+            background: #fff;
+            border: 1px solid #ddd;
+            color: #666;
+        }
+        .btn-review-save:hover:not(:disabled) {
+            background: #f0f0f0;
+            border-color: #ccc;
+            color: #333;
+        }
+
+        .btn-review-send {
+            background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+        .btn-review-send:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn-review-save:disabled, .btn-review-send:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* 报告列表卡片样式调整 - 可点击 */
+        .report-item {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .report-item:hover {
+            border-color: var(--manager-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .report-preview {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding-top: 10px;
+            font-size: 12px;
+            color: #888;
+        }
+
+        /* 特工奖惩容器 */
+        .agent-rewards-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 350px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .agent-reward-item {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .agent-reward-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .agent-reward-avatar {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, var(--manager-blue), #2980b9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .agent-reward-name {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 13px;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .agent-reward-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .reward-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .reward-group.special {
+            padding-top: 6px;
+            border-top: 1px dashed #e0e0e0;
+        }
+
+        .reward-control {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #f8f9fa;
+            padding: 4px 8px;
+            border-radius: 5px;
+            flex: 1;
+            min-width: 100px;
+        }
+
+        .reward-label {
+            font-size: 11px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .reward-label i {
+            font-size: 11px;
+        }
+
+        .reward-label i.fa-medal { color: #27ae60; }
+        .reward-label i.fa-exclamation-triangle { color: #e74c3c; }
+
+        .reward-buttons {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: auto;
+        }
+
+        .reward-btn {
+            width: 22px;
+            height: 22px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            color: #666;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+        .reward-btn:hover {
+            background: var(--manager-blue);
+            border-color: var(--manager-blue);
+            color: #fff;
+        }
+        .reward-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .reward-value {
+            min-width: 20px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 12px;
+            color: #333;
+        }
+
+        .reward-radio-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            background: #f8f9fa;
+            padding: 4px 10px;
+            border-radius: 5px;
+            transition: all 0.15s;
+        }
+        .reward-radio-item:hover {
+            background: #e8e8e8;
+        }
+        .reward-radio-item input[type="radio"] {
+            width: 14px;
+            height: 14px;
+            accent-color: var(--manager-blue);
+            cursor: pointer;
+        }
+
+        .radio-label {
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .radio-label i {
+            font-size: 11px;
+        }
+        .radio-label.mvp { color: #d4a017; }
+        .radio-label.probation { color: #8e44ad; }
+
+        .rating-select {
+            width: 100%;
+            padding: 12px 15px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            color: #333;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .rating-select:focus {
+            border-color: var(--manager-blue);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+        }
+
+        /* 特工响应状态区域 */
+        .agent-responses-section {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 0 20px 15px;
+            overflow-y: auto;
+            flex: 1;
+            min-height: 0;
+        }
+        .agent-responses-section h4 {
+            color: #2c3e50;
+            font-size: 14px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .agent-responses-section h4 i {
+            color: var(--manager-blue);
+        }
+        .agent-responses-summary {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .response-stat {
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 15px;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+        }
+        .response-stat.pending { color: #f39c12; }
+        .response-stat.accepted { color: #2ecc71; }
+        .response-stat.appealing { color: #e74c3c; }
+        .agent-responses-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .agent-response-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+        }
+        .agent-response-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--manager-blue), #2980b9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            flex-shrink: 0;
+        }
+        .agent-response-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .agent-response-name {
+            font-size: 13px;
+            color: #2c3e50;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .agent-response-rewards {
+            font-size: 11px;
+            color: #666;
+            margin-top: 2px;
+        }
+        .agent-response-status {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: 500;
+            flex-shrink: 0;
+        }
+        .agent-response-status.pending {
+            background: rgba(241, 196, 15, 0.15);
+            color: #d4a017;
+        }
+        .agent-response-status.accepted {
+            background: rgba(46, 204, 113, 0.15);
+            color: #27ae60;
+        }
+        .agent-response-status.appealing {
+            background: rgba(231, 76, 60, 0.15);
+            color: #c0392b;
+        }
+        .agent-response-appeal-reason {
+            font-size: 11px;
+            color: #c0392b;
+            margin-top: 4px;
+            padding: 6px 8px;
+            background: rgba(231, 76, 60, 0.08);
+            border-radius: 4px;
+        }
+        .agent-response-appeal-reason strong {
+            color: #333;
+        }
+
+        /* 报告状态徽章 */
+        .report-status-badge {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+        .report-status-badge.submitted {
+            background: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+        }
+        .report-status-badge.initial {
+            background: rgba(241, 196, 15, 0.2);
+            color: #f1c40f;
+        }
+        .report-status-badge.appealing {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+        }
+        .report-status-badge.finalized {
+            background: rgba(46, 204, 113, 0.2);
+            color: #2ecc71;
+        }
+
+        .btn-finalize {
+            background: linear-gradient(135deg, #27ae60, #2ecc71) !important;
+        }
+        .btn-finalize:hover:not(:disabled) {
+            background: linear-gradient(135deg, #219a52, #27ae60) !important;
+        }
+
+        /* 响应式调整 - 中等屏幕 */
+        @media (max-width: 1400px) and (min-width: 1001px) {
+            .report-review-body {
+                grid-template-columns: 1fr 260px 240px;
+            }
+        }
+        /* 响应式调整 - 较小桌面屏幕改为两列 */
+        @media (max-width: 1000px) and (min-width: 801px) {
+            .report-review-body {
+                grid-template-columns: 1fr 300px;
+                grid-template-rows: 1fr auto;
+            }
+            #drawer-responses {
+                grid-column: 1 / -1;
+                grid-row: 2;
+                border-right: none;
+                border-top: 1px solid rgba(255,255,255,0.06);
+            }
+            #drawer-responses .drawer-content {
+                max-height: 180px !important;
+                overflow: hidden !important;
+            }
+            #drawer-responses .agent-responses-section {
+                max-height: 180px;
+                overflow-y: auto;
+                margin: 10px !important;
+                padding: 12px !important;
+                background: #f8f9fa !important;
+                border: 1px solid #e0e0e0 !important;
+                border-radius: 8px !important;
+            }
+        }
+
+        .preview-rating {
+            color: #f1c40f;
+            font-weight: 500;
+        }
+
+        .preview-scatter {
+            color: #e74c3c;
+        }
+
+        .preview-hint {
+            margin-left: auto;
+            color: var(--manager-blue);
+            opacity: 0.7;
+        }
+        .report-item:hover .preview-hint {
+            opacity: 1;
+        }
+
+        /* 移动端抽屉样式 */
+        @media (max-width: 800px) {
+            .report-review-body {
+                display: flex;
+                flex-direction: column;
+                gap: 0;
+                padding: 0;
+            }
+            .report-review-modal {
+                max-height: 95vh;
+                width: 95vw;
+            }
+            /* 抽屉区块 */
+            .review-drawer {
+                border-bottom: 1px solid #e0e0e0;
+            }
+            .review-drawer:last-child {
+                border-bottom: none;
+            }
+            /* 抽屉标题 */
+            .drawer-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 14px 16px;
+                background: #f0f0f0;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+            .drawer-header:hover {
+                background: #e8e8e8;
+            }
+            .drawer-header h4 {
+                margin: 0;
+                font-size: 14px;
+                color: #2c3e50;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .drawer-header h4 i {
+                color: var(--manager-blue);
+            }
+            .drawer-toggle {
+                color: #888;
+                transition: transform 0.3s;
+            }
+            .review-drawer.open .drawer-toggle {
+                transform: rotate(180deg);
+            }
+            /* 抽屉内容 */
+            .drawer-content {
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.3s ease-out, overflow 0s 0.3s;
+                background: #fff;
+            }
+            /* 报告内容抽屉 - drawer-content 滚动 */
+            #drawer-report.open .drawer-content {
+                max-height: 50vh;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            /* 评审和响应抽屉 - 内部区域滚动 */
+            #drawer-review.open .drawer-content,
+            #drawer-responses.open .drawer-content {
+                max-height: 2000px;
+                overflow: visible;
+            }
+            .drawer-content-inner {
+                padding: 15px;
+            }
+            /* 隐藏桌面端的原始标题 */
+            .report-content-section > h4,
+            .report-review-section > h4:first-child {
+                display: none;
+            }
+            .report-content-section,
+            .report-review-section {
+                border: none;
+                padding: 0;
+                max-height: none;
+                overflow: visible !important;
+            }
+            /* 修复小屏下 h4 图标 */
+            .report-review-section h4 {
+                font-size: 12px;
+                padding: 10px 0;
+                margin: 15px 0 10px 0;
+                overflow: hidden;
+            }
+            .report-review-section h4 i {
+                flex-shrink: 0;
+                font-size: 12px;
+            }
+            /* 响应状态区域 - 内部滚动 */
+            .agent-responses-section {
+                margin: 0 !important;
+                padding: 10px !important;
+                background: none !important;
+                border: none !important;
+                border-radius: 0 !important;
+                max-height: 200px !important;
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch;
+            }
+            .agent-responses-section > h4 {
+                display: none;
+            }
+        }
+
+        /* 桌面端隐藏抽屉标题 */
+        @media (min-width: 801px) {
+            .drawer-header {
+                display: none;
+            }
+            .drawer-content {
+                max-height: none !important;
+                overflow: hidden !important;
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                min-height: 0;
+            }
+            .drawer-content-inner {
+                flex: 1;
+                overflow-y: auto;
+                min-height: 0;
+            }
+            /* 桌面端响应状态区域样式 */
+            #drawer-responses .agent-responses-section {
+                margin: 15px;
+                background: #f8f9fa;
+            }
+            #drawer-responses .agent-responses-section > h4 {
+                display: flex;
+            }
+        }
 	</style>
 </head>
 <body>
@@ -2275,6 +3583,11 @@
                 <i class="fas fa-folder"></i> 档案库
             </button>
 
+            <!-- 私信开关 (仅超管可见) -->
+            <button class="btn-nav messaging-toggle" id="btnMessagingToggle" style="display:none;" onclick="toggleGlobalMessaging()">
+                <i class="fas fa-comment-slash"></i> <span id="messagingToggleText">私信</span>
+            </button>
+
             <!-- 退出 -->
             <button class="btn-nav logout" onclick="logout()">
                 <i class="fas fa-power-off"></i>
@@ -2313,6 +3626,11 @@
             <!-- 档案库 -->
             <div class="menu-item archive" onclick="closeSideMenu(); goToDashboard();">
                 <i class="fas fa-folder"></i> 档案库
+            </div>
+
+            <!-- 私信开关 (仅超管可见) -->
+            <div class="menu-item messaging-toggle" id="mobileMessagingToggle" style="display:none;" onclick="closeSideMenu(); toggleGlobalMessaging();">
+                <i class="fas fa-comment-slash" id="mobileMessagingIcon"></i> <span id="mobileMessagingText">关闭私信</span>
             </div>
 
             <!-- 退出 -->
@@ -2480,6 +3798,101 @@
                 <div id="missionInboxList" class="mission-inbox-list">
                     <div class="inbox-empty"><i class="fas fa-envelope-open"></i><br>暂无邮件</div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== 报告评审详情模态框 ========== -->
+<div id="reportReviewOverlay" class="report-review-overlay">
+    <div class="report-review-modal">
+        <div class="report-review-header">
+            <div class="header-left">
+                <h3><i class="fas fa-clipboard-check"></i> 任务报告评审</h3>
+                <span class="report-submitter-info" id="modalReportSubmitter"></span>
+            </div>
+            <button class="btn-close-modal" onclick="closeReportReview()">&times;</button>
+        </div>
+
+        <div class="report-review-body">
+            <!-- 抽屉1：报告内容 -->
+            <div class="review-drawer open" id="drawer-report">
+                <div class="drawer-header" onclick="toggleDrawer('drawer-report')">
+                    <h4><i class="fas fa-file-alt"></i> 报告内容</h4>
+                    <i class="fas fa-chevron-down drawer-toggle"></i>
+                </div>
+                <div class="drawer-content">
+                    <div class="drawer-content-inner report-content-section">
+                        <h4><i class="fas fa-file-alt"></i> 报告内容</h4>
+                        <div id="reportContentDisplay" class="report-content-display"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 抽屉2：评审操作 -->
+            <div class="review-drawer" id="drawer-review">
+                <div class="drawer-header" onclick="toggleDrawer('drawer-review')">
+                    <h4><i class="fas fa-star"></i> 评审操作</h4>
+                    <i class="fas fa-chevron-down drawer-toggle"></i>
+                </div>
+                <div class="drawer-content">
+                    <div class="drawer-content-inner report-review-section">
+                        <h4><i class="fas fa-star"></i> 任务评级</h4>
+                        <div class="review-field">
+                            <select id="modalReportRating" class="rating-select">
+                                <option value="">选择评级</option>
+                                <option value="S">S - 卓越</option>
+                                <option value="A">A - 优秀</option>
+                                <option value="B">B - 良好</option>
+                                <option value="C">C - 合格</option>
+                                <option value="D">D - 需改进</option>
+                                <option value="F">F - 不合格</option>
+                            </select>
+                        </div>
+
+                        <h4 style="margin-top:20px;"><i class="fas fa-users"></i> 参与特工奖惩</h4>
+                        <div class="review-status-info" id="reviewStatusInfo"></div>
+                        <div id="agentRewardsContainer" class="agent-rewards-container">
+                            <!-- 动态填充参与特工列表 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 抽屉3：特工响应状态（初评后显示） -->
+            <div class="review-drawer" id="drawer-responses" style="display:none;">
+                <div class="drawer-header" onclick="toggleDrawer('drawer-responses')">
+                    <h4><i class="fas fa-users"></i> 响应状态</h4>
+                    <i class="fas fa-chevron-down drawer-toggle"></i>
+                </div>
+                <div class="drawer-content">
+                    <div class="drawer-content-inner agent-responses-section" id="agentResponsesSection">
+                        <h4><i class="fas fa-users"></i> 特工响应状态</h4>
+                        <div class="agent-responses-summary" id="agentResponsesSummary"></div>
+                        <div class="agent-responses-list" id="agentResponsesList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="report-review-footer">
+            <div class="footer-left">
+                <span class="report-time-info" id="modalReportTime"></span>
+                <span class="report-status-badge" id="modalReportStatusBadge"></span>
+            </div>
+            <div class="footer-right">
+                <!-- 未评审状态：发送初评 -->
+                <button class="btn-review-send" id="btnSendInitial" onclick="sendInitialRating()" style="display:none;">
+                    <i class="fas fa-paper-plane"></i> 发送初评
+                </button>
+                <!-- 初评/申诉状态：最终结算 -->
+                <button class="btn-review-send btn-finalize" id="btnFinalize" onclick="finalizeRating()" style="display:none;">
+                    <i class="fas fa-check-double"></i> 最终结算
+                </button>
+                <!-- 已结算状态：禁用 -->
+                <button class="btn-review-send" id="btnAlreadySent" disabled style="display:none;">
+                    <i class="fas fa-check"></i> 已结算
+                </button>
             </div>
         </div>
     </div>
@@ -2811,25 +4224,9 @@
 
     // 加载已授权的角色
     async function loadCharacters() {
-        console.log('loadCharacters called'); // 临时调试日志
-        
-        // #region agent log
         try {
-            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2044',message:'loadCharacters called',data:{hasToken:!!token},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-        } catch (logErr) {
-            console.error('Log error:', logErr);
-        }
-        // #endregion
-
-        try {
-            console.log('loadCharacters: starting fetch'); // 临时调试日志
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2046',message:'Before fetch API',data:{url:'/api/manager/characters'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-            // #endregion
-
-            // 添加超时处理
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
 
             const res = await fetch('/api/manager/characters', {
                 headers: getAuthHeaders(),
@@ -2838,15 +4235,7 @@
 
             clearTimeout(timeoutId);
 
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2049',message:'Fetch response received',data:{status:res.status,statusText:res.statusText,ok:res.ok},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-            // #endregion
-
             if (!res.ok) {
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2051',message:'Response not OK',data:{status:res.status,statusText:res.statusText},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-                // #endregion
-
                 const container = document.getElementById('charList');
                 if (container) {
                     container.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;">
@@ -2860,22 +4249,9 @@
             }
 
             const chars = await res.json();
-
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2050',message:'JSON parsed',data:{charsCount:chars?.length||0,isArray:Array.isArray(chars)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-            // #endregion
-
             renderCharacters(chars);
 
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2050',message:'renderCharacters called',data:{charsCount:chars?.length||0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-            // #endregion
-
         } catch (e) {
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2052',message:'Exception caught',data:{errorMessage:e.message,errorName:e.name,errorStack:e.stack?.substring(0,200),isAbortError:e.name==='AbortError'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-            // #endregion
-
             console.error('loadCharacters error:', e);
             const container = document.getElementById('charList');
             if (container) {
@@ -2894,22 +4270,9 @@
     function renderCharacters(chars) {
         const container = document.getElementById('charList');
 
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2057',message:'renderCharacters called',data:{containerExists:!!container,charsCount:chars?.length||0,charsIsArray:Array.isArray(chars)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-        // #endregion
-
-        if (!container) {
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2058',message:'Container not found',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-            // #endregion
-            return;
-        }
+        if (!container) return;
 
         if (!chars || chars.length === 0) {
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2060',message:'Empty chars array',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-            // #endregion
-
             container.innerHTML = `
                 <div class="empty-state" style="grid-column: 1/-1;">
                     <i class="fas fa-folder-open"></i>
@@ -2927,31 +4290,40 @@
                     <button class="btn-card-action btn-remove-auth" onclick="event.stopPropagation(); removeAuthorization(${c.authId}, '${safeCharName}')" title="移除授权">
                         <i class="fas fa-user-minus"></i>
                     </button>` : '';
+            const msgPermClass = c.canSendMessages ? '' : 'disabled';
+            const msgPermIcon = c.canSendMessages ? 'fa-envelope' : 'fa-envelope-circle-xmark';
+            const msgPermTitle = c.canSendMessages ? '禁止发信' : '允许发信';
 
             return `
-            <div class="char-card">
+            <div class="char-card" data-char-id="${c.id}">
                 <div class="card-header" onclick="openSheet('${c.id}')">
-                    <div class="card-name">${c.name}</div>
-                    <div class="card-owner"><i class="fas fa-user"></i> ${c.ownerName}</div>
+                    <div class="card-name">${escapeHtml(c.name)}</div>
+                    <div class="card-owner"><i class="fas fa-user"></i> ${escapeHtml(c.ownerName)}</div>
                 </div>
                 <div class="card-body" onclick="openSheet('${c.id}')">
-                    <div class="card-info">
-                        <div class="info-row">
-                            <span class="info-label">异常</span>
-                            <span class="info-value">${c.anom || '---'}</span>
+                    <div class="card-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">异常</span>
+                            <span class="stat-value">${c.anom || '---'}</span>
                         </div>
-                        <div class="info-row">
-                            <span class="info-label">职能</span>
-                            <span class="info-value">${c.func || '---'}</span>
+                        <div class="stat-item">
+                            <span class="stat-label">职能</span>
+                            <span class="stat-value">${c.func || '---'}</span>
                         </div>
-                        <div class="info-row">
-                            <span class="info-label">现实</span>
-                            <span class="info-value">${c.real || '---'}</span>
+                        <div class="stat-item">
+                            <span class="stat-label">现实</span>
+                            <span class="stat-value">${c.real || '---'}</span>
                         </div>
+                    </div>
+                    <div class="card-records">
+                        <span class="record-badge commend" title="嘉奖"><i class="fas fa-medal"></i> ${c.commendations || 0}</span>
+                        <span class="record-badge reprimand" title="申诫"><i class="fas fa-exclamation-triangle"></i> ${c.reprimands || 0}</span>
+                        <span class="record-badge mvp" title="MVP"><i class="fas fa-trophy"></i> ${c.mvpCount || 0}</span>
+                        <span class="record-badge probation" title="查看期"><i class="fas fa-eye"></i> ${c.probationCount || 0}</span>
                     </div>
                 </div>
                 <div class="card-footer">
-                    <button class="btn-card-action btn-records" onclick="event.stopPropagation(); openRecordModal('${c.id}', '${safeCharName}')" title="嘉奖/申诫">
+                    <button class="btn-card-action btn-reward" onclick="event.stopPropagation(); openRecordModal('${c.id}', '${safeCharName}')" title="嘉奖/申诫">
                         <i class="fas fa-medal"></i>
                     </button>
                     <button class="btn-card-action btn-docs" onclick="event.stopPropagation(); openDocModal('${c.id}', '${safeCharName}')" title="高墙授权">
@@ -2959,6 +4331,9 @@
                     </button>
                     <button class="btn-card-action btn-slots" onclick="event.stopPropagation(); openSlotModal('${c.id}', '${safeCharName}')" title="槽位管理">
                         <i class="fas fa-unlock-alt"></i>
+                    </button>
+                    <button class="btn-card-action btn-msg-perm ${msgPermClass}" onclick="event.stopPropagation(); toggleMessagePermission('${c.id}', '${safeCharName}', ${c.canSendMessages})" title="${msgPermTitle}">
+                        <i class="fas ${msgPermIcon}"></i>
                     </button>
                     ${removeAuthBtn}
                     <button class="btn-card-action btn-view" onclick="openSheet('${c.id}')">
@@ -3100,6 +4475,48 @@
         }
     }
 
+    // 切换发信权限
+    async function toggleMessagePermission(charId, charName, currentStatus) {
+        const action = currentStatus ? '禁止' : '恢复';
+        if (!confirm(`确定要${action} "${charName}" 的发信权限吗？`)) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/manager/character/${charId}/message-permission`, {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ canSendMessages: !currentStatus })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                showToast(`已${action}该角色的发信权限`, true);
+                // 更新按钮状态
+                const card = document.querySelector(`.char-card[data-char-id="${charId}"]`);
+                if (card) {
+                    const btn = card.querySelector('.btn-msg-perm');
+                    const icon = btn.querySelector('i');
+                    if (data.canSendMessages) {
+                        btn.classList.remove('disabled');
+                        btn.title = '禁止发信';
+                        btn.onclick = function(e) { e.stopPropagation(); toggleMessagePermission(charId, charName, true); };
+                        icon.className = 'fas fa-envelope';
+                    } else {
+                        btn.classList.add('disabled');
+                        btn.title = '允许发信';
+                        btn.onclick = function(e) { e.stopPropagation(); toggleMessagePermission(charId, charName, false); };
+                        icon.className = 'fas fa-envelope-circle-xmark';
+                    }
+                }
+            } else {
+                showToast(data.message || '操作失败');
+            }
+        } catch (e) {
+            showToast('操作失败');
+        }
+    }
+
     // 回车提交
     document.getElementById('authCodeInput').addEventListener('keydown', function(e) {
         if (e.key === 'Enter') claimAuth();
@@ -3195,16 +4612,86 @@
     // --- 导航显隐逻辑 (Manager页) ---
     (function initNav() {
         const role = parseInt(localStorage.getItem('ta_role') || '0');
-        
+
         // 只有超管 (Role 2) 才能看到"管理台"入口
         // (注：在 Manager 页面不需要显示"经理台"入口)
         if (role >= 2) {
-            if(document.getElementById('deskBtnAdmin')) 
+            if(document.getElementById('deskBtnAdmin'))
                 document.getElementById('deskBtnAdmin').style.display = 'inline-flex';
-            if(document.getElementById('mobBtnAdmin')) 
+            if(document.getElementById('mobBtnAdmin'))
                 document.getElementById('mobBtnAdmin').style.display = 'flex';
+            // 显示私信开关按钮
+            if(document.getElementById('btnMessagingToggle'))
+                document.getElementById('btnMessagingToggle').style.display = 'inline-flex';
+            if(document.getElementById('mobileMessagingToggle'))
+                document.getElementById('mobileMessagingToggle').style.display = 'flex';
+            // 加载私信状态
+            loadMessagingStatus();
         }
     })();
+
+    // --- 全局私信开关功能 ---
+    async function loadMessagingStatus() {
+        try {
+            const res = await fetch('/api/admin/messaging-status', {
+                headers: getAuthHeaders()
+            });
+            const data = await res.json();
+            if (data.success) {
+                updateMessagingUI(data.enabled);
+            }
+        } catch (e) {
+            console.error('加载私信状态失败:', e);
+        }
+    }
+
+    function updateMessagingUI(enabled) {
+        const btn = document.getElementById('btnMessagingToggle');
+        const text = document.getElementById('messagingToggleText');
+        const mobileBtn = document.getElementById('mobileMessagingToggle');
+        const mobileText = document.getElementById('mobileMessagingText');
+        const mobileIcon = document.getElementById('mobileMessagingIcon');
+
+        if (enabled) {
+            // 私信开启状态
+            if (btn) {
+                btn.classList.remove('disabled');
+                btn.querySelector('i').className = 'fas fa-comment';
+            }
+            if (text) text.textContent = '私信开';
+            if (mobileBtn) mobileBtn.classList.remove('disabled');
+            if (mobileText) mobileText.textContent = '关闭私信';
+            if (mobileIcon) mobileIcon.className = 'fas fa-comment';
+        } else {
+            // 私信关闭状态
+            if (btn) {
+                btn.classList.add('disabled');
+                btn.querySelector('i').className = 'fas fa-comment-slash';
+            }
+            if (text) text.textContent = '私信关';
+            if (mobileBtn) mobileBtn.classList.add('disabled');
+            if (mobileText) mobileText.textContent = '开启私信';
+            if (mobileIcon) mobileIcon.className = 'fas fa-comment-slash';
+        }
+    }
+
+    async function toggleGlobalMessaging() {
+        try {
+            const res = await fetch('/api/admin/toggle-messaging', {
+                method: 'POST',
+                headers: getAuthHeaders()
+            });
+            const data = await res.json();
+            if (data.success) {
+                updateMessagingUI(data.enabled);
+                showToast(data.message, true);
+            } else {
+                showToast(data.message || '操作失败');
+            }
+        } catch (e) {
+            showToast('操作失败: ' + e.message);
+        }
+    }
     // ==========================================
     // 高墙文件授权功能（按角色卡授权）
     // ==========================================
@@ -3516,12 +5003,30 @@
             const missionTypeName = mission.mission_type === 'sweep' ? '清扫' : '收容';
             const missionTypeClass = mission.mission_type === 'sweep' ? 'sweep' : 'containment';
 
+            // 构建归档任务的报告信息
+            let reportInfoHtml = '';
+            if (mission.status === 'archived' && mission.reportInfo) {
+                const r = mission.reportInfo;
+                const rewardItems = [];
+                if (r.rating) rewardItems.push(`<span class="report-rating">${r.rating}</span>`);
+                if (r.scatterValue) rewardItems.push(`<span class="report-scatter"><i class="fas fa-radiation"></i> ${r.scatterValue}</span>`);
+                if (r.totalCommend > 0) rewardItems.push(`<span class="report-commend"><i class="fas fa-medal"></i> +${r.totalCommend}</span>`);
+                if (r.totalReprimand > 0) rewardItems.push(`<span class="report-reprimand"><i class="fas fa-exclamation-triangle"></i> +${r.totalReprimand}</span>`);
+                if (r.mvpCount > 0) rewardItems.push(`<span class="report-mvp"><i class="fas fa-trophy"></i> MVP×${r.mvpCount}</span>`);
+                if (r.probationCount > 0) rewardItems.push(`<span class="report-probation"><i class="fas fa-eye"></i> 查看期×${r.probationCount}</span>`);
+
+                if (rewardItems.length > 0) {
+                    reportInfoHtml = `<div class="mission-report-summary">${rewardItems.join(' ')}</div>`;
+                }
+            }
+
             return `
                 <div class="mission-card clickable" data-id="${mission.id}" onclick="openMissionDetail('${mission.id}')">
                     <div class="mission-card-header">
                         <div class="mission-info">
                             <h4>${escapeHtml(mission.name)} <span class="mission-type-badge ${missionTypeClass}">${missionTypeName}</span></h4>
                             ${mission.description ? `<p class="mission-desc">${escapeHtml(mission.description)}</p>` : ''}
+                            ${reportInfoHtml}
                         </div>
                         <div class="mission-quick-actions" onclick="event.stopPropagation()">
                             ${mission.status === 'active' ? `
@@ -3741,10 +5246,6 @@
     async function addMemberToMission(charId, charName) {
         if (!addMemberMissionId) return;
 
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2805',message:'addMemberToMission called',data:{charId,charName,addMemberMissionId,currentMissionDetailId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-        // #endregion
-
         try {
             const res = await fetch(`/api/manager/mission/${addMemberMissionId}/member`, {
                 method: 'POST',
@@ -3753,39 +5254,18 @@
             });
 
             const data = await res.json();
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2815',message:'API response received',data:{success:data.success,missionId:addMemberMissionId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-            // #endregion
 
             if (data.success) {
                 showToast(`已添加 ${charName}`, true);
-                
-                // 保存 missionId 用于后续刷新，因为 closeAddMemberModal 会清空它
+
                 const missionIdToRefresh = addMemberMissionId;
                 closeAddMemberModal();
-                
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2819',message:'Before loadMissions',data:{missionsListLength:missionsList.length,currentMissionDetailId,missionIdToRefresh},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-                // #endregion
 
                 await loadMissions();
 
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2822',message:'After loadMissions',data:{missionsListLength:missionsList.length,currentMissionDetailId,missionIdToRefresh},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-                // #endregion
-
-                // 如果在任务详情页，刷新成员列表
                 if (currentMissionDetailId && currentMissionDetailId === missionIdToRefresh) {
                     const mission = missionsList.find(m => m.id === currentMissionDetailId);
-                    // #region agent log
-                    fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2824',message:'Finding mission in list',data:{missionFound:!!mission,missionMembersCount:mission?.members?.length||0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-                    // #endregion
-
                     if (mission) {
-                        // #region agent log
-                        fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2825',message:'Calling renderMissionDetailMembers',data:{membersCount:mission.members?.length||0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-                        // #endregion
-
                         renderMissionDetailMembers(mission.members || []);
                     }
                 }
@@ -3862,7 +5342,7 @@
         const unread = inboxMessages.filter(m => !m.read).length;
         const badge = document.getElementById('inboxBadge');
         badge.textContent = unread;
-        badge.style.display = unread > 0 ? 'flex' : 'none';
+        badge.style.display = unread > 0 ? 'inline-flex' : 'none';
     }
 
     function openInboxModal() {
@@ -4078,7 +5558,7 @@
     let currentMissionDetailId = null;
     let currentMissionDetailData = null;
 
-    function openMissionDetail(missionId) {
+    async function openMissionDetail(missionId) {
         currentMissionDetailId = missionId;
         const mission = missionsList.find(m => m.id === missionId);
         if (!mission) {
@@ -4112,8 +5592,8 @@
         document.getElementById('missionChaosValue').value = mission.chaos_value || 0;
         document.getElementById('missionScatterValue').value = mission.scatter_value || 0;
 
-        // 加载任务报告
-        loadMissionReports(missionId);
+        // 加载任务报告 (等待完成后再显示)
+        await loadMissionReports(missionId);
 
         // 加载任务收件箱
         loadMissionInbox(missionId);
@@ -4133,22 +5613,10 @@
     function renderMissionDetailMembers(members) {
         const container = document.getElementById('missionDetailMembers');
 
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:3170',message:'renderMissionDetailMembers called',data:{membersCount:members?.length||0,membersArray:members?.map(m=>({id:m.character_id,name:m.name}))||[]},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-        // #endregion
-
         if (!members || members.length === 0) {
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:3173',message:'Empty members list - returning early',data:{containerExists:!!container},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-            // #endregion
-
             container.innerHTML = '<div class="no-members">暂无成员，点击上方"添加特工"按钮添加</div>';
             return;
         }
-
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:3177',message:'Rendering members',data:{membersCount:members.length,containerWidth:container?.offsetWidth},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-        // #endregion
 
         container.innerHTML = members.map(member => {
             const initial = (member.name || '?').charAt(0).toUpperCase();
@@ -4179,10 +5647,6 @@
                 </div>
             `;
         }).join('');
-
-        // #region agent log
-        setTimeout(()=>{const cards=container.querySelectorAll('.agent-card');cards.forEach((card,i)=>{fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:3205',message:'Card rendered dimensions',data:{cardIndex:i,cardWidth:card.offsetWidth,cardScrollWidth:card.scrollWidth,infoWidth:card.querySelector('.agent-info')?.offsetWidth,actionsWidth:card.querySelector('.agent-actions')?.offsetWidth},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});});},100);
-        // #endregion
     }
 
     // ==================== 任务报告管理 ====================
@@ -4241,10 +5705,11 @@
             const statusName = statusNames[report.status] || '未知';
             const date = new Date(report.submittedAt);
             const timeStr = date.toLocaleString();
-            const isSent = report.status === 'sent';
+            const ratingDisplay = report.rating ? `评级: ${report.rating}` : '未评级';
+            const scatterDisplay = report.scatterValue ? `逸散端: ${report.scatterValue}` : '';
 
             return `
-                <div class="report-item" data-report-id="${report.id}">
+                <div class="report-item" data-report-id="${report.id}" onclick="openReportReview(${report.id})">
                     <div class="report-item-header">
                         <div>
                             <span class="report-submitter">${escapeHtml(report.submitterName)}</span>
@@ -4252,38 +5717,10 @@
                         </div>
                         <span class="report-status ${report.status}">${statusName}</span>
                     </div>
-                    <div class="report-rating-row">
-                        <div class="report-rating-input">
-                            <label>评级</label>
-                            <select id="reportRating_${report.id}" ${isSent ? 'disabled' : ''}>
-                                <option value="">选择评级</option>
-                                <option value="S" ${report.rating === 'S' ? 'selected' : ''}>S</option>
-                                <option value="A" ${report.rating === 'A' ? 'selected' : ''}>A</option>
-                                <option value="B" ${report.rating === 'B' ? 'selected' : ''}>B</option>
-                                <option value="C" ${report.rating === 'C' ? 'selected' : ''}>C</option>
-                                <option value="D" ${report.rating === 'D' ? 'selected' : ''}>D</option>
-                                <option value="F" ${report.rating === 'F' ? 'selected' : ''}>F</option>
-                            </select>
-                        </div>
-                        <div class="report-rating-input">
-                            <label>逸散端</label>
-                            <input type="number" id="reportScatter_${report.id}" value="${report.scatterValue || 0}" ${isSent ? 'disabled' : ''}>
-                        </div>
-                    </div>
-                    <div class="report-annotation">
-                        <textarea id="reportAnnotation_${report.id}" placeholder="添加批注..." ${isSent ? 'disabled' : ''}>${escapeHtml((report.annotations || []).join('\n'))}</textarea>
-                    </div>
-                    <div class="report-actions">
-                        ${!isSent ? `
-                            <button class="btn-report save" onclick="saveReportReview(${report.id})">
-                                <i class="fas fa-save"></i> 保存评审
-                            </button>
-                            <button class="btn-report send" onclick="sendReportRating(${report.id})" ${report.status === 'submitted' ? 'disabled title="请先保存评审"' : ''}>
-                                <i class="fas fa-paper-plane"></i> 发送评级
-                            </button>
-                        ` : `
-                            <span style="color:#27ae60;font-size:12px;"><i class="fas fa-check-circle"></i> 已发送给特工</span>
-                        `}
+                    <div class="report-preview">
+                        <span class="preview-rating">${ratingDisplay}</span>
+                        ${scatterDisplay ? `<span class="preview-scatter">${scatterDisplay}</span>` : ''}
+                        <span class="preview-hint"><i class="fas fa-external-link-alt"></i> 点击查看详情</span>
                     </div>
                 </div>
             `;
@@ -4337,6 +5774,595 @@
         } catch (e) {
             showToast(e.message);
         }
+    }
+
+    // ==================== 报告评审模态框 ====================
+    let currentReviewReportId = null;
+    let currentReviewReport = null;
+    let agentRewards = {}; // 存储每个特工的奖惩数据
+
+    async function openReportReview(reportId) {
+        let report = missionReports.find(r => r.id === reportId);
+
+        // 如果本地没有数据，尝试从API获取
+        if (!report && currentMissionDetailId) {
+            try {
+                const res = await fetch(`/api/manager/mission/${currentMissionDetailId}/reports`, {
+                    headers: getAuthHeaders()
+                });
+                const data = await res.json();
+                if (data.success) {
+                    missionReports = data.reports || [];
+                    report = missionReports.find(r => r.id === reportId);
+                }
+            } catch (e) {
+                console.error('获取报告失败:', e);
+            }
+        }
+
+        if (!report) {
+            showToast('报告不存在或加载失败');
+            return;
+        }
+
+        currentReviewReportId = reportId;
+        currentReviewReport = report;
+
+        // 渲染报告内容
+        renderReportContent(report.originalData);
+
+        // 填充提交者信息
+        document.getElementById('modalReportSubmitter').textContent = `提交者: ${escapeHtml(report.submitterName)}`;
+
+        // 填充时间信息
+        const submitDate = new Date(report.submittedAt);
+        let timeInfo = `提交时间: ${submitDate.toLocaleString()}`;
+        document.getElementById('modalReportTime').textContent = timeInfo;
+
+        // 填充评级
+        document.getElementById('modalReportRating').value = report.rating || '';
+
+        // 根据状态设置禁用状态
+        const isFinalized = report.status === 'sent' || report.status === 'finalized';
+        document.getElementById('modalReportRating').disabled = isFinalized;
+
+        // 显示状态信息
+        const statusInfo = document.getElementById('reviewStatusInfo');
+        if (isFinalized) {
+            statusInfo.textContent = '此报告已完成结算，无法再修改';
+            statusInfo.classList.add('show');
+        } else {
+            statusInfo.classList.remove('show');
+        }
+
+        // 更新按钮和申诉区域显示
+        updateReviewUIByStatus(report.status, report);
+
+        // 加载并渲染参与特工列表
+        await renderAgentRewards(isFinalized);
+
+        // 重置抽屉状态（移动端默认展开报告内容）
+        document.getElementById('drawer-report').classList.add('open');
+        document.getElementById('drawer-review').classList.remove('open');
+        document.getElementById('drawer-responses').classList.remove('open');
+
+        document.getElementById('reportReviewOverlay').classList.add('show');
+    }
+
+    async function renderAgentRewards(disabled = false) {
+        const container = document.getElementById('agentRewardsContainer');
+
+        // 获取当前任务的成员
+        let members = currentMissionDetailData?.members || [];
+
+        // 如果成员列表为空，尝试从 missionsList 或重新加载任务列表获取
+        if (members.length === 0 && currentMissionDetailId) {
+            container.innerHTML = '<div style="color:#7f8c8d;font-size:12px;text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin"></i> 加载中...</div>';
+
+            // 先从已加载的 missionsList 查找
+            const missionFromList = missionsList.find(m => m.id === currentMissionDetailId);
+            if (missionFromList && missionFromList.members && missionFromList.members.length > 0) {
+                members = missionFromList.members;
+                if (currentMissionDetailData) {
+                    currentMissionDetailData.members = members;
+                }
+            } else {
+                // 如果本地没有，重新加载任务列表
+                try {
+                    const res = await fetch(`/api/manager/missions?status=${currentMissionTab}`, {
+                        headers: getAuthHeaders()
+                    });
+                    if (res.ok) {
+                        const missions = await res.json();
+                        missionsList = missions;
+                        const mission = missions.find(m => m.id === currentMissionDetailId);
+                        if (mission && mission.members) {
+                            members = mission.members;
+                            if (currentMissionDetailData) {
+                                currentMissionDetailData.members = members;
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error('获取任务成员失败:', e);
+                }
+            }
+        }
+
+        if (members.length === 0) {
+            container.innerHTML = '<div style="color:#7f8c8d;font-size:12px;text-align:center;padding:20px;">无参与特工</div>';
+            return;
+        }
+
+        // 获取初审时设置的奖惩（如果有）
+        let pendingRewards = {};
+        if (currentReviewReport && currentReviewReport.pending_rewards) {
+            pendingRewards = currentReviewReport.pending_rewards;
+        }
+
+        // 初始化奖惩数据（使用初审值作为默认）
+        agentRewards = {};
+        members.forEach(m => {
+            const existing = pendingRewards[m.character_id] || {};
+            agentRewards[m.character_id] = {
+                commend: existing.commend || 0,
+                reprimand: existing.reprimand || 0,
+                mvp: existing.mvp || false,
+                probation: existing.probation || false
+            };
+        });
+
+        container.innerHTML = members.map(member => {
+            const charId = member.character_id;
+            const rewards = agentRewards[charId] || {};
+            return `
+                <div class="agent-reward-item" data-char-id="${charId}">
+                    <div class="agent-reward-header">
+                        <span class="agent-reward-name">${escapeHtml(member.name || '未知特工')}</span>
+                    </div>
+                    <div class="agent-reward-controls">
+                        <div class="reward-group">
+                            <div class="reward-control">
+                                <span class="reward-label"><i class="fas fa-medal"></i> 嘉奖</span>
+                                <div class="reward-buttons">
+                                    <button class="reward-btn" onclick="adjustReward('${charId}', 'commend', -1)" ${disabled ? 'disabled' : ''}>-</button>
+                                    <span class="reward-value" id="commend_${charId}">${rewards.commend || 0}</span>
+                                    <button class="reward-btn" onclick="adjustReward('${charId}', 'commend', 1)" ${disabled ? 'disabled' : ''}>+</button>
+                                </div>
+                            </div>
+                            <div class="reward-control">
+                                <span class="reward-label"><i class="fas fa-exclamation-triangle"></i> 申诫</span>
+                                <div class="reward-buttons">
+                                    <button class="reward-btn" onclick="adjustReward('${charId}', 'reprimand', -1)" ${disabled ? 'disabled' : ''}>-</button>
+                                    <span class="reward-value" id="reprimand_${charId}">${rewards.reprimand || 0}</span>
+                                    <button class="reward-btn" onclick="adjustReward('${charId}', 'reprimand', 1)" ${disabled ? 'disabled' : ''}>+</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="reward-group special">
+                            <label class="reward-radio-item">
+                                <input type="radio" name="mission_mvp" value="${charId}" onchange="selectMVP('${charId}')" ${disabled ? 'disabled' : ''} ${rewards.mvp ? 'checked' : ''}>
+                                <span class="radio-label mvp"><i class="fas fa-trophy"></i> MVP</span>
+                            </label>
+                            <label class="reward-radio-item">
+                                <input type="radio" name="mission_probation" value="${charId}" onchange="selectProbation('${charId}')" ${disabled ? 'disabled' : ''} ${rewards.probation ? 'checked' : ''}>
+                                <span class="radio-label probation"><i class="fas fa-eye"></i> 查看期</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function adjustReward(charId, type, delta) {
+        if (!agentRewards[charId]) return;
+
+        let newValue = agentRewards[charId][type] + delta;
+        if (newValue < 0) newValue = 0;
+
+        agentRewards[charId][type] = newValue;
+        document.getElementById(`${type}_${charId}`).textContent = newValue;
+    }
+
+    function selectMVP(charId) {
+        // 清除所有人的MVP
+        Object.keys(agentRewards).forEach(id => {
+            agentRewards[id].mvp = false;
+        });
+        // 设置选中的人为MVP
+        if (agentRewards[charId]) {
+            agentRewards[charId].mvp = true;
+        }
+    }
+
+    function selectProbation(charId) {
+        // 清除所有人的查看期
+        Object.keys(agentRewards).forEach(id => {
+            agentRewards[id].probation = false;
+        });
+        // 设置选中的人为查看期
+        if (agentRewards[charId]) {
+            agentRewards[charId].probation = true;
+        }
+    }
+
+    function renderReportContent(data) {
+        const container = document.getElementById('reportContentDisplay');
+        if (!container) return;
+
+        if (!data) {
+            container.innerHTML = `
+                <div class="report-empty-state">
+                    <i class="fas fa-file-excel"></i>
+                    <p>无报告数据</p>
+                    <span>该报告可能未正确提交或数据已丢失</span>
+                </div>`;
+            return;
+        }
+
+        // 如果 data 是字符串，尝试解析
+        if (typeof data === 'string') {
+            try {
+                data = JSON.parse(data);
+            } catch(e) {
+                container.innerHTML = `
+                    <div class="report-raw-data">
+                        <h5><i class="fas fa-code"></i> 原始数据</h5>
+                        <pre>${escapeHtml(data)}</pre>
+                    </div>`;
+                return;
+            }
+        }
+
+        let html = '';
+
+        // 异常状态 - 始终显示
+        const statusList = [];
+        if (data.status) {
+            if (data.status.neutralized) statusList.push('<span class="status-tag neutralized"><i class="fas fa-check-circle"></i> 已中和</span>');
+            if (data.status.captured) statusList.push('<span class="status-tag captured"><i class="fas fa-hand-rock"></i> 已捕获</span>');
+            if (data.status.escaped) statusList.push('<span class="status-tag escaped"><i class="fas fa-running"></i> 已逃脱</span>');
+            if (data.status.other) statusList.push(`<span class="status-tag other"><i class="fas fa-question-circle"></i> ${escapeHtml(data.status.other)}</span>`);
+        }
+        html += `<div class="report-block status-block">
+            <div class="block-header"><i class="fas fa-flag"></i> 异常状态</div>
+            <div class="status-tags">${statusList.length > 0 ? statusList.join('') : '<span class="empty-hint">未填写</span>'}</div>
+        </div>`;
+
+        // 异常分析 - 始终显示
+        const analysis = data.analysis || {};
+        html += `<div class="report-block analysis-block">
+            <div class="block-header"><i class="fas fa-microscope"></i> 异常分析</div>
+            <div class="analysis-grid">
+                <div class="analysis-item">
+                    <label>代号</label>
+                    <span>${escapeHtml(analysis.codename) || '<span class="empty-hint">-</span>'}</span>
+                </div>
+                <div class="analysis-item">
+                    <label>行为模式</label>
+                    <span>${escapeHtml(analysis.behavior) || '<span class="empty-hint">-</span>'}</span>
+                </div>
+                <div class="analysis-item">
+                    <label>焦点</label>
+                    <span>${escapeHtml(analysis.focus) || '<span class="empty-hint">-</span>'}</span>
+                </div>
+                <div class="analysis-item">
+                    <label>领域</label>
+                    <span>${escapeHtml(analysis.domain) || '<span class="empty-hint">-</span>'}</span>
+                </div>
+            </div>
+        </div>`;
+
+        // 散逸端收集 - 始终显示
+        const scattering = data.scattering || [];
+        html += `<div class="report-block scatter-block">
+            <div class="block-header"><i class="fas fa-atom"></i> 散逸端收集</div>
+            <div class="scatter-list">
+                ${scattering.length > 0 ? scattering.map(s => `
+                    <div class="scatter-item">
+                        <span class="scatter-name">${escapeHtml(s.name || '未知物品')}</span>
+                        <span class="scatter-qty">×${s.qty || 1}</span>
+                        ${s.note ? `<span class="scatter-note">${escapeHtml(s.note)}</span>` : ''}
+                    </div>
+                `).join('') : '<div class="empty-hint">无散逸端收集记录</div>'}
+            </div>
+        </div>`;
+
+        // 评优信息 - 始终显示
+        const evaluation = data.evaluation || {};
+        const ratingClass = evaluation.rating ? `rating-${evaluation.rating.toLowerCase()}` : '';
+        html += `<div class="report-block eval-block">
+            <div class="block-header"><i class="fas fa-award"></i> 评优建议</div>
+            <div class="eval-grid">
+                <div class="eval-item rating-item">
+                    <label>建议评级</label>
+                    <span class="rating-badge ${ratingClass}">${escapeHtml(evaluation.rating) || '<span class="empty-hint">待定</span>'}</span>
+                </div>
+                <div class="eval-item">
+                    <label>混沌池</label>
+                    <span>${evaluation.chaosPool !== undefined && evaluation.chaosPool !== '' ? evaluation.chaosPool : '<span class="empty-hint">-</span>'}</span>
+                </div>
+                <div class="eval-item">
+                    <label>MVP推荐</label>
+                    <span>${escapeHtml(evaluation.mvp) || '<span class="empty-hint">-</span>'}</span>
+                </div>
+                <div class="eval-item">
+                    <label>察看期</label>
+                    <span>${escapeHtml(evaluation.probation) || '<span class="empty-hint">-</span>'}</span>
+                </div>
+            </div>
+            <div class="eval-participants">
+                <label>参与特工</label>
+                <p>${escapeHtml(evaluation.participants) || '<span class="empty-hint">未填写</span>'}</p>
+            </div>
+        </div>`;
+
+        // 可选目标 - 始终显示
+        const objectives = data.objectives || [];
+        html += `<div class="report-block objectives-block">
+            <div class="block-header"><i class="fas fa-crosshairs"></i> 可选目标完成</div>
+            <div class="objectives-list">
+                ${objectives.length > 0 ? objectives.map(o => `
+                    <div class="objective-item">
+                        <div class="objective-target">${escapeHtml(o.target || '-')}</div>
+                        <div class="objective-details">
+                            <span class="objective-reward"><i class="fas fa-gift"></i> ${escapeHtml(o.reward || '-')}</span>
+                            <span class="objective-agent"><i class="fas fa-user"></i> ${escapeHtml(o.agent || '-')}</span>
+                        </div>
+                    </div>
+                `).join('') : '<div class="empty-hint">无可选目标记录</div>'}
+            </div>
+        </div>`;
+
+        container.innerHTML = html;
+    }
+
+    function closeReportReview() {
+        document.getElementById('reportReviewOverlay').classList.remove('show');
+        currentReviewReportId = null;
+        currentReviewReport = null;
+    }
+
+    function adjustModalScatter(delta) {
+        const input = document.getElementById('modalReportScatter');
+        if (input.disabled) return;
+        input.value = parseInt(input.value || 0) + delta;
+    }
+
+    async function saveModalReview() {
+        if (!currentMissionDetailId || !currentReviewReportId) return;
+
+        const rating = document.getElementById('modalReportRating').value;
+        const scatterValue = parseInt(document.getElementById('modalReportScatter').value) || 0;
+        const annotationText = document.getElementById('modalReportAnnotation').value;
+        const annotations = annotationText.trim() ? annotationText.split('\n').filter(a => a.trim()) : [];
+
+        try {
+            const res = await fetch(`/api/manager/mission/${currentMissionDetailId}/report/${currentReviewReportId}`, {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ rating, scatterValue, annotations })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                showToast('评审已保存', true);
+                await loadMissionReports(currentMissionDetailId);
+                // 更新当前报告数据并刷新按钮状态
+                currentReviewReport = missionReports.find(r => r.id === currentReviewReportId);
+                if (currentReviewReport) {
+                    document.getElementById('btnSendRating').disabled = false;
+                    document.getElementById('btnSendRating').title = '';
+                }
+            } else {
+                throw new Error(data.message || '保存失败');
+            }
+        } catch (e) {
+            showToast(e.message);
+        }
+    }
+
+    // 发送初评（不立即结算）
+    async function sendInitialRating() {
+        if (!currentMissionDetailId || !currentReviewReportId) return;
+
+        const rating = document.getElementById('modalReportRating').value;
+        if (!rating) {
+            showToast('请选择评级');
+            return;
+        }
+
+        if (!confirm('确定要发送初评吗？玩家可以选择接受或申诉，之后才能进行最终结算。')) return;
+
+        try {
+            const res = await fetch(`/api/manager/mission/${currentMissionDetailId}/report/${currentReviewReportId}/send-with-rewards`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    rating: rating,
+                    agentRewards: agentRewards
+                })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                showToast('初评已发送，等待玩家确认或申诉', true);
+                await loadMissionReports(currentMissionDetailId);
+                closeReportReview();
+            } else {
+                throw new Error(data.message || '发送失败');
+            }
+        } catch (e) {
+            showToast(e.message);
+        }
+    }
+
+    // 最终结算（处理申诉后或直接结算）
+    async function finalizeRating() {
+        if (!currentMissionDetailId || !currentReviewReportId) return;
+
+        const rating = document.getElementById('modalReportRating').value;
+
+        if (!confirm('确定要进行最终结算吗？结算后将应用奖惩，无法修改。')) return;
+
+        try {
+            const res = await fetch(`/api/manager/mission/${currentMissionDetailId}/report/${currentReviewReportId}/finalize`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    rating: rating,
+                    agentRewards: agentRewards
+                })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                showToast('已完成最终结算', true);
+                await loadMissionReports(currentMissionDetailId);
+                closeReportReview();
+            } else {
+                throw new Error(data.message || '结算失败');
+            }
+        } catch (e) {
+            showToast(e.message);
+        }
+    }
+
+    // 抽屉切换函数
+    // 跟踪打开的抽屉顺序（小屏最多2个）
+    let openDrawers = [];
+
+    function toggleDrawer(drawerId) {
+        const drawer = document.getElementById(drawerId);
+        if (!drawer) return;
+
+        const isOpening = !drawer.classList.contains('open');
+
+        if (isOpening) {
+            // 小屏模式下最多打开2个抽屉
+            if (window.innerWidth <= 800 && openDrawers.length >= 2) {
+                // 关闭最早打开的抽屉
+                const firstOpened = openDrawers.shift();
+                const firstDrawer = document.getElementById(firstOpened);
+                if (firstDrawer) firstDrawer.classList.remove('open');
+            }
+            drawer.classList.add('open');
+            // 添加到打开列表（如果不在列表中）
+            if (!openDrawers.includes(drawerId)) {
+                openDrawers.push(drawerId);
+            }
+        } else {
+            drawer.classList.remove('open');
+            // 从打开列表中移除
+            openDrawers = openDrawers.filter(id => id !== drawerId);
+        }
+    }
+
+    // 更新报告评审UI根据状态
+    function updateReviewUIByStatus(status, reportData) {
+        const btnSendInitial = document.getElementById('btnSendInitial');
+        const btnFinalize = document.getElementById('btnFinalize');
+        const btnAlreadySent = document.getElementById('btnAlreadySent');
+        const responsesDrawer = document.getElementById('drawer-responses');
+        const statusBadge = document.getElementById('modalReportStatusBadge');
+
+        // 隐藏所有按钮和区域
+        btnSendInitial.style.display = 'none';
+        btnFinalize.style.display = 'none';
+        btnAlreadySent.style.display = 'none';
+        responsesDrawer.style.display = 'none';
+
+        // 状态徽章
+        const statusLabels = {
+            'submitted': '待评审',
+            'initial': '已初评',
+            'appealing': '申诉中',
+            'finalized': '已结算',
+            'sent': '已结算'
+        };
+        statusBadge.textContent = statusLabels[status] || status;
+        statusBadge.className = 'report-status-badge ' + status;
+
+        switch (status) {
+            case 'submitted':
+                // 未评审：显示发送初评按钮
+                btnSendInitial.style.display = 'inline-flex';
+                break;
+            case 'initial':
+                // 已初评，等待特工确认/申诉：显示特工响应状态抽屉
+                responsesDrawer.style.display = 'block';
+                loadAgentResponses();
+                break;
+            case 'appealing':
+                // 申诉中：显示特工响应状态抽屉和最终结算按钮
+                responsesDrawer.style.display = 'block';
+                responsesDrawer.classList.add('open'); // 申诉时默认展开
+                loadAgentResponses();
+                btnFinalize.style.display = 'inline-flex';
+                break;
+            case 'finalized':
+            case 'sent':
+                // 已结算：显示已结算按钮（禁用）
+                btnAlreadySent.style.display = 'inline-flex';
+                break;
+        }
+    }
+
+    // 加载特工响应状态
+    async function loadAgentResponses() {
+        if (!currentMissionDetailId || !currentReviewReportId) return;
+
+        try {
+            const res = await fetch(`/api/manager/mission/${currentMissionDetailId}/report/${currentReviewReportId}/agent-responses`, {
+                headers: getAuthHeaders()
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                renderAgentResponses(data.responses, data.summary);
+            }
+        } catch (e) {
+            console.error('加载特工响应状态失败', e);
+        }
+    }
+
+    // 渲染特工响应状态
+    function renderAgentResponses(responses, summary) {
+        const summaryContainer = document.getElementById('agentResponsesSummary');
+        const listContainer = document.getElementById('agentResponsesList');
+
+        // 渲染汇总
+        summaryContainer.innerHTML = `
+            <span class="response-stat pending"><i class="fas fa-clock"></i> 待响应: ${summary.pending}</span>
+            <span class="response-stat accepted"><i class="fas fa-check"></i> 已接受: ${summary.accepted}</span>
+            <span class="response-stat appealing"><i class="fas fa-exclamation-triangle"></i> 申诉中: ${summary.appealing}</span>
+        `;
+
+        // 渲染列表
+        listContainer.innerHTML = responses.map(r => {
+            const initial = (r.character_name || '?').charAt(0).toUpperCase();
+            const statusLabels = { pending: '待响应', accepted: '已接受', appealing: '申诉中' };
+
+            // 构建奖惩预览
+            let rewardPreview = [];
+            if (r.pending_rewards?.commend > 0) rewardPreview.push(`嘉奖+${r.pending_rewards.commend}`);
+            if (r.pending_rewards?.reprimand > 0) rewardPreview.push(`申诫+${r.pending_rewards.reprimand}`);
+            if (r.pending_rewards?.mvp) rewardPreview.push('MVP');
+            if (r.pending_rewards?.probation) rewardPreview.push('观察期');
+
+            let html = `
+                <div class="agent-response-item">
+                    <div class="agent-response-info">
+                        <div class="agent-response-name">${escapeHtml(r.character_name)}</div>
+                        <div class="agent-response-rewards">${rewardPreview.join(' / ') || '无奖惩'}</div>
+                        ${r.status === 'appealing' && r.appeal_reason ? `<div class="agent-response-appeal-reason"><strong>申诉理由:</strong> ${escapeHtml(r.appeal_reason)}</div>` : ''}
+                    </div>
+                    <span class="agent-response-status ${r.status}">${statusLabels[r.status] || r.status}</span>
+                </div>
+            `;
+            return html;
+        }).join('');
     }
 
     // ==================== 任务收件箱 ====================
@@ -4426,12 +6452,11 @@
 
         document.getElementById('mailDetailContent').textContent = msg.content || '';
 
-        // 如果是报告类型，显示报告数据
+        // 如果是报告类型，显示提示信息
         const reportDataEl = document.getElementById('mailReportData');
         if (msg.message_type === 'report' && msg.report_id) {
-            reportDataEl.innerHTML = `<div style="margin-top:10px;padding:10px;background:#f0f0f0;border-radius:8px;">
-                <strong>报告ID:</strong> ${msg.report_id}<br>
-                <button class="btn-modal btn-modal-confirm" onclick="viewMissionReport(${msg.report_id})" style="margin-top:10px;">查看完整报告</button>
+            reportDataEl.innerHTML = `<div style="margin-top:10px;padding:12px 15px;background:rgba(52,152,219,0.1);border:1px solid rgba(52,152,219,0.3);border-radius:8px;color:#3498db;">
+                <i class="fas fa-info-circle"></i> 请在「任务报告」标签页中查看和评审此报告
             </div>`;
             reportDataEl.style.display = 'block';
         } else {
@@ -4786,11 +6811,6 @@
     // ==========================================
     // 初始化和事件监听
     // ==========================================
-
-    // 初始化页面
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:3929',message:'Page initialization started',data:{hasToken:!!token,role},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-    // #endregion
 
     try {
         loadCharacters();
