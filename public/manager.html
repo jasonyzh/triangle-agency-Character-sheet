@@ -1,6 +1,5 @@
-<!-- manager.html (完整代码) -->
-
 <!DOCTYPE html>
+
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -14,7 +13,10 @@
             --pure-white: #ffffff;
             --signal-red: #c0392b;
             --text-dark: #2c3e50;
-            --manager-blue: #3498db;
+            --manager-blue: #D85742;
+            --manager-blue-dark: #C04A3A;
+            --manager-blue-light: #E06B56;
+            --manager-blue-bg: #F5D5D0;
         }
         body {
             font-family: "Roboto Mono", "Noto Sans SC", "Microsoft YaHei", sans-serif;
@@ -28,14 +30,24 @@
 
         header {
             display: flex; justify-content: space-between; align-items: flex-end;
-            margin-bottom: 30px; padding-bottom: 15px; border-bottom: 2px solid var(--manager-blue);
+            margin-bottom: 30px; padding-bottom: 15px; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); /* 统一为半透明白线，而非原来的蓝色实线 */
         }
 
-        .brand-logo { display: flex; flex-direction: column; line-height: 0.9; font-weight: 900; text-transform: uppercase; }
+        .brand-logo { 
+            display: flex; flex-direction: column; line-height: 0.9; 
+            font-weight: 900; text-transform: uppercase; 
+        }
         .brand-logo .top { font-size: 20px; letter-spacing: 2px; color: white; }
-        .brand-logo .btm { font-size: 12px; letter-spacing: 3px; color: var(--manager-blue); }
-        .page-title { font-size: 12px; color: #7f8c8d; margin-top: 5px; text-transform: uppercase; letter-spacing: 1px; }
-
+        .brand-logo .btm { font-size: 12px; letter-spacing: 3px; color: var(--signal-red); } /* 统一使用信号红 */
+        
+        .page-title { 
+            font-size: 10px; /* 稍微调小一点 */
+            color: #7f8c8d; 
+            margin-top: 2px; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+        }
         .btn-group { display: flex; gap: 10px; align-items: center; }
         .btn-logout { background: rgba(255,255,255,0.1); color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; transition: 0.2s; font-size: 12px; }
         .btn-logout:hover { background: var(--manager-blue); }
@@ -52,14 +64,14 @@
             font-size: 12px;
         }
         .branch-info .branch-name {
-            color: #2ecc71;
+            color: var(--manager-blue-light);
             font-weight: 600;
         }
         .branch-info .branch-scatter {
             color: #95a5a6;
         }
         .branch-info .branch-scatter span {
-            color: #e74c3c;
+            color: var(--manager-blue);
             font-weight: bold;
         }
 
@@ -178,7 +190,7 @@
             font-size: 11px;
             font-weight: bold;
             text-transform: uppercase;
-            background: #27ae60;
+            background: var(--manager-blue);
             color: white;
         }
         .mission-detail-status.archived {
@@ -204,12 +216,12 @@
             background: var(--manager-blue);
             color: white;
         }
-        .btn-mission-edit:hover { background: #2980b9; }
+        .btn-mission-edit:hover { background: var(--manager-blue-dark); }
         .btn-mission-archive {
-            background: #e67e22;
+            background: var(--manager-blue);
             color: white;
         }
-        .btn-mission-archive:hover { background: #d35400; }
+        .btn-mission-archive:hover { background: var(--manager-blue-dark); }
 
         .mission-detail-body {
             display: flex;
@@ -241,7 +253,7 @@
         }
         .section-header h3 { margin-bottom: 0; }
         .btn-add-agent {
-            background: #27ae60;
+            background: var(--manager-blue);
             color: white;
             border: none;
             padding: 8px 14px;
@@ -251,7 +263,7 @@
             font-weight: 600;
             transition: 0.2s;
         }
-        .btn-add-agent:hover { background: #219a52; }
+        .btn-add-agent:hover { background: var(--manager-blue-dark); }
         .mission-desc-text {
             color: #7f8c8d;
             font-size: 14px;
@@ -272,17 +284,19 @@
             align-items: center;
             gap: 12px;
             transition: 0.2s;
+            min-width: 0;
+            overflow: hidden;
         }
         .agent-card:hover {
             border-color: var(--manager-blue);
-            box-shadow: 0 4px 12px rgba(52,152,219,0.15);
+            box-shadow: 0 4px 12px rgba(216,87,66,0.15);
         }
         .agent-card.clickable { cursor: pointer; }
         .agent-avatar {
             width: 48px;
             height: 48px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--manager-blue), #2980b9);
+            background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-dark));
             display: flex;
             align-items: center;
             justify-content: center;
@@ -291,12 +305,15 @@
             font-weight: bold;
             flex-shrink: 0;
         }
-        .agent-info { flex: 1; }
+        .agent-info { flex: 1; min-width: 0; overflow: hidden; }
         .agent-name {
             font-weight: bold;
             font-size: 14px;
             color: var(--text-dark);
             margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .agent-status-row {
             display: flex;
@@ -309,12 +326,12 @@
             padding: 4px 8px;
             font-size: 12px;
             width: 100px;
-            color: #27ae60;
+            color: var(--manager-blue);
             background: white;
         }
         .agent-status-input:focus {
             outline: none;
-            border-color: #27ae60;
+            border-color: var(--manager-blue);
         }
         .agent-actions {
             display: flex;
@@ -322,7 +339,7 @@
             flex-shrink: 0;
         }
         .btn-agent-record {
-            background: #f39c12;
+            background: var(--manager-blue);
             border: none;
             color: white;
             cursor: pointer;
@@ -331,7 +348,7 @@
             font-size: 13px;
             transition: 0.2s;
         }
-        .btn-agent-record:hover { background: #e67e22; }
+        .btn-agent-record:hover { background: var(--manager-blue-dark); }
         .btn-agent-docs {
             background: #2c3e50;
             border: none;
@@ -353,7 +370,7 @@
             font-size: 14px;
             transition: 0.2s;
         }
-        .btn-remove-agent:hover { color: #e74c3c; border-color: #e74c3c; }
+        .btn-remove-agent:hover { color: var(--manager-blue); border-color: var(--manager-blue); }
 
         /* === 申领物管理样式 === */
         .requisition-panel {
@@ -361,7 +378,7 @@
             padding: 20px;
             border-radius: 6px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            border-left: 5px solid #9b59b6;
+            border-left: 5px solid var(--manager-blue);
         }
         .requisition-header {
             display: flex;
@@ -377,9 +394,9 @@
             align-items: center;
             gap: 8px;
         }
-        .requisition-header h3 i { color: #9b59b6; }
+        .requisition-header h3 i { color: var(--manager-blue); }
         .btn-new-requisition {
-            background: #9b59b6;
+            background: var(--manager-blue);
             color: white;
             border: none;
             padding: 8px 16px;
@@ -389,7 +406,7 @@
             font-weight: bold;
             transition: 0.2s;
         }
-        .btn-new-requisition:hover { background: #8e44ad; }
+        .btn-new-requisition:hover { background: var(--manager-blue-dark); }
         .requisition-empty {
             text-align: center;
             padding: 60px 20px;
@@ -447,7 +464,7 @@
             text-transform: uppercase;
             transition: all 0.2s;
         }
-        .btn-claim:hover { background: #2980b9; }
+        .btn-claim:hover { background: var(--manager-blue-dark); }
 
         /* 角色卡列表 */
         .section-title {
@@ -485,7 +502,7 @@
         }
 
         .card-header {
-            background: linear-gradient(135deg, var(--manager-blue), #2980b9);
+            background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-dark));
             padding: 15px;
             color: white;
             cursor: pointer;
@@ -549,7 +566,7 @@
             background: var(--manager-blue);
             color: white;
         }
-        .btn-view:hover { background: #2980b9; }
+        .btn-view:hover { background: var(--manager-blue-dark); }
 
         .btn-slots {
             background: rgba(52, 152, 219, 0.1);
@@ -573,11 +590,11 @@
         /* 移除授权按钮样式 */
         .btn-remove-auth {
             background: rgba(231, 76, 60, 0.1);
-            border: 1px solid #e74c3c;
-            color: #e74c3c;
+            border: 1px solid var(--manager-blue);
+            color: var(--manager-blue);
         }
         .btn-remove-auth:hover {
-            background: #e74c3c;
+            background: var(--manager-blue);
             color: white;
         }
 
@@ -615,7 +632,7 @@
             display: none;
         }
         .toast.show { display: block; animation: slideUp 0.3s ease; }
-        .toast.success { background: #27ae60; }
+        .toast.success { background: var(--manager-blue); }
         @keyframes slideUp { from { opacity: 0; transform: translate(-50%, 20px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
         .loading {
@@ -683,10 +700,10 @@
         .btn-modal-confirm { color: white; font-weight: bold; }
         
         /* 槽位管理弹窗 特有样式 */
-        #slotModal .modal-header { background: linear-gradient(135deg, var(--manager-blue), #2980b9); }
+        #slotModal .modal-header { background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-dark)); }
         #slotModal .modal-header h3, #slotModal .modal-close { color: white; }
         #slotModal .btn-modal-confirm { background: var(--manager-blue); }
-        #slotModal .btn-modal-confirm:hover { background: #2980b9; }
+        #slotModal .btn-modal-confirm:hover { background: var(--manager-blue-dark); }
         .slot-group { margin-bottom: 20px; }
         .slot-group label { display: block; font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
         .slot-controls { display: flex; align-items: center; gap: 15px; }
@@ -710,12 +727,12 @@
 
         /* 嘉奖/申诫弹窗样式 */
         #recordModal .modal-box { max-width: 500px; }
-        #recordModal .modal-header { background: linear-gradient(135deg, #27ae60, #2ecc71); }
+        #recordModal .modal-header { background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-light)); }
         #recordModal .modal-header h3, #recordModal .modal-close { color: white; }
         .record-tabs { display: flex; gap: 5px; margin-bottom: 15px; }
         .record-tab { flex: 1; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; transition: all 0.2s; background: #ecf0f1; color: #7f8c8d; }
-        .record-tab.active-reward { background: #27ae60; color: white; }
-        .record-tab.active-reprimand { background: #e74c3c; color: white; }
+        .record-tab.active-reward { background: var(--manager-blue); color: white; }
+        .record-tab.active-reprimand { background: var(--manager-blue-dark); color: white; }
         .record-input-area { margin-bottom: 15px; }
         .record-input-area textarea { width: 100%; padding: 12px; border: 2px solid #ecf0f1; border-radius: 4px; font-size: 13px; resize: none; height: 80px; box-sizing: border-box; font-family: inherit; }
         .record-input-area textarea:focus { outline: none; border-color: var(--manager-blue); }
@@ -724,24 +741,24 @@
         .record-count-input { width: 60px; padding: 8px; border: 2px solid #ecf0f1; border-radius: 4px; font-size: 14px; text-align: center; }
         .record-count-input:focus { outline: none; border-color: var(--manager-blue); }
         .btn-add-record { width: 100%; padding: 10px; border: none; border-radius: 4px; font-size: 13px; font-weight: bold; cursor: pointer; transition: all 0.2s; }
-        .btn-add-record.reward { background: #27ae60; color: white; }
-        .btn-add-record.reward:hover { background: #219a52; }
-        .btn-add-record.reprimand { background: #e74c3c; color: white; }
-        .btn-add-record.reprimand:hover { background: #c0392b; }
-        .record-count-badge { display: inline-block; background: #27ae60; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; margin-left: 5px; }
-        .record-count-badge.reprimand { background: #e74c3c; }
+        .btn-add-record.reward { background: var(--manager-blue); color: white; }
+        .btn-add-record.reward:hover { background: var(--manager-blue-dark); }
+        .btn-add-record.reprimand { background: var(--manager-blue-dark); color: white; }
+        .btn-add-record.reprimand:hover { background: #A83D2E; }
+        .record-count-badge { display: inline-block; background: var(--manager-blue); color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; margin-left: 5px; }
+        .record-count-badge.reprimand { background: var(--manager-blue-dark); }
         .record-history { border-top: 1px solid #ecf0f1; padding-top: 15px; margin-top: 15px; }
         .record-history h4 { font-size: 12px; color: #7f8c8d; text-transform: uppercase; margin-bottom: 10px; }
         .record-list { max-height: 200px; overflow-y: auto; }
-        .record-entry { padding: 10px; background: #f8f9fa; border-radius: 4px; margin-bottom: 8px; position: relative; border-left: 3px solid #27ae60; }
-        .record-entry.reprimand { border-left-color: #e74c3c; }
+        .record-entry { padding: 10px; background: #f8f9fa; border-radius: 4px; margin-bottom: 8px; position: relative; border-left: 3px solid var(--manager-blue); }
+        .record-entry.reprimand { border-left-color: var(--manager-blue-dark); }
         .record-entry .record-reason { font-size: 13px; color: var(--text-dark); margin-bottom: 5px; }
         .record-entry .record-meta { font-size: 11px; color: #95a5a6; }
         .record-entry .btn-delete-record { position: absolute; top: 8px; right: 8px; background: none; border: none; color: #bdc3c7; cursor: pointer; font-size: 12px; padding: 2px 5px; }
-        .record-entry .btn-delete-record:hover { color: #e74c3c; }
+        .record-entry .btn-delete-record:hover { color: var(--manager-blue); }
         .record-empty { text-align: center; padding: 20px; color: #95a5a6; font-size: 13px; }
-        .btn-records { background: rgba(39, 174, 96, 0.1); border: 1px solid #27ae60; color: #27ae60; }
-        .btn-records:hover { background: #27ae60; color: white; }
+        .btn-records { background: rgba(216, 87, 66, 0.1); border: 1px solid var(--manager-blue); color: var(--manager-blue); }
+        .btn-records:hover { background: var(--manager-blue); color: white; }
 
         /* === 普通文档加载过渡 (新增) === */
         #transition-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #0f172a; z-index: 8000; pointer-events: none; clip-path: inset(50% 0 50% 0); transition: clip-path 0.8s cubic-bezier(0.8, 0, 0.2, 1); display: flex; flex-direction: column; justify-content: center; align-items: center; }
@@ -758,9 +775,9 @@
 
         /* === 收件箱按钮样式 === */
         .btn-inbox {
-            background: rgba(142, 68, 173, 0.2);
-            color: #9b59b6;
-            border: none;
+            background: rgba(216, 87, 66, 0.1); /* 淡红色 */
+            color: var(--manager-blue);         /* 字体深红 */
+            border: 1px solid rgba(216, 87, 66, 0.2);
             padding: 8px 12px;
             border-radius: 4px;
             cursor: pointer;
@@ -768,12 +785,17 @@
             font-size: 12px;
             position: relative;
         }
-        .btn-inbox:hover { background: #9b59b6; color: white; }
+        .btn-inbox:hover { 
+            background: var(--manager-blue); 
+            color: white; 
+            border-color: var(--manager-blue);
+        }
+        
         .inbox-badge {
             position: absolute;
             top: -5px;
             right: -5px;
-            background: #e74c3c;
+            background: var(--manager-blue);
             color: white;
             font-size: 10px;
             font-weight: bold;
@@ -792,7 +814,7 @@
             border-radius: 6px;
             margin-bottom: 25px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            border-left: 5px solid #27ae60;
+            border-left: 5px solid #E06B56;
         }
         .mission-header {
             display: flex;
@@ -808,9 +830,9 @@
             align-items: center;
             gap: 8px;
         }
-        .mission-header h3 i { color: #27ae60; }
+        .mission-header h3 i { color: #E06B56; }
         .btn-new-mission {
-            background: #27ae60;
+            background: var(--manager-blue);
             color: white;
             border: none;
             padding: 8px 16px;
@@ -820,7 +842,7 @@
             font-weight: bold;
             transition: 0.2s;
         }
-        .btn-new-mission:hover { background: #219a52; }
+
         .mission-tabs {
             display: flex;
             gap: 5px;
@@ -842,7 +864,7 @@
         }
         .mission-tabs button.active {
             background: white;
-            color: #27ae60;
+            color: #E06B56; /* 修改为新的颜色 */
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .mission-list { display: flex; flex-direction: column; gap: 15px; }
@@ -857,7 +879,7 @@
             cursor: pointer;
         }
         .mission-card.clickable:hover {
-            border-color: #27ae60;
+            border-color: var(--manager-blue);
             transform: translateX(5px);
             box-shadow: 0 4px 12px rgba(39, 174, 96, 0.15);
         }
@@ -879,7 +901,7 @@
             margin-left: 6px;
         }
         .mission-type-badge.containment {
-            background: linear-gradient(135deg, #3498db, #2980b9);
+            background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-dark));
             color: white;
         }
         .mission-type-badge.sweep {
@@ -899,7 +921,7 @@
             align-items: center;
             gap: 6px;
             font-size: 12px;
-            color: #27ae60;
+            color: var(--manager-blue);
             font-weight: 600;
             flex: 1;
             overflow: hidden;
@@ -915,7 +937,7 @@
             transition: 0.2s;
         }
         .mission-card.clickable:hover .mission-enter-hint {
-            color: #27ae60;
+            color: var(--manager-blue);
             transform: translateX(3px);
         }
         .mission-members { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -932,7 +954,7 @@
         .mission-member-status {
             font-size: 10px;
             color: white;
-            background: #27ae60;
+            background: var(--manager-blue);
             padding: 2px 6px;
             border-radius: 10px;
         }
@@ -960,25 +982,55 @@
 
         /* === 任务收件箱样式 === */
         .mission-inbox-list {
-            max-height: 300px;
+            max-height: 400px;
             overflow-y: auto;
+            padding: 5px;
+        }
+        .mission-inbox-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .mission-inbox-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        .mission-inbox-list::-webkit-scrollbar-thumb {
+            background: #bdc3c7;
+            border-radius: 3px;
+        }
+        .mission-inbox-list::-webkit-scrollbar-thumb:hover {
+            background: #95a5a6;
         }
         .mission-inbox-item {
             display: flex;
             align-items: center;
-            padding: 12px 15px;
-            border-bottom: 1px solid #f0f0f0;
+            padding: 14px 16px;
+            margin-bottom: 8px;
+            background: white;
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
             cursor: pointer;
-            transition: 0.2s;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
-        .mission-inbox-item:hover { background: #f8f9fa; }
-        .mission-inbox-item.unread { background: #fff8e1; }
-        .mission-inbox-item.unread:hover { background: #fff3cd; }
+        .mission-inbox-item:hover { 
+            background: #f8f9fa; 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            transform: translateX(2px);
+        }
+        .mission-inbox-item.unread { 
+            background: #fffbf0; 
+            border-color: #ffd54f;
+            border-left: 3px solid #ffc107;
+        }
+        .mission-inbox-item.unread:hover { 
+            background: #fff8e1; 
+            box-shadow: 0 2px 6px rgba(255,193,7,0.2);
+        }
         .mission-inbox-sender {
             width: 36px;
             height: 36px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #3498db, #2980b9);
+            background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-dark));
             color: white;
             display: flex;
             align-items: center;
@@ -1024,7 +1076,7 @@
         .mission-inbox-type.containment { background: #fdecea; color: #e74c3c; }
         .mission-inbox-type.report { background: #e8f8f5; color: #27ae60; }
         .inbox-badge {
-            background: #e74c3c;
+            background: var(--manager-blue);
             color: white;
             font-size: 11px;
             padding: 2px 7px;
@@ -1033,9 +1085,17 @@
         }
         .inbox-empty {
             text-align: center;
-            padding: 30px;
+            padding: 50px 30px;
             color: #bdc3c7;
-            font-size: 13px;
+            font-size: 14px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px dashed #e0e0e0;
+        }
+        .inbox-empty i {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: #d5d5d5;
         }
         .btn-refresh-inbox {
             background: none;
@@ -1048,65 +1108,156 @@
         }
         .btn-refresh-inbox:hover { color: #3498db; background: #ecf0f1; }
 
-        /* === 任务数值管理样式 === */
+/* === 任务数值管理样式 (统一优化版) === */
         .mission-values-row {
             display: flex;
-            align-items: flex-end;
-            gap: 20px;
+            align-items: flex-end; /* 底部对齐，确保按钮和输入框水平一致 */
+            gap: 15px;
             flex-wrap: wrap;
+            background: #f8f9fa; /* 整体浅灰背景区 */
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px dashed #e0e0e0;
         }
+
         .value-input-group {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
+            flex: 1; /* 自动分配宽度 */
+            min-width: 140px; /* 最小宽度 */
         }
+
+        /* 标签样式统一 */
         .value-input-group label {
             font-size: 12px;
-            font-weight: 600;
+            font-weight: 700;
             color: #7f8c8d;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
+        
+        /* 标签前的小竖条 */
+        .value-input-group label::before {
+            content: '';
+            width: 3px;
+            height: 12px;
+            background: var(--manager-blue);
+            border-radius: 2px;
+        }
+
+        /* 输入框包裹容器 (胶囊样式) */
         .value-input-wrapper {
             display: flex;
             align-items: center;
-            gap: 0;
+            height: 40px; /* 统一高度 */
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            overflow: hidden;
+            transition: all 0.2s;
         }
+        
+        /* 悬停时边框变色 */
+        .value-input-wrapper:hover {
+            border-color: var(--manager-blue);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        /* 加减按钮 */
         .value-btn {
-            width: 32px;
-            height: 36px;
-            border: 1px solid #ddd;
-            background: #f8f9fa;
-            color: #7f8c8d;
+            width: 40px;
+            height: 100%;
+            border: none;
+            background: #f1f5f9;
+            color: #64748b;
             cursor: pointer;
-            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            transition: all 0.1s;
         }
-        .value-btn:first-child { border-radius: 6px 0 0 6px; border-right: none; }
-        .value-btn:last-child { border-radius: 0 6px 6px 0; border-left: none; }
-        .value-btn:hover { background: #e9ecef; color: var(--text-dark); }
+        .value-btn:hover {
+            background: #e2e8f0;
+            color: var(--manager-blue);
+        }
+        .value-btn:active {
+            background: #cbd5e1;
+        }
+
+        /* 中间数字输入框 */
         .value-input-wrapper input {
-            width: 70px;
-            height: 36px;
-            border: 1px solid #ddd;
+            flex: 1;
+            height: 100%;
+            border: none;
             text-align: center;
-            font-size: 14px;
-            font-weight: 600;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-dark);
+            background: white;
+            padding: 0;
+            margin: 0;
+            width: 100%; /* 修复宽度 */
+            -moz-appearance: textfield; /* 移除Firefox默认样式 */
         }
-        .value-input-wrapper input:focus { outline: none; border-color: #3498db; }
-        .value-hint {
-            font-size: 10px;
-            color: #95a5a6;
+        .value-input-wrapper input::-webkit-outer-spin-button,
+        .value-input-wrapper input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
         }
+        .value-input-wrapper input:focus {
+            outline: none;
+            background: #fff;
+        }
+
+        /* 保存按钮 (与输入框等高) */
         .btn-save-values {
-            padding: 10px 20px;
-            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            height: 40px; /* 与输入框高度一致 */
+            padding: 0 24px;
+            background: var(--manager-blue);
             border: none;
             border-radius: 6px;
             color: white;
             font-size: 13px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            transition: 0.2s;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 2px 5px rgba(216, 87, 66, 0.3);
+            white-space: nowrap;
         }
-        .btn-save-values:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(39,174,96,0.3); }
+        .btn-save-values:hover { 
+            background: var(--manager-blue-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(216, 87, 66, 0.4);
+        }
+        .btn-save-values:active {
+            transform: translateY(0);
+        }
+
+        /* 移动端适配修正 */
+        @media (max-width: 768px) {
+            .mission-values-row {
+                flex-direction: column;
+                align-items: stretch; /* 拉伸占满 */
+                gap: 12px;
+            }
+            .value-input-group {
+                width: 100%;
+            }
+            .btn-save-values {
+                width: 100%;
+                margin-top: 5px;
+            }
+        }
 
         /* === 特工详情弹窗样式 === */
         #agentDetailModal .modal-box.large { max-width: 700px; max-height: 85vh; }
@@ -1167,7 +1318,7 @@
             font-size: 12px;
         }
         .relation-tag {
-            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-light));
             color: white;
             padding: 6px 12px;
             border-radius: 15px;
@@ -1185,14 +1336,51 @@
         }
 
         /* === 任务报告样式 === */
-        .mission-reports-list { max-height: 300px; overflow-y: auto; }
-        .report-empty { text-align: center; padding: 30px; color: #bdc3c7; font-size: 13px; }
+        .mission-reports-list { 
+            max-height: 400px; 
+            overflow-y: auto;
+            padding: 5px;
+        }
+        .mission-reports-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .mission-reports-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        .mission-reports-list::-webkit-scrollbar-thumb {
+            background: #bdc3c7;
+            border-radius: 3px;
+        }
+        .mission-reports-list::-webkit-scrollbar-thumb:hover {
+            background: #95a5a6;
+        }
+        .report-empty { 
+            text-align: center; 
+            padding: 50px 30px; 
+            color: #bdc3c7; 
+            font-size: 14px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px dashed #e0e0e0;
+        }
+        .report-empty i {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: #d5d5d5;
+        }
         .report-item {
             background: white;
             border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 10px;
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+        }
+        .report-item:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transform: translateY(-1px);
         }
         .report-item-header {
             display: flex;
@@ -1215,10 +1403,11 @@
             display: flex;
             gap: 15px;
             align-items: center;
-            margin: 10px 0;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 6px;
+            margin: 12px 0;
+            padding: 12px 14px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #f0f2f5 100%);
+            border-radius: 8px;
+            border: 1px solid #e8e8e8;
         }
         .report-rating-input {
             display: flex;
@@ -1234,35 +1423,71 @@
         }
         .report-rating-input input[type="number"] { width: 80px; }
         .report-annotation {
-            margin-top: 10px;
+            margin-top: 12px;
         }
         .report-annotation textarea {
             width: 100%;
-            min-height: 60px;
-            padding: 10px;
+            min-height: 70px;
+            padding: 12px;
             border: 1px solid #ddd;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 13px;
             resize: vertical;
+            transition: border-color 0.2s;
+            font-family: inherit;
+        }
+        .report-annotation textarea:focus {
+            outline: none;
+            border-color: var(--manager-blue);
+            box-shadow: 0 0 0 3px rgba(216,87,66,0.1);
         }
         .report-actions {
             display: flex;
             gap: 10px;
-            margin-top: 10px;
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid #f0f0f0;
         }
         .btn-report {
-            padding: 8px 15px;
+            padding: 9px 18px;
             border: none;
             border-radius: 6px;
             font-size: 12px;
+            font-weight: 600;
             cursor: pointer;
-            transition: 0.2s;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
-        .btn-report.save { background: #3498db; color: white; }
-        .btn-report.save:hover { background: #2980b9; }
-        .btn-report.send { background: #27ae60; color: white; }
-        .btn-report.send:hover { background: #219a52; }
-        .btn-report:disabled { background: #bdc3c7; cursor: not-allowed; }
+        .btn-report.save { 
+            background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-dark)); 
+            color: white; 
+            box-shadow: 0 2px 4px rgba(216,87,66,0.3);
+        }
+        .btn-report.save:hover { 
+            background: linear-gradient(135deg, var(--manager-blue-dark), #A83D2E); 
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(216,87,66,0.4);
+        }
+        .btn-report.send { 
+            background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-dark)); 
+            color: white; 
+            box-shadow: 0 2px 4px rgba(216,87,66,0.3);
+        }
+        .btn-report.send:hover { 
+            background: linear-gradient(135deg, var(--manager-blue-dark), #A83D2E); 
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(216,87,66,0.4);
+        }
+        .btn-report:disabled { 
+            background: #bdc3c7; 
+            cursor: not-allowed; 
+            box-shadow: none;
+        }
+        .btn-report:disabled:hover {
+            transform: none;
+        }
         .report-status-badge {
             font-size: 10px;
             padding: 2px 8px;
@@ -1275,8 +1500,9 @@
         .report-status-badge.sent { background: #d4edda; color: #155724; }
 
         /* === 收件箱弹窗样式 === */
-        #inboxModal .modal-box { max-width: 600px; max-height: 80vh; display: flex; flex-direction: column; }
-        #inboxModal .modal-header { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+        #inboxModal .modal-header { 
+            background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-dark)); 
+        }
         #inboxModal .modal-header h3, #inboxModal .modal-close { color: white; }
         #inboxModal .modal-body { flex: 1; overflow-y: auto; }
         .inbox-list { display: flex; flex-direction: column; gap: 10px; }
@@ -1286,10 +1512,19 @@
             border-radius: 6px;
             cursor: pointer;
             transition: 0.2s;
-            border-left: 3px solid #9b59b6;
+            border-left: 3px solid var(--manager-blue); /* 改为红色边框 */
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
         }
-        .inbox-item:hover { background: #f0f0f0; }
-        .inbox-item.unread { background: #f3e5f5; border-left-color: #e74c3c; }
+        .inbox-item:hover { 
+            background: #fff5f2; /* 悬停微红 */
+        }
+        .inbox-item.unread { 
+            background: #fff0eb; 
+            border-left-color: var(--manager-blue-dark); 
+        }
         .inbox-item-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
         .inbox-item-sender { font-weight: bold; font-size: 13px; color: var(--text-dark); }
         .inbox-item-time { font-size: 11px; color: #95a5a6; }
@@ -1316,11 +1551,13 @@
         .mission-form input:focus, .mission-form textarea:focus { outline: none; border-color: #27ae60; }
         .mission-form textarea { min-height: 80px; resize: vertical; }
         #missionModal .btn-modal-confirm { background: #27ae60; }
-        #missionModal .btn-modal-confirm:hover { background: #219a52; }
+
 
         /* === 邮件详情弹窗样式 === */
         #mailDetailModal .modal-box { max-width: 550px; }
-        #mailDetailModal .modal-header { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+        #mailDetailModal .modal-header { 
+            background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-dark)); 
+        }
         #mailDetailModal .modal-header h3, #mailDetailModal .modal-close { color: white; }
         .mail-detail-meta { font-size: 12px; color: #7f8c8d; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #ecf0f1; }
         .mail-detail-content { font-size: 14px; line-height: 1.6; color: var(--text-dark); white-space: pre-wrap; max-height: 300px; overflow-y: auto; }
@@ -1381,12 +1618,12 @@
             font-size: 11px;
             width: 100px;
             text-align: center;
-            color: #27ae60;
+            color: var(--manager-blue);
             background: #f8f9fa;
         }
         .member-status-input:focus {
             outline: none;
-            border-color: #27ae60;
+            border-color: var(--manager-blue);
             background: white;
         }
         .btn-remove-member {
@@ -1419,7 +1656,7 @@
         }
         .member-select-item:hover {
             background: #e8f5e9;
-            border-color: #27ae60;
+            border-color: var(--manager-blue);
         }
 
         /* 收件箱项增强 */
@@ -1430,18 +1667,18 @@
             position: relative;
         }
         .inbox-item-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #f0f0f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #9b59b6;
+            width: 40px; 
+            height: 40px; 
+            border-radius: 50%; 
+            background: rgba(216, 87, 66, 0.1); /* 淡红背景 */
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: var(--manager-blue);         /* 红色图标 */
             flex-shrink: 0;
         }
         .inbox-item.unread .inbox-item-icon {
-            background: #e8def8;
+            background: rgba(216, 87, 66, 0.2);
         }
         .inbox-item-content { flex: 1; overflow: hidden; }
         .inbox-item-subject {
@@ -1469,11 +1706,14 @@
             color: #7f8c8d;
         }
         .inbox-unread-dot {
-            width: 10px;
-            height: 10px;
-            background: #e74c3c;
+            width: 8px;
+            height: 8px;
+            background: var(--manager-blue);
             border-radius: 50%;
-            flex-shrink: 0;
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
         }
 
         /* 邮件详情增强 */
@@ -1502,7 +1742,7 @@
             gap: 10px;
             flex-wrap: wrap;
             font-size: 13px;
-            color: #27ae60;
+            color: var(--manager-blue);
         }
         .report-table {
             width: 100%;
@@ -1522,7 +1762,471 @@
             font-size: 13px;
         }
         .report-rating strong { color: var(--text-dark); }
-    </style>
+    /* =========================================
+           移动端适配 (Mobile Responsive)
+           ========================================= */
+        @media (max-width: 768px) {
+            /* 1. 全局容器调整 */
+            body {
+                padding: 10px; /* 减小内边距 */
+            }
+            
+            /* 2. 头部 (Header) 重构 */
+            header {
+                flex-direction: column; /* 垂直排列 */
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            header > div {
+                width: 100%; /* 让左右两部分占满宽度 */
+            }
+
+            .brand-logo {
+                margin-bottom: 5px;
+            }
+
+            /* 按钮组调整 */
+            .btn-group {
+                flex-wrap: wrap; /* 允许按钮换行 */
+                gap: 8px;
+                width: 100%;
+            }
+
+            /* 分部信息栏单独占一行 */
+            .branch-info {
+                width: 100%;
+                box-sizing: border-box;
+                margin-bottom: 5px;
+                justify-content: center;
+            }
+
+            /* 顶部功能按钮 (收件箱、退出等) 平铺 */
+            .btn-inbox, .btn-logout {
+                flex: 1; /* 平均分配宽度 */
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 10px;
+            }
+
+            /* 3. 主标签页导航 (Main Tabs) */
+            .main-tabs {
+                gap: 3px;
+                padding: 3px;
+            }
+            .main-tab {
+                padding: 10px 5px;
+                font-size: 11px; /* 缩小字体 */
+                flex-direction: column; /* 图标文字垂直排列 */
+                gap: 4px;
+                text-align: center;
+            }
+
+            /* 4. 网格布局调整 (Cards) */
+            .char-grid, .mission-members-grid, .agent-stats-grid {
+                grid-template-columns: 1fr; /* 强制单列 */
+            }
+            
+            /* 特工详情里的属性改为2列 */
+            .agent-stats-grid {
+                grid-template-columns: repeat(2, 1fr); 
+            }
+
+            /* 5. 外勤任务详情页 (Mission Detail) */
+            .mission-detail-header {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 15px;
+                gap: 15px;
+            }
+            
+            .mission-detail-title {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+            
+            .mission-detail-actions {
+                width: 100%;
+                justify-content: space-between; /* 按钮两端对齐 */
+            }
+            .btn-mission-edit, .btn-mission-archive {
+                flex: 1;
+                justify-content: center;
+            }
+
+            /* 数值输入组 (Chaos/Scatter) */
+            .mission-values-row {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .value-input-group {
+                width: 100%; /* 占满宽度 */
+                box-sizing: border-box;
+            }
+            .btn-save-values {
+                width: 100%;
+            }
+
+            /* 6. 弹窗适配 (Modals) */
+            .modal-box {
+                width: 95%; /* 增加宽度 */
+                max-height: 90vh; /* 增加最大高度 */
+            }
+            
+            /* 特工详情弹窗内容布局 */
+            .agent-detail-row {
+                flex-direction: column; /* 嘉奖/申诫记录垂直排列 */
+                gap: 10px;
+            }
+
+            /* 7. 任务卡片内部 */
+            .mission-card-header {
+                flex-direction: column; /* 标题和操作按钮垂直排列 */
+                gap: 10px;
+            }
+            .mission-quick-actions {
+                width: 100%;
+                justify-content: flex-end;
+                border-top: 1px dashed #eee;
+                padding-top: 8px;
+            }
+            
+            /* 8. 申领物/高墙文件列表 */
+            .doc-item span {
+                font-size: 12px;
+                word-break: break-all; /* 防止长文件名撑开容器 */
+            }
+        }
+		/* =========================================
+       统一导航栏与侧滑菜单样式 (Manager)
+       ========================================= */
+    /* 1. 桌面端按钮组 */
+    .btn-group { display: flex; align-items: center; gap: 10px; }
+    .btn-nav {
+        height: 36px; padding: 0 15px; border: none; border-radius: 4px;
+        color: white; font-weight: bold; font-size: 12px; cursor: pointer;
+        display: inline-flex; align-items: center; gap: 6px; transition: 0.2s;
+        text-decoration: none;
+    }
+    .btn-nav:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+    
+    /* 颜色定义 */
+    .btn-nav.admin { background: #d63031; } /* 管理台 - 红色 */
+    .btn-nav.archive { background: #3498db; } /* 档案库 - 蓝色 */
+    .btn-nav.inbox { background: #8e44ad; } /* 收件箱 - 紫色 */
+    .btn-nav.logout { background: #fff; color: #555; border: 1px solid #eee; }
+    
+    /* 2. 移动端菜单触发器 */
+    /* =========================================
+           【统一】手机端菜单按钮样式 (Unified Menu Button)
+           ========================================= */
+		.menu-toggle {
+            display: none; /* 桌面端隐藏 */
+            align-items: center; /* 垂直居中 */
+            justify-content: center;
+            gap: 8px; /* 图标和文字间距 */
+            
+            /* 样式设定 */
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            cursor: pointer;
+            
+            /* 尺寸与间距调整 */
+            height: 36px;
+            padding: 0 14px; /* 增加左右内边距，防止贴边 */
+            margin-left: 10px; /* 左侧留出空隙，防止紧贴Logo或其他元素 */
+            
+            /* 字体设定 */
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            
+            /* 关键：强制一行显示，修复竖排问题 */
+            flex-direction: row; 
+            white-space: nowrap; 
+            
+            transition: all 0.2s ease;
+        }
+
+        .menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: var(--signal-red);
+            color: white;
+            box-shadow: 0 0 10px rgba(192, 57, 43, 0.3);
+        }
+
+        /* 三角形图标容器 */
+        .menu-toggle .tri-icon {
+            position: relative;
+            width: 14px; /* 稍微调窄一点 */
+            height: 12px;
+            display: flex; /* 确保内部布局 */
+        }
+
+        /* 小三角形构造 */
+        .menu-toggle .tri {
+            position: absolute;
+            width: 0; height: 0;
+            border-left: 3px solid transparent;
+            border-right: 3px solid transparent;
+            border-bottom: 6px solid var(--signal-red);
+        }
+
+        /* 动画调整 */
+        .menu-toggle .t1 { left: 4px; top: 0; animation: tri-pulse 2s infinite ease-in-out; }
+        .menu-toggle .t2 { left: 0; top: 6px; animation: tri-pulse 2s infinite ease-in-out 0.3s; }
+        .menu-toggle .t3 { left: 8px; top: 6px; animation: tri-pulse 2s infinite ease-in-out 0.6s; }
+
+        @keyframes tri-pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.85); }
+        }
+
+        /* 移动端显示逻辑 */
+        @media (max-width: 768px) {
+            .menu-toggle { 
+                display: flex !important; /* 强制使用 Flex 布局，保证横向排列 */
+            }
+            
+            /* 调整 Header 布局，确保右侧有留白 */
+            header {
+                padding-right: 5px; /* 增加一点右侧内边距 */
+            }
+        }
+
+/* =========================================
+       【统一】侧滑菜单样式 (Unified Sidebar)
+       ========================================= */
+    .side-menu-overlay {
+        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.7); backdrop-filter: blur(2px); z-index: 9998;
+        opacity: 0; transition: opacity 0.3s;
+    }
+    .side-menu-overlay.show { display: block; opacity: 1; }
+
+    .side-menu {
+        position: fixed; 
+        top: 0; 
+        right: -280px !important; /* 默认隐藏在屏幕右侧外面 */
+        left: auto !important;    /* 必须清除左侧定位，防止拉扯 */
+        width: 260px; 
+        height: 100%;
+        background: linear-gradient(180deg, #1a252f 0%, #0f172a 100%);
+        z-index: 9999; 
+        
+        /* 关键：动画属性改为 right */
+        transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        
+        display: flex; 
+        flex-direction: column;
+        
+        /* 阴影投向左侧，因为菜单在右边 */
+        box-shadow: -10px 0 40px rgba(0,0,0,0.5); 
+        
+        /* 边框在左侧 */
+        border-left: 1px solid rgba(255,255,255,0.05);
+        border-right: none;
+    }
+    
+    /* 激活状态：right 变为 0，菜单移入屏幕 */
+    .side-menu.show { 
+        right: 0 !important; 
+    }
+	
+    .side-menu.show { left: 0; } /* 显示时 left 为 0 */
+
+    .side-menu-header {
+        padding: 30px 20px; border-bottom: 1px solid rgba(255,255,255,0.1);
+        display: flex; justify-content: space-between; align-items: center;
+        background: rgba(0,0,0,0.2);
+    }
+    .side-menu-header .brand-sm { font-weight: 900; font-style: italic; letter-spacing: 1px; color: white; font-size: 18px; }
+    .side-menu-header .brand-sm span { color: var(--signal-red); font-size: 12px; display: block; letter-spacing: 3px; }
+    
+    .side-menu-close {
+        background: none; border: none; color: rgba(255,255,255,0.4);
+        font-size: 24px; cursor: pointer; transition: 0.2s;
+    }
+    .side-menu-close:hover { color: white; transform: scale(1.1); }
+
+    .side-menu-content {
+        flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 12px;
+        overflow-y: auto;
+    }
+
+    /* 统一菜单项样式 */
+    .menu-item {
+        display: flex; align-items: center; gap: 15px; padding: 16px 20px;
+        background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 8px; color: rgba(255,255,255,0.8); font-size: 13px; font-weight: 700;
+        cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px;
+    }
+    .menu-item i { width: 20px; text-align: center; font-size: 14px; opacity: 0.8; }
+    .menu-item:hover {
+        background: rgba(255,255,255,0.08); transform: translateX(-5px);
+        color: white; border-color: rgba(255,255,255,0.2);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    /* === 特定功能按钮配色 (使用 !important 覆盖默认) === */
+    /* 档案库/高墙 (蓝色) */
+    .menu-item.archive, .menu-item.highwall { 
+        border-left: 3px solid #3498db !important;
+    }
+    .menu-item.archive:hover, .menu-item.highwall:hover { background: rgba(52, 152, 219, 0.15) !important; color: #3498db !important; }
+
+    /* 经理台 (橙红) */
+    .menu-item.manager { 
+        border-left: 3px solid #E06B56 !important;
+    }
+    .menu-item.manager:hover { background: rgba(224, 107, 86, 0.15) !important; color: #E06B56 !important; }
+
+    /* 管理台 (正红) */
+    .menu-item.admin { 
+        border-left: 3px solid #d63031 !important;
+    }
+    .menu-item.admin:hover { background: rgba(214, 48, 49, 0.15) !important; color: #d63031 !important; }
+
+    /* 收件箱 (紫色) */
+    .menu-item.inbox { 
+        border-left: 3px solid #8e44ad !important;
+    }
+    .menu-item.inbox:hover { background: rgba(142, 68, 173, 0.15) !important; color: #8e44ad !important; }
+
+    /* 退出登录 */
+    .menu-item.logout {
+        margin-top: auto; border: 1px dashed rgba(255,255,255,0.2); background: transparent;
+    }
+    .menu-item.logout:hover {
+        border-color: var(--signal-red); color: var(--signal-red); background: rgba(192, 57, 43, 0.1);
+    }
+
+    /* 4. 强制移动端适配 */
+    @media (max-width: 768px) {
+        header { 
+            flex-direction: row !important; 
+            justify-content: space-between !important; 
+            align-items: center !important;
+            margin-bottom: 20px !important;
+        }
+        .brand-logo { margin-bottom: 0 !important; flex: 0 0 auto !important; }
+        .btn-group { display: none !important; } /* 隐藏桌面按钮 */
+/* =========================================
+           【统一】手机端菜单按钮样式 (Unified Menu Button)
+           ========================================= */
+        .menu-toggle {
+            display: none; /* 桌面端默认隐藏 */
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 0 12px;
+            height: 36px; /* 统一高度 */
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+        }
+
+        .menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: var(--signal-red);
+            color: white;
+            box-shadow: 0 0 10px rgba(192, 57, 43, 0.3);
+        }
+
+        /* 三角形图标容器 */
+        .menu-toggle .tri-icon {
+            position: relative;
+            width: 18px;
+            height: 16px;
+        }
+
+        /* 小三角形构造 */
+        .menu-toggle .tri {
+            position: absolute;
+            width: 0; height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-bottom: 7px solid var(--signal-red); /* 统一红色 */
+        }
+
+        /* 三角形位置与动画 */
+        .menu-toggle .t1 { 
+            left: 5px; top: 0; 
+            animation: tri-pulse 2s infinite ease-in-out; 
+        }
+        .menu-toggle .t2 { 
+            left: 0; top: 8px; 
+            animation: tri-pulse 2s infinite ease-in-out 0.3s; 
+        }
+        .menu-toggle .t3 { 
+            left: 10px; top: 8px; 
+            animation: tri-pulse 2s infinite ease-in-out 0.6s; 
+        }
+
+        @keyframes tri-pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        /* 移动端显示控制 */
+        @media (max-width: 768px) {
+            .menu-toggle { display: flex !important; }
+        }
+        
+        /* 隐藏分部信息防止挤压，或者在侧边栏显示 */
+        .branch-info { display: none !important; } 
+    }
+	/* =========================================
+           【颜色修正补丁】去除绿色，统一为经理红
+           ========================================= */
+        
+        /* 1. 创建任务按钮悬停状态 */
+        .btn-new-mission:hover {
+            background: var(--manager-blue-dark) !important;
+        }
+
+        /* 2. 任务弹窗 (Mission Modal) 头部 */
+        #missionModal .modal-header {
+            background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-dark)) !important;
+        }
+
+        /* 3. 任务弹窗内的输入框聚焦颜色 */
+        .mission-form input:focus, 
+        .mission-form textarea:focus, 
+        .mission-form select:focus {
+            border-color: var(--manager-blue) !important;
+        }
+
+        /* 4. 任务弹窗确认按钮 */
+        #missionModal .btn-modal-confirm {
+            background: var(--manager-blue) !important;
+        }
+        #missionModal .btn-modal-confirm:hover {
+            background: var(--manager-blue-dark) !important;
+        }
+
+        /* 5. 添加成员弹窗 (Add Member Modal) 头部 */
+        /* 之前这里使用了内联样式的绿色，用 !important 覆盖它 */
+        #addMemberModal .modal-header {
+            background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-dark)) !important;
+        }
+        
+        /* 6. 添加成员按钮虚线框悬停色 */
+        .btn-add-member:hover {
+            border-color: var(--manager-blue) !important;
+            color: var(--manager-blue) !important;
+        }
+	</style>
 </head>
 <body>
 
@@ -1535,29 +2239,88 @@
 </div>
 
 <div class="container">
-    <header>
+	<header>
         <div>
             <div class="brand-logo">
                 <span class="top">TRIANGLE</span>
                 <span class="btm">AGENCY</span>
+                <!-- 将页面标题移入 brand-logo 下方，或者紧跟其后 -->
+                <div class="page-title" style="margin-top:2px;">// MANAGER CONSOLE</div>
             </div>
-            <div class="page-title">// 经理控制台</div>
         </div>
+        
+        <!-- 桌面端按钮组 -->
         <div class="btn-group">
+            <!-- 分部信息 (仅桌面端显示) -->
             <div class="branch-info" id="branchInfo" style="display:none;">
                 <span class="branch-name"><i class="fas fa-building"></i> <span id="branchNameDisplay">--</span></span>
                 <span class="branch-scatter">总逸散端: <span id="branchScatterDisplay">0</span></span>
             </div>
-            <button class="btn-inbox" onclick="openInboxModal()">
+			
+            <!-- 收件箱 -->
+            <button class="btn-nav inbox" onclick="openInboxModal()">
                 <i class="fas fa-envelope"></i> 收件箱
                 <span class="inbox-badge" id="inboxBadge">0</span>
             </button>
-            <button class="btn-logout" onclick="goToDashboard()">
-                <i class="fas fa-folder"></i> 我的档案
+			
+            <!-- 管理台 (仅 Role=2 显示) -->
+            <button class="btn-nav admin" id="deskBtnAdmin" onclick="goAdmin()" style="display:none;">
+                <i class="fas fa-shield-alt"></i> 管理台
             </button>
-            <button class="btn-logout" onclick="logout()"><i class="fas fa-power-off"></i></button>
+            
+
+
+            <!-- 档案库 -->
+            <button class="btn-nav archive" onclick="goToDashboard()">
+                <i class="fas fa-folder"></i> 档案库
+            </button>
+
+            <!-- 退出 -->
+            <button class="btn-nav logout" onclick="logout()">
+                <i class="fas fa-power-off"></i>
+            </button>
         </div>
+
+        <!-- 移动端菜单按钮 -->
+        <button class="menu-toggle" onclick="toggleSideMenu()">
+            <span>菜单</span>
+            <div class="tri-icon">
+                <div class="tri t1"></div>
+                <div class="tri t2"></div>
+                <div class="tri t3"></div>
+            </div>
+        </button>
     </header>
+
+    <!-- 侧滑菜单结构 -->
+    <div class="side-menu-overlay" id="sideMenuOverlay" onclick="closeSideMenu()"></div>
+    <div class="side-menu" id="sideMenu">
+        <div class="side-menu-header">
+            <div class="brand-sm">TRIANGLE AGENCY</div>
+            <button class="side-menu-close" onclick="closeSideMenu()">&times;</button>
+        </div>
+        <div class="side-menu-content">
+            <!-- 管理台 (Role 2) -->
+            <div class="menu-item admin" id="mobBtnAdmin" onclick="closeSideMenu(); goAdmin();" style="display:none;">
+                <i class="fas fa-shield-alt"></i> 管理台
+            </div>
+            
+            <!-- 收件箱 -->
+            <div class="menu-item inbox" onclick="closeSideMenu(); openInboxModal();">
+                <i class="fas fa-envelope"></i> 收件箱
+            </div>
+
+            <!-- 档案库 -->
+            <div class="menu-item archive" onclick="closeSideMenu(); goToDashboard();">
+                <i class="fas fa-folder"></i> 档案库
+            </div>
+
+            <!-- 退出 -->
+            <div class="menu-item logout" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> 退出登录
+            </div>
+        </div>
+    </div>
 
     <!-- 主标签导航 -->
     <div class="main-tabs">
@@ -1680,13 +2443,12 @@
                         </div>
                     </div>
                     <div class="value-input-group">
-                        <label>逸散端</label>
+                        <label>散逸端</label>
                         <div class="value-input-wrapper">
                             <button class="value-btn" onclick="adjustMissionValue('scatter', -1)"><i class="fas fa-minus"></i></button>
                             <input type="number" id="missionScatterValue" value="0">
                             <button class="value-btn" onclick="adjustMissionValue('scatter', 1)"><i class="fas fa-plus"></i></button>
                         </div>
-                        <span class="value-hint">可为负数</span>
                     </div>
                     <button class="btn-save-values" onclick="saveMissionValues()">
                         <i class="fas fa-save"></i> 保存数值
@@ -2004,7 +2766,35 @@
     if (!token || role < 1) {
         window.location.href = 'login.html';
     }
+// === 页面过渡动画逻辑 ===
+    function createTransition(text, url) {
+        const overlay = document.getElementById('transition-overlay');
+        const loaderText = document.getElementById('transition-text');
+        
+        // 设置加载文字 + 动态省略号
+        if (loaderText) {
+            loaderText.innerHTML = `${text}<span class="dots"></span>`;
+        }
+        
+        // 激活遮罩层
+        if (overlay) {
+            overlay.classList.add('active');
+        }
+        
+        // 延迟跳转 (配合 CSS 动画时间 0.8s + 缓冲)
+        setTimeout(() => {
+            window.location.href = url;
+        }, 1200);
+    }
 
+    function goAdmin() {
+        createTransition('权限认证中', 'admin.html');
+    }
+
+    function goToDashboard() {
+        createTransition('档案读取中', 'dashboard.html');
+    }
+	
     function getAuthHeaders() {
         return {
             'Content-Type': 'application/json',
@@ -2018,42 +2808,108 @@
         toast.className = 'toast show' + (success ? ' success' : '');
         setTimeout(() => toast.classList.remove('show'), 3000);
     }
-    
-    // 新增：跳转到Dashboard的函数
-    function goToDashboard() {
-        const overlay = document.getElementById('transition-overlay');
-        const loaderText = document.getElementById('transition-text');
-
-        // 设置指定的加载文本
-        loaderText.innerHTML = '档案读取中<span class="dots"></span>';
-        
-        // 激活过渡动画
-        overlay.classList.add('active');
-
-        // 动画播放后跳转
-        setTimeout(() => {
-            window.location.href = 'dashboard.html';
-        }, 1200);
-    }
 
     // 加载已授权的角色
     async function loadCharacters() {
+        console.log('loadCharacters called'); // 临时调试日志
+        
+        // #region agent log
         try {
+            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2044',message:'loadCharacters called',data:{hasToken:!!token},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+        } catch (logErr) {
+            console.error('Log error:', logErr);
+        }
+        // #endregion
+
+        try {
+            console.log('loadCharacters: starting fetch'); // 临时调试日志
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2046',message:'Before fetch API',data:{url:'/api/manager/characters'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+            // #endregion
+
+            // 添加超时处理
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
+
             const res = await fetch('/api/manager/characters', {
-                headers: getAuthHeaders()
+                headers: getAuthHeaders(),
+                signal: controller.signal
             });
+
+            clearTimeout(timeoutId);
+
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2049',message:'Fetch response received',data:{status:res.status,statusText:res.statusText,ok:res.ok},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+            // #endregion
+
+            if (!res.ok) {
+                // #region agent log
+                fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2051',message:'Response not OK',data:{status:res.status,statusText:res.statusText},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+                // #endregion
+
+                const container = document.getElementById('charList');
+                if (container) {
+                    container.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>加载失败</h3>
+                        <p>状态码: ${res.status}</p>
+                    </div>`;
+                }
+                showToast('加载失败');
+                return;
+            }
+
             const chars = await res.json();
+
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2050',message:'JSON parsed',data:{charsCount:chars?.length||0,isArray:Array.isArray(chars)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+            // #endregion
+
             renderCharacters(chars);
+
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2050',message:'renderCharacters called',data:{charsCount:chars?.length||0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+            // #endregion
+
         } catch (e) {
-            console.error(e);
-            showToast('加载失败');
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2052',message:'Exception caught',data:{errorMessage:e.message,errorName:e.name,errorStack:e.stack?.substring(0,200),isAbortError:e.name==='AbortError'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+            // #endregion
+
+            console.error('loadCharacters error:', e);
+            const container = document.getElementById('charList');
+            if (container) {
+                const errorMsg = e.name === 'AbortError' ? '请求超时，请检查网络连接' : (e.message || '未知错误');
+                container.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>加载失败</h3>
+                    <p>${errorMsg}</p>
+                    <button onclick="loadCharacters()" style="margin-top:10px;padding:8px 16px;background:#3498db;color:white;border:none;border-radius:4px;cursor:pointer;">重试</button>
+                </div>`;
+            }
+            showToast('加载失败: ' + (e.message || '未知错误'));
         }
     }
 
     function renderCharacters(chars) {
         const container = document.getElementById('charList');
 
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2057',message:'renderCharacters called',data:{containerExists:!!container,charsCount:chars?.length||0,charsIsArray:Array.isArray(chars)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
+
+        if (!container) {
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2058',message:'Container not found',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+            // #endregion
+            return;
+        }
+
         if (!chars || chars.length === 0) {
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2060',message:'Empty chars array',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+            // #endregion
+
             container.innerHTML = `
                 <div class="empty-state" style="grid-column: 1/-1;">
                     <i class="fas fa-folder-open"></i>
@@ -2113,7 +2969,56 @@
             `
         }).join('');
     }
+// ==========================================
+    // 【修改】手机端手势 - 右侧菜单 (Right Sidebar)
+    // ==========================================
+// ==========================================
+    // 【修改】手机端手势 - 右侧菜单 (Right Sidebar)
+    // ==========================================
+    let touchStartX = 0;
+    let touchStartY = 0;
+    const swipeThreshold = 80; // 滑动触发距离
+    const edgeThreshold = 60;  // 边缘检测距离 (从屏幕边缘多少像素内开始滑动才有效)
 
+    document.addEventListener('touchstart', e => {
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+    }, {passive: true});
+
+    document.addEventListener('touchend', e => {
+        const touchEndX = e.changedTouches[0].screenX;
+        const touchEndY = e.changedTouches[0].screenY;
+        handleSwipe(touchStartX, touchStartY, touchEndX, touchEndY);
+    }, {passive: true});
+
+    function handleSwipe(startX, startY, endX, endY) {
+        const xDiff = endX - startX; // 正数=向右滑，负数=向左滑
+        const yDiff = endY - startY;
+        const menu = document.getElementById('sideMenu');
+        const isOpen = menu.classList.contains('show');
+        const screenWidth = window.innerWidth;
+
+        // 1. 过滤垂直滚动：如果垂直移动幅度 > 水平移动幅度，视为滚动页面，不触发侧滑
+        if (Math.abs(yDiff) > Math.abs(xDiff)) return;
+
+        // 2. 打开菜单逻辑 (Open Menu)
+        // 条件：
+        // a. 菜单目前是关闭的 (!isOpen)
+        // b. 向左滑动 (xDiff < -swipeThreshold)
+        // c. 起始点在屏幕右侧边缘 (startX > screenWidth - edgeThreshold)
+        if (!isOpen && xDiff < -swipeThreshold && startX > (screenWidth - edgeThreshold)) {
+            toggleSideMenu();
+        }
+
+        // 3. 关闭菜单逻辑 (Close Menu)
+        // 条件：
+        // a. 菜单目前是打开的 (isOpen)
+        // b. 向右滑动 (xDiff > swipeThreshold)
+        if (isOpen && xDiff > swipeThreshold) {
+            closeSideMenu();
+        }
+    }
+	
     // ==========================================================
     // MODIFIED: 在跳转时增加 from=manager 参数
     // ==========================================================
@@ -2276,7 +3181,30 @@
             showToast('保存失败');
         }
     }
-    
+	
+    // --- 侧边栏控制 ---
+    function toggleSideMenu() {
+        document.getElementById('sideMenu').classList.add('show');
+        document.getElementById('sideMenuOverlay').classList.add('show');
+    }
+    function closeSideMenu() {
+        document.getElementById('sideMenu').classList.remove('show');
+        document.getElementById('sideMenuOverlay').classList.remove('show');
+    }
+
+    // --- 导航显隐逻辑 (Manager页) ---
+    (function initNav() {
+        const role = parseInt(localStorage.getItem('ta_role') || '0');
+        
+        // 只有超管 (Role 2) 才能看到"管理台"入口
+        // (注：在 Manager 页面不需要显示"经理台"入口)
+        if (role >= 2) {
+            if(document.getElementById('deskBtnAdmin')) 
+                document.getElementById('deskBtnAdmin').style.display = 'inline-flex';
+            if(document.getElementById('mobBtnAdmin')) 
+                document.getElementById('mobBtnAdmin').style.display = 'flex';
+        }
+    })();
     // ==========================================
     // 高墙文件授权功能（按角色卡授权）
     // ==========================================
@@ -2555,18 +3483,21 @@
     let missionsList = [];
     let inboxMessages = [];
 
-    async function loadMissions() {
-        try {
-            const res = await fetch('/api/manager/missions', {
-                headers: getAuthHeaders()
-            });
-            if (!res.ok) throw new Error('加载任务失败');
-            missionsList = await res.json();
-            renderMissions();
-        } catch (e) {
-            console.error('加载任务失败:', e);
-        }
-    }
+	// 加载任务列表
+	async function loadMissions() {
+		try {
+			// 关键：在 URL 中附加上当前选中的标签页状态 (currentMissionTab)
+			const res = await fetch(`/api/manager/missions?status=${currentMissionTab}`, {
+				headers: getAuthHeaders()
+			});
+			if (!res.ok) throw new Error('加载任务失败');
+			missionsList = await res.json();
+			renderMissions(); // 获取到新数据后，立即渲染
+		} catch (e) {
+			console.error('加载任务失败:', e);
+			document.getElementById('missionList').innerHTML = `<div class="mission-empty">加载失败</div>`;
+		}
+	}
 
     function renderMissions() {
         const container = document.getElementById('missionList');
@@ -2621,12 +3552,15 @@
         }).join('');
     }
 
-    function switchMissionTab(tab) {
-        currentMissionTab = tab;
-        document.querySelectorAll('.mission-tabs button').forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
-        renderMissions();
-    }
+	// 切换任务标签页 (进行中 / 已归档)
+	function switchMissionTab(tab) {
+		currentMissionTab = tab; // 更新全局状态变量
+		document.querySelectorAll('.mission-tabs button').forEach(btn => btn.classList.remove('active'));
+		event.target.classList.add('active');
+		
+		// 关键：切换后，调用 loadMissions() 重新从服务器获取数据
+		loadMissions(); 
+	}
 
     function openMissionModal(editId = null) {
         currentMissionId = editId;
@@ -2807,6 +3741,10 @@
     async function addMemberToMission(charId, charName) {
         if (!addMemberMissionId) return;
 
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2805',message:'addMemberToMission called',data:{charId,charName,addMemberMissionId,currentMissionDetailId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+        // #endregion
+
         try {
             const res = await fetch(`/api/manager/mission/${addMemberMissionId}/member`, {
                 method: 'POST',
@@ -2815,15 +3753,39 @@
             });
 
             const data = await res.json();
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2815',message:'API response received',data:{success:data.success,missionId:addMemberMissionId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+            // #endregion
+
             if (data.success) {
                 showToast(`已添加 ${charName}`, true);
+                
+                // 保存 missionId 用于后续刷新，因为 closeAddMemberModal 会清空它
+                const missionIdToRefresh = addMemberMissionId;
                 closeAddMemberModal();
+                
+                // #region agent log
+                fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2819',message:'Before loadMissions',data:{missionsListLength:missionsList.length,currentMissionDetailId,missionIdToRefresh},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+                // #endregion
+
                 await loadMissions();
 
+                // #region agent log
+                fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2822',message:'After loadMissions',data:{missionsListLength:missionsList.length,currentMissionDetailId,missionIdToRefresh},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+                // #endregion
+
                 // 如果在任务详情页，刷新成员列表
-                if (currentMissionDetailId && currentMissionDetailId === addMemberMissionId) {
+                if (currentMissionDetailId && currentMissionDetailId === missionIdToRefresh) {
                     const mission = missionsList.find(m => m.id === currentMissionDetailId);
+                    // #region agent log
+                    fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2824',message:'Finding mission in list',data:{missionFound:!!mission,missionMembersCount:mission?.members?.length||0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+                    // #endregion
+
                     if (mission) {
+                        // #region agent log
+                        fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:2825',message:'Calling renderMissionDetailMembers',data:{membersCount:mission.members?.length||0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+                        // #endregion
+
                         renderMissionDetailMembers(mission.members || []);
                     }
                 }
@@ -3171,10 +4133,22 @@
     function renderMissionDetailMembers(members) {
         const container = document.getElementById('missionDetailMembers');
 
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:3170',message:'renderMissionDetailMembers called',data:{membersCount:members?.length||0,membersArray:members?.map(m=>({id:m.character_id,name:m.name}))||[]},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+        // #endregion
+
         if (!members || members.length === 0) {
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:3173',message:'Empty members list - returning early',data:{containerExists:!!container},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+            // #endregion
+
             container.innerHTML = '<div class="no-members">暂无成员，点击上方"添加特工"按钮添加</div>';
             return;
         }
+
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:3177',message:'Rendering members',data:{membersCount:members.length,containerWidth:container?.offsetWidth},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+        // #endregion
 
         container.innerHTML = members.map(member => {
             const initial = (member.name || '?').charAt(0).toUpperCase();
@@ -3205,6 +4179,10 @@
                 </div>
             `;
         }).join('');
+
+        // #region agent log
+        setTimeout(()=>{const cards=container.querySelectorAll('.agent-card');cards.forEach((card,i)=>{fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:3205',message:'Card rendered dimensions',data:{cardIndex:i,cardWidth:card.offsetWidth,cardScrollWidth:card.scrollWidth,infoWidth:card.querySelector('.agent-info')?.offsetWidth,actionsWidth:card.querySelector('.agent-actions')?.offsetWidth},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});});},100);
+        // #endregion
     }
 
     // ==================== 任务报告管理 ====================
@@ -3705,6 +4683,7 @@
     async function removeMemberFromDetail(charId) {
         if (!currentMissionDetailId) return;
         if (!confirm('确定要从任务中移除此特工吗？')) return;
+                // 刷新详情页面
 
         try {
             const res = await fetch(`/api/manager/mission/${currentMissionDetailId}/member/${charId}`, {
@@ -3716,7 +4695,6 @@
             if (data.success) {
                 showToast('特工已移除', true);
                 await loadMissions();
-                // 刷新详情页面
                 const mission = missionsList.find(m => m.id === currentMissionDetailId);
                 if (mission) {
                     renderMissionDetailMembers(mission.members || []);
@@ -3810,7 +4788,24 @@
     // ==========================================
 
     // 初始化页面
-    loadCharacters();
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.html:3929',message:'Page initialization started',data:{hasToken:!!token,role},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
+
+    try {
+        loadCharacters();
+    } catch (e) {
+        console.error('loadCharacters failed:', e);
+        const container = document.getElementById('charList');
+        if (container) {
+            container.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>初始化失败</h3>
+                <p>${e.message || '未知错误'}</p>
+            </div>`;
+        }
+    }
+    
     loadMissions();
     loadInbox();
     loadMyBranch();

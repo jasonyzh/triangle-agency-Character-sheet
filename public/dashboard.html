@@ -60,7 +60,9 @@
             margin-bottom: 40px; padding-bottom: 20px;
             border-bottom: 2px solid rgba(255,255,255,0.1);
         }
-        
+		
+
+		
         .brand-logo {
             display: flex; flex-direction: column; line-height: 0.9;
             font-weight: 900; font-style: italic; text-transform: uppercase;
@@ -68,35 +70,69 @@
         .brand-logo .top { font-size: 24px; letter-spacing: 2px; color: #fff; }
         .brand-logo .btm { font-size: 14px; letter-spacing: 4px; color: var(--signal-red); margin-left: 2px; }
 
-        .btn-group { display: flex; gap: 12px; }
+        .btn-group { 
+            display: flex; 
+            gap: 10px; 
+            align-items: center; 
+        }
         
         .btn { 
-            padding: 10px 18px; border-radius: 4px; cursor: pointer; border: none; 
-            font-weight: bold; font-size: 13px; display: inline-flex; align-items: center; 
-            gap: 8px; transition: all 0.2s; text-transform: uppercase; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            height: 38px; /* 统一高度 */
+            padding: 0 16px; /* 统一内边距 */
+            border-radius: 4px; 
+            cursor: pointer; 
+            border: none; 
+            font-weight: 700; 
+            font-size: 13px; 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center;
+            gap: 8px; 
+            transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
+            text-transform: uppercase; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            color: white; /* 统一文字颜色 */
+            text-decoration: none;
+            line-height: 1;
         }
-        .btn-new { background: var(--signal-red); color: white; }
-        .btn-new:hover { background: #e74c3c; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(192, 57, 43, 0.3); }
-        .btn-logout { background: #fff; color: #555; }
-        /* 修改: 为退出按钮增加悬浮特效 */
-        .btn-logout:hover { background: #f0f0f0; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }
-        .btn-console { background: #3498db; color: white; }
-        .btn-console:hover { background: #2980b9; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3); }
-        .btn-console.admin { background: #9b59b6; }
-        .btn-console.admin:hover { background: #8e44ad; box-shadow: 0 5px 15px rgba(155, 89, 182, 0.3); }
-        
-        /* 新增: 高墙按钮样式 */
-        .btn-highwall { background: #2c3e50; color: white; }
-        .btn-highwall:hover { background: #34495e; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(44, 62, 80, 0.3); }
+		.btn i { width: 16px; text-align: center; }
+		.btn:hover { transform: translateY(-2px); }
+        .btn:active { transform: translateY(0); }
+		
+		
+        .btn-new { background: var(--signal-red); }
+        .btn-new:hover { background: #e74c3c; box-shadow: 0 5px 15px rgba(192, 57, 43, 0.3); }
 
+		.btn-logout { background: #fff; color: #555; border: 1px solid #eee; }
+        .btn-logout:hover { background: #f8f9fa; color: var(--signal-red); transform: translateY(-2px); }
+        .btn-console { background: #E06B56; color: white; }
+        .btn-console:hover { 
+            background: #cf5d48; /* 稍微调深一点作为悬停色 */
+            transform: translateY(-2px); 
+            box-shadow: 0 5px 15px rgba(224, 107, 86, 0.3); 
+        }
+        .btn-manager { background: #E06B56; }
+        .btn-manager:hover { background: #cf5d48; box-shadow: 0 5px 15px rgba(224, 107, 86, 0.3); }
+		.btn-admin { background: #d63031; }
+        .btn-admin:hover { background: #c0392b; box-shadow: 0 5px 15px rgba(214, 48, 49, 0.3); }
+
+		
+        /* === 管理台 (Admin) - 配色 红色 === */
+        .btn-console.admin { background: #d63031; /* 鲜艳的红色 */ }
+        .btn-console.admin:hover { 
+            background: #c0392b; 
+            box-shadow: 0 5px 15px rgba(214, 48, 49, 0.3); 
+        }
         
+        .btn-highwall { background: #2c3e50; }
+        .btn-highwall:hover { background: #34495e; box-shadow: 0 5px 15px rgba(44, 62, 80, 0.3); }
+		
         .grid { 
             display: grid; 
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
             gap: 20px; 
         }
-		        /* 半透明磨砂信息块 */
-        .info-field {
+		.info-field {
             display: flex; flex-direction: column; padding: 10px 14px; border-radius: 4px;
             background: rgba(241, 245, 249, 0.65); 
             backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
@@ -184,17 +220,14 @@
             border-right: 5px solid transparent;
             border-bottom: 9px solid var(--signal-red);
         }
-        /* 顶部三角 */
         .menu-toggle .t1 {
             left: 5px; top: 0;
             animation: tri-pulse-top 2.5s ease-in-out infinite;
         }
-        /* 左下三角 */
         .menu-toggle .t2 {
             left: 0; top: 9px;
             animation: tri-pulse-left 2.5s ease-in-out infinite;
         }
-        /* 右下三角 */
         .menu-toggle .t3 {
             left: 10px; top: 9px;
             animation: tri-pulse-right 2.5s ease-in-out infinite;
@@ -212,172 +245,218 @@
             50% { transform: translate(4px, 3px); opacity: 0.7; }
         }
 
-        /* 侧滑菜单 */
-        .side-menu-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6);
-            z-index: 4000;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .side-menu-overlay.show {
-            display: block;
-            opacity: 1;
+       /* =========================================
+       【统一】侧滑菜单样式 (Unified Sidebar)
+       ========================================= */
+    .side-menu-overlay {
+        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.7); backdrop-filter: blur(2px); z-index: 9998;
+        opacity: 0; transition: opacity 0.3s;
+    }
+    .side-menu-overlay.show { display: block; opacity: 1; }
+
+/* =========================================
+       【修改】侧滑菜单 - 右侧布局 (Right Sidebar)
+       ========================================= */
+    .side-menu {
+        position: fixed; 
+        top: 0; 
+        right: -280px; /* 默认隐藏在右侧 */
+        left: auto;    /* 清除左侧定位 */
+        width: 260px; 
+        height: 100%;
+        background: linear-gradient(180deg, #1a252f 0%, #0f172a 100%);
+        z-index: 9999; 
+        transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* 动画属性改为 right */
+        display: flex; 
+        flex-direction: column;
+        box-shadow: -10px 0 40px rgba(0,0,0,0.5); /* 阴影投向左侧 */
+        border-left: 1px solid rgba(255,255,255,0.05); /* 左侧边框 */
+        border-right: none;
+    }
+    
+    /* 激活状态：right 变为 0 */
+    .side-menu.show { 
+        right: 0; 
+    }
+
+    .side-menu-header {
+        padding: 30px 20px; border-bottom: 1px solid rgba(255,255,255,0.1);
+        display: flex; justify-content: space-between; align-items: center;
+        background: rgba(0,0,0,0.2);
+    }
+    .side-menu-header .brand-sm { font-weight: 900; font-style: italic; letter-spacing: 1px; color: white; font-size: 18px; }
+    .side-menu-header .brand-sm span { color: var(--signal-red); font-size: 12px; display: block; letter-spacing: 3px; }
+    
+    .side-menu-close {
+        background: none; border: none; color: rgba(255,255,255,0.4);
+        font-size: 24px; cursor: pointer; transition: 0.2s;
+    }
+    .side-menu-close:hover { color: white; transform: scale(1.1); }
+
+    .side-menu-content {
+        flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 12px;
+        overflow-y: auto;
+    }
+
+    /* 统一菜单项样式 */
+    .menu-item {
+        display: flex; align-items: center; gap: 15px; padding: 16px 20px;
+        background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 8px; color: rgba(255,255,255,0.8); font-size: 13px; font-weight: 700;
+        cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px;
+    }
+    .menu-item i { width: 20px; text-align: center; font-size: 14px; opacity: 0.8; }
+    .menu-item:hover {
+        background: rgba(255,255,255,0.08); transform: translateX(-5px);
+        color: white; border-color: rgba(255,255,255,0.2);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    /* === 特定功能按钮配色 (使用 !important 覆盖默认) === */
+    /* 档案库/高墙 (蓝色) */
+    .menu-item.archive, .menu-item.highwall { 
+        border-left: 3px solid #3498db !important;
+    }
+    .menu-item.archive:hover, .menu-item.highwall:hover { background: rgba(52, 152, 219, 0.15) !important; color: #3498db !important; }
+
+    /* 经理台 (橙红) */
+    .menu-item.manager { 
+        border-left: 3px solid #E06B56 !important;
+    }
+    .menu-item.manager:hover { background: rgba(224, 107, 86, 0.15) !important; color: #E06B56 !important; }
+
+    /* 管理台 (正红) */
+    .menu-item.admin { 
+        border-left: 3px solid #d63031 !important;
+    }
+    .menu-item.admin:hover { background: rgba(214, 48, 49, 0.15) !important; color: #d63031 !important; }
+
+    /* 收件箱 (紫色) */
+    .menu-item.inbox { 
+        border-left: 3px solid #8e44ad !important;
+    }
+    .menu-item.inbox:hover { background: rgba(142, 68, 173, 0.15) !important; color: #8e44ad !important; }
+
+    /* 退出登录 */
+    .menu-item.logout {
+        margin-top: auto; border: 1px dashed rgba(255,255,255,0.2); background: transparent;
+    }
+    .menu-item.logout:hover {
+        border-color: var(--signal-red); color: var(--signal-red); background: rgba(192, 57, 43, 0.1);
+    }
+	
+		/* === 桌面端：高墙按钮 (改为蓝色 #3498db) === */
+        .btn-highwall { background: #3498db; }
+        .btn-highwall:hover { 
+            background: #2980b9; /* 悬停变深 */
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3); 
         }
 
-        .side-menu {
-            position: fixed;
-            top: 0; right: -280px;
-            width: 260px;
-            height: 100%;
-            background: linear-gradient(180deg, #1a252f 0%, #0f172a 100%);
-            z-index: 4001;
-            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            flex-direction: column;
-            box-shadow: -5px 0 30px rgba(0,0,0,0.3);
-        }
-        .side-menu.show {
-            right: 0;
-        }
-
-        .side-menu-header {
-            padding: 25px 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .side-menu-header .brand-sm {
-            font-weight: 900;
-            font-style: italic;
-        }
-        .side-menu-header .brand-sm .t { color: white; font-size: 16px; }
-        .side-menu-header .brand-sm .a { color: var(--signal-red); font-size: 10px; letter-spacing: 2px; display: block; }
-
-        .side-menu-close {
-            background: none;
-            border: none;
-            color: rgba(255,255,255,0.5);
-            font-size: 24px;
-            cursor: pointer;
-            padding: 5px;
-        }
-        .side-menu-close:hover { color: white; }
-
-        .side-menu-content {
-            flex: 1;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .menu-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 16px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 8px;
-            color: white;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .menu-item:hover {
-            background: rgba(255,255,255,0.1);
-            transform: translateX(-3px);
-        }
-        .menu-item i {
-            width: 20px;
-            text-align: center;
-            font-size: 14px;
-        }
-        .menu-item.primary {
-            background: var(--signal-red);
-            border-color: var(--signal-red);
-        }
-        .menu-item.primary:hover {
-            background: #e74c3c;
-        }
-        .menu-item.console {
-            background: rgba(52, 152, 219, 0.2);
-            border-color: #3498db;
-            color: #3498db;
-        }
-        .menu-item.console:hover {
-            background: #3498db;
-            color: white;
-        }
-        .menu-item.admin {
-            background: rgba(155, 89, 182, 0.2);
-            border-color: #9b59b6;
-            color: #9b59b6;
-        }
-        .menu-item.admin:hover {
-            background: #9b59b6;
-            color: white;
-        }
-        .menu-item.logout {
-            margin-top: auto;
-            background: transparent;
-            border-color: rgba(255,255,255,0.2);
-            color: rgba(255,255,255,0.6);
-        }
-        .menu-item.logout:hover {
-            background: rgba(231, 76, 60, 0.2);
-            border-color: var(--signal-red);
-            color: var(--signal-red);
-        }
-
-        /* 手机端适配 */
-        @media (max-width: 600px) {
-            body { padding: 12px; }
-
-            .menu-toggle { display: flex; }
-            .btn-group { display: none; }
-
-            header {
-                margin-bottom: 20px;
-                padding-bottom: 15px;
+       
+		/* === 移动端布局修正 === */
+        @media (max-width: 768px) {
+            header { 
+                /* 关键修改：改为水平排列，两端对齐 */
+                flex-direction: row; 
+                justify-content: space-between; 
+                align-items: center; 
+                
+                margin-bottom: 20px; 
+                padding-bottom: 15px; 
             }
 
+            /* 隐藏桌面端按钮组 */
+            .btn-group { display: none; } 
+            
+/* =========================================
+           【统一】手机端菜单按钮样式 (Unified Menu Button)
+           ========================================= */
+        .menu-toggle {
+            display: none; /* 桌面端默认隐藏 */
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 0 12px;
+            height: 36px; /* 统一高度 */
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+        }
+
+        .menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: var(--signal-red);
+            color: white;
+            box-shadow: 0 0 10px rgba(192, 57, 43, 0.3);
+        }
+
+        /* 三角形图标容器 */
+        .menu-toggle .tri-icon {
+            position: relative;
+            width: 18px;
+            height: 16px;
+        }
+
+        /* 小三角形构造 */
+        .menu-toggle .tri {
+            position: absolute;
+            width: 0; height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-bottom: 7px solid var(--signal-red); /* 统一红色 */
+        }
+
+        /* 三角形位置与动画 */
+        .menu-toggle .t1 { 
+            left: 5px; top: 0; 
+            animation: tri-pulse 2s infinite ease-in-out; 
+        }
+        .menu-toggle .t2 { 
+            left: 0; top: 8px; 
+            animation: tri-pulse 2s infinite ease-in-out 0.3s; 
+        }
+        .menu-toggle .t3 { 
+            left: 10px; top: 8px; 
+            animation: tri-pulse 2s infinite ease-in-out 0.6s; 
+        }
+
+        @keyframes tri-pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        /* 移动端显示控制 */
+        @media (max-width: 768px) {
+            .menu-toggle { display: flex !important; }
+        }
+
+            /* Logo样式微调 */
+            .brand-logo {
+                /* 移除之前的 flex设置，防止被拉伸 */
+                flex: 0 0 auto; 
+            }
+            .brand-logo .top { font-size: 20px; }
+            .brand-logo .btm { font-size: 12px; }
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 12px; }
+            header { margin-bottom: 20px; padding-bottom: 15px; }
             .grid { gap: 15px; }
             .char-card { padding: 15px; }
             .c-name { font-size: 18px; }
             .field-val { font-size: 13px; }
-
             .card-tools { gap: 6px; }
-            .tool-btn {
-                padding: 5px 8px;
-                font-size: 9px;
-            }
+            .tool-btn { padding: 5px 8px; font-size: 9px; }
         }
 
-        /* === 页面过渡遮罩 (文档展开效果) === */
-        #transition-overlay {
-            position: fixed; 
-            top: 0; left: 0; 
-            width: 100vw; height: 100vh;
-            background: #0f172a; 
-        /* === 移动端适配优化 === */
-        @media (max-width: 768px) {
-            header { flex-direction: column; align-items: flex-start; gap: 15px; margin-bottom: 20px; padding-bottom: 15px; }
-            .btn-group { width: 100%; display: flex; justify-content: space-between; gap: 8px; }
-            .btn { flex: 1; justify-content: center; padding: 10px 0; font-size: 14px; min-width: 40px; }
-            .btn-text { display: none; }
-            .brand-logo .top { font-size: 20px; }
-            .brand-logo .btm { font-size: 12px; }
-        }
-        
         /* === 卡片样式 === */
         .char-card { 
             background-color: var(--card-bg); padding: 20px; border-radius: 6px; 
@@ -392,11 +471,6 @@
         .card-header { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
         .c-name { font-size: 22px; font-weight: 800; color: var(--text-main); letter-spacing: 0.5px; }
         .info-group { display: flex; flex-direction: column; gap: 12px; }
-        .info-field { display: flex; flex-direction: column; padding: 10px 14px; border-radius: 4px; background: rgba(241, 245, 249, 0.65); backdrop-filter: blur(4px); border-left: 4px solid #ccc; transition: all 0.3s ease; border: 1px solid rgba(255,255,255,0.5); border-left-width: 4px; }
-        .info-field:hover { background: rgba(241, 245, 249, 0.9); transform: translateX(2px); }
-        .if-anom { border-left-color: var(--c-anom); } .if-anom .field-label { color: var(--c-anom); }
-        .if-real { border-left-color: var(--c-real); } .if-real .field-label { color: var(--c-real); }
-        .if-func { border-left-color: var(--c-func); } .if-func .field-label { color: var(--c-func); }
         .field-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 800; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; opacity: 0.9; }
         .field-val { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main); font-family: "Noto Sans SC", sans-serif; letter-spacing: 0.5px; }
         .c-actions { padding-top: 15px; border-top: 1px dashed var(--border-color); text-align: right; margin-top: auto; position: relative; z-index: 2; }
@@ -406,8 +480,23 @@
         .tool-btn { background: #f1f5f9; border: none; padding: 6px 10px; border-radius: 4px; font-size: 10px; cursor: pointer; display: flex; align-items: center; gap: 5px; color: #64748b; transition: all 0.2s; text-transform: uppercase; font-weight: bold; }
         .tool-btn:hover { background: #e2e8f0; color: var(--text-main); }
 
-        /* === 普通文档加载过渡 === */
-        #transition-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #0f172a; z-index: 8000; pointer-events: none; clip-path: inset(50% 0 50% 0); transition: clip-path 0.8s cubic-bezier(0.8, 0, 0.2, 1); display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        /* === 普通文档加载过渡 (FIXED: 修复了未闭合的括号) === */
+        #transition-overlay { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100vw; 
+            height: 100vh; 
+            background: #0f172a; 
+            z-index: 8000; 
+            pointer-events: none; 
+            clip-path: inset(50% 0 50% 0); 
+            transition: clip-path 0.8s cubic-bezier(0.8, 0, 0.2, 1); 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+        }
         #transition-overlay.active { pointer-events: all; clip-path: inset(0 0 0 0); }
         #transition-overlay::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 2px; background: var(--signal-red); z-index: 100; box-shadow: 0 0 15px var(--signal-red); opacity: 0; transition: opacity 0.2s; }
         #transition-overlay.active::before { opacity: 1; animation: line-fade 0.8s forwards; }
@@ -420,7 +509,6 @@
         @keyframes dot-steps { 0%, 20% { content: ''; } 40% { content: '.'; } 60% { content: '..'; } 80%, 100% { content: '...'; } }
 
         /* === 高墙特效 (V1 优化版) === */
-        
         #hw-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: #0f172a;
@@ -559,37 +647,42 @@
                 <span class="top">TRIANGLE</span>
                 <span class="btm">AGENCY</span>
             </div>
-            <div class="btn-group">
-                <button class="btn btn-console" id="btnConsole" style="display:none;" onclick="goConsole()"><i class="fas fa-cog"></i> <span>控制台</span></button>
-                <button class="btn btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> <span>退出</span></button>
-                <button class="btn btn-new" onclick="createNew()"><i class="fas fa-plus"></i> <span class="btn-text">新建档案</span></button>
-                <!-- 修改: 移除行内style, 添加class -->
-				<button class="btn btn-new" onclick="createNew()" title="新建档案">
-                    <i class="fas fa-plus"></i> <span class="btn-text">新建</span>
+            <!-- FIXED: 清理并整合了所有按钮 -->
+			<div class="btn-group">
+                <!-- 1. 新建 -->
+                <button class="btn btn-new" onclick="createNew()" title="新建档案">
+                    <i class="fas fa-plus"></i> <span>新建</span>
                 </button>
+                
+                <!-- 2. 高墙 -->
                 <button class="btn btn-highwall" onclick="enterHighWall()" title="高墙文件">
-                    <i class="fas fa-file-shield"></i> <span class="btn-text">高墙</span>
+                    <i class="fas fa-file-shield"></i> <span>高墙</span>
                 </button>
-                <button class="btn btn-console" id="btnManager" style="display:none;" onclick="goManager()" title="经理台">
-                    <i class="fas fa-user-tie"></i> <span class="btn-text">经理台</span>
+                
+                <!-- 3. 经理台 (默认隐藏) -->
+                <button class="btn btn-manager" id="btnManager" style="display:none;" onclick="goManager()" title="经理台">
+                    <i class="fas fa-user-tie"></i> <span>经理台</span>
                 </button>
-                <button class="btn btn-console" id="btnConsole" style="display:none;" onclick="goConsole()" title="管理台">
-                    <i class="fas fa-cog"></i> <span class="btn-text" id="btnConsoleText">控制台</span>
+                
+                <!-- 4. 控制台 (默认隐藏) -->
+                <button class="btn btn-admin" id="btnConsole" style="display:none;" onclick="goConsole()" title="管理控制台">
+                    <i class="fas fa-shield-alt"></i> <span>控制台</span>
                 </button>
+                
+                <!-- 退出 -->
                 <button class="btn btn-logout" onclick="logout()" title="登出">
-                    <i class="fas fa-sign-out-alt"></i> <span class="btn-text">退出</span>
+                    <i class="fas fa-sign-out-alt"></i> <span>退出</span>
                 </button>
-
             </div>
             <!-- 移动端菜单按钮 -->
-            <button class="menu-toggle" onclick="toggleSideMenu()">
-                <span>更多</span>
-                <div class="tri-icon">
-                    <div class="tri t1"></div>
-                    <div class="tri t2"></div>
-                    <div class="tri t3"></div>
-                </div>
-            </button>
+        <button class="menu-toggle" onclick="toggleSideMenu()">
+            <span>菜单</span>
+            <div class="tri-icon">
+                <div class="tri t1"></div>
+                <div class="tri t2"></div>
+                <div class="tri t3"></div>
+            </div>
+        </button>
         </header>
 
     <div id="list" class="grid"></div>
@@ -607,13 +700,26 @@
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        <div class="side-menu-content">
+		<div class="side-menu-content">
+            <!-- 新建 (这个样式是原本就对的) -->
             <div class="menu-item primary" onclick="closeSideMenu(); createNew();">
                 <i class="fas fa-plus"></i> 新建档案
             </div>
-            <div class="menu-item console" id="menuConsole" style="display:none;" onclick="closeSideMenu(); goConsole();">
+            <!-- 控制台 (必须有 class="admin") -->
+            <div class="menu-item admin" id="menuConsole" style="display:none;" onclick="closeSideMenu(); goConsole();">
+                <i class="fas fa-shield-alt"></i> <span>控制台</span>
+            </div>
+            <!-- 经理台 (必须有 class="manager") -->
+            <div class="menu-item manager" id="menuManager" style="display:none;" onclick="closeSideMenu(); goManager();">
                 <i class="fas fa-user-tie"></i> <span>经理台</span>
             </div>
+            <!-- 高墙 -->
+            <div class="menu-item highwall" onclick="closeSideMenu(); enterHighWall();">
+                <i class="fas fa-file-shield"></i> 高墙文件
+            </div>
+
+
+            <!-- 退出 -->
             <div class="menu-item logout" onclick="closeSideMenu(); logout();">
                 <i class="fas fa-sign-out-alt"></i> 退出登录
             </div>
@@ -642,38 +748,53 @@
         const userRole = parseInt(localStorage.getItem('ta_role') || '0');
         if(!uid) window.location.href = 'login.html';
 
+        // FIXED: 重写了整个函数以修复Git冲突和逻辑错误
         (function initConsoleButton() {
-            const btnConsole = document.getElementById('btnConsole');
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-            const menuConsole = document.getElementById('menuConsole');
+            const btnConsole = document.getElementById('btnConsole'); // 管理台按钮
+            const btnManager = document.getElementById('btnManager'); // 经理台按钮
+            const menuConsole = document.getElementById('menuConsole'); 
+            const menuManager = document.getElementById('menuManager');
 
-=======
-            const btnManager = document.getElementById('btnManager');
->>>>>>> Stashed changes
-=======
-            const btnManager = document.getElementById('btnManager');
->>>>>>> Stashed changes
-            if (userRole >= 2) {
-                // 超管同时显示管理台和经理台
-                btnConsole.style.display = 'inline-flex';
-                btnConsole.classList.add('admin');
-                btnConsole.innerHTML = '<i class="fas fa-shield-alt"></i> <span>管理台</span>';
-                // 移动端菜单
-                menuConsole.style.display = 'flex';
-                menuConsole.classList.remove('console');
-                menuConsole.classList.add('admin');
-                menuConsole.innerHTML = '<i class="fas fa-shield-alt"></i> <span>管理台</span>';
-                btnConsole.innerHTML = '<i class="fas fa-shield-alt"></i> <span class="btn-text">管理台</span>';
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/7f6c3e5f-bc14-4e4d-90dc-94943ff03c25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard.html:628',message:'initConsoleButton called',data:{userRole:userRole},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+            // #endregion
+
+            if (userRole >= 2) { // === 超级管理员 (显示全部) ===
+                
+                // 1. 桌面端显示
                 btnManager.style.display = 'inline-flex';
-            } else if (userRole >= 1) {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
                 btnConsole.style.display = 'inline-flex';
-                btnConsole.innerHTML = '<i class="fas fa-user-tie"></i> <span>经理台</span>';
-                // 移动端菜单
-                menuConsole.style.display = 'flex';
-                menuConsole.innerHTML = '<i class="fas fa-user-tie"></i> <span>经理台</span>';
+                
+                // 2. 移动端显示 - 经理台
+                if(menuManager) {
+                    menuManager.style.display = 'flex';
+                    menuManager.classList.add('console'); // 蓝色样式
+                }
+
+                // 3. 移动端显示 - 管理台
+                if(menuConsole) {
+                    menuConsole.style.display = 'flex';
+                    menuConsole.classList.add('admin');   // 紫色样式
+                }
+
+            } else if (userRole >= 1) { // === 经理 (只显示经理台) ===
+                
+                // 1. 桌面端显示
+                btnManager.style.display = 'inline-flex';
+                
+                // 2. 移动端显示 - 经理台
+                if(menuManager) {
+                    menuManager.style.display = 'flex';
+                    menuManager.classList.add('console');
+                }
+                
+                // 3. 确保管理台隐藏
+                if(menuConsole) menuConsole.style.display = 'none';
+
+            } else { // === 普通用户 ===
+                // 确保全部隐藏
+                if(menuManager) menuManager.style.display = 'none';
+                if(menuConsole) menuConsole.style.display = 'none';
             }
         })();
 
@@ -690,24 +811,6 @@
             document.body.style.overflow = '';
         }
 
-        function goConsole() {
-            if (userRole >= 2) {
-                window.location.href = 'admin.html';
-            } else if (userRole >= 1) {
-                window.location.href = 'manager.html';
-            }
-                btnConsole.innerHTML = '<i class="fas fa-user-tie"></i> <span class="btn-text">经理台</span>';
-=======
-                // 经理只显示经理台
-                btnManager.style.display = 'inline-flex';
->>>>>>> Stashed changes
-=======
-                // 经理只显示经理台
-                btnManager.style.display = 'inline-flex';
->>>>>>> Stashed changes
-            }
-        })();
-
         // === 高墙特效逻辑 (V1 优化版) ===
         function enterHighWall() {
             const overlay = document.getElementById('hw-overlay');
@@ -719,10 +822,8 @@
             const tentaclesLayer = document.getElementById('hw-tentacles');
             const blackout = document.getElementById('hw-blackout');
             
-            // 阶段 1: 伪装 (0s - 1.0s)
             overlay.classList.add('active');
             
-            // 阶段 2: 故障 (1.0s)
             setTimeout(() => {
                 icon.classList.remove('fa-spin');
                 icon.style.transform = 'rotate(160deg)';
@@ -738,84 +839,131 @@
                 }, 100);
             }, 1000);
 
-            // 阶段 3: 凝视 (1.5s) - 眼睛在黑暗中睁开
             setTimeout(() => {
                 overlay.classList.remove('glitch-mode');
                 scanlines.style.display = 'none';
                 document.getElementById('hw-content').style.display = 'none';
-                
                 eyeLayer.style.opacity = '1';
-                
-                setTimeout(() => {
-                    eyeIcon.classList.add('eye-open');
-                }, 100);
-
+                setTimeout(() => eyeIcon.classList.add('eye-open'), 100);
             }, 1500);
 
-            // 阶段 4: 吞噬 (1.9s) - 触手开始蔓延
             setTimeout(() => {
                 eyeIcon.classList.add('scared');
-
                 tentaclesLayer.innerHTML = ''; 
                 const count = 20;
                 for (let i = 0; i < count; i++) {
                     const div = document.createElement('div');
                     div.className = 'tendril';
-                    
                     const deg = i * (360 / count);
                     div.style.setProperty('--r', `${deg}deg`);
-                    
                     div.style.animationDelay = `${Math.random() * 0.4}s`;
-                    
                     tentaclesLayer.appendChild(div);
-                    
                     requestAnimationFrame(() => div.classList.add('creeping'));
                 }
             }, 1900);
 
-            // 阶段 5: 熄灭 & 跳转 (4.5s)
             setTimeout(() => {
                 blackout.classList.add('active');
-                setTimeout(() => {
-                    window.location.href = 'documents.html';
-                }, 500);
+                setTimeout(() => window.location.href = 'documents.html', 500);
             }, 2500);
         }
 
-        function goConsole() {
-            const overlay = document.getElementById('transition-overlay');
+        function createTransition(text, url) {
+             const overlay = document.getElementById('transition-overlay');
             const loaderText = overlay.querySelector('.loader-text');
-
             if (loaderText) {
-                loaderText.innerHTML = '授权认证中<span class="dots"></span>';
+                loaderText.innerHTML = `${text}<span class="dots"></span>`;
             }
-
             overlay.classList.add('active');
+            setTimeout(() => window.location.href = url, 1200);
+        }
 
-            setTimeout(() => {
-                window.location.href = 'admin.html';
-            }, 1200);
+        function goConsole() {
+            createTransition('授权认证中', 'admin.html');
         }
 
         function goManager() {
-            const overlay = document.getElementById('transition-overlay');
-            const loaderText = overlay.querySelector('.loader-text');
+            createTransition('授权认证中', 'manager.html');
+        }
+        (function initConsoleButton() {
+            const btnConsole = document.getElementById('btnConsole'); // 桌面控制台
+            const btnManager = document.getElementById('btnManager'); // 桌面经理台
+            
+            const menuConsole = document.getElementById('menuConsole'); // 手机控制台
+            const menuManager = document.getElementById('menuManager'); // 手机经理台
 
-            if (loaderText) {
-                loaderText.innerHTML = '授权认证中<span class="dots"></span>';
+            // 角色定义：2=超管, 1=经理, 0=普通
+            if (userRole >= 2) { 
+                // === 超级管理员：显示所有 ===
+                if(btnManager) btnManager.style.display = 'inline-flex';
+                if(btnConsole) btnConsole.style.display = 'inline-flex';
+                
+                if(menuManager) menuManager.style.display = 'flex';
+                if(menuConsole) menuConsole.style.display = 'flex';
+
+            } else if (userRole >= 1) { 
+                // === 经理：只显示经理台 ===
+                if(btnManager) btnManager.style.display = 'inline-flex';
+                // 确保控制台隐藏
+                if(btnConsole) btnConsole.style.display = 'none';
+                
+                if(menuManager) menuManager.style.display = 'flex';
+                if(menuConsole) menuConsole.style.display = 'none';
+
+            } else { 
+                // === 普通用户：全部隐藏 ===
+                if(btnManager) btnManager.style.display = 'none';
+                if(btnConsole) btnConsole.style.display = 'none';
+                if(menuManager) menuManager.style.display = 'none';
+                if(menuConsole) menuConsole.style.display = 'none';
             }
+        })();
+		// ==========================================
+    // 【统一】手机端滑动手势控制 (Swipe Logic)
+    // ==========================================
+    let touchStartX = 0;
+    let touchStartY = 0;
+    const swipeThreshold = 80; // 滑动触发距离
+    const edgeThreshold = 60;  // 边缘检测距离 (从屏幕边缘多少像素内开始滑动才有效)
+   
 
-            overlay.classList.add('active');
+    document.addEventListener('touchstart', e => {
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+    }, {passive: true});
 
-            setTimeout(() => {
-                window.location.href = 'manager.html';
-            }, 1200);
+    document.addEventListener('touchend', e => {
+        const touchEndX = e.changedTouches[0].screenX;
+        const touchEndY = e.changedTouches[0].screenY;
+        handleSwipe(touchStartX, touchStartY, touchEndX, touchEndY);
+    }, {passive: true});
+	
+    function handleSwipe(startX, startY, endX, endY) {
+        const xDiff = endX - startX; // 正数=向右滑，负数=向左滑
+        const yDiff = endY - startY;
+        const menu = document.getElementById('sideMenu');
+        const isOpen = menu.classList.contains('show');
+        const screenWidth = window.innerWidth;
+
+        // 1. 过滤垂直滚动：如果垂直移动幅度 > 水平移动幅度，视为滚动页面，不触发侧滑
+        if (Math.abs(yDiff) > Math.abs(xDiff)) return;
+
+
+        // --- 左侧菜单逻辑 (Left Sidebar Logic) ---
+        
+        // 打开：(右滑 xDiff > 0) 且 (起始点在屏幕左边缘 edgeThreshold 内) 且 (未打开)
+        if (!isOpen && xDiff < -swipeThreshold && startX > (screenWidth - edgeThreshold)) {
+            toggleSideMenu();
         }
 
+
+        // 关闭：(左滑 xDiff < 0) 且 (已打开)
+        if (isOpen && xDiff > swipeThreshold) {
+            closeSideMenu();
+        }
+    }
         function logout() {
-            localStorage.removeItem('ta_uid');
-            localStorage.removeItem('ta_token');
-            localStorage.removeItem('ta_role');
+            localStorage.clear();
             window.location.href = 'login.html';
         }
 
@@ -829,7 +977,7 @@
         async function loadList() {
             try {
                 const res = await fetch(`/api/characters?userId=${uid}`, { headers: {'Authorization': `Bearer ${token}`} });
-                if (res.status === 401) { // 如果token失效，自动登出
+                if (res.status === 401 || res.status === 403) { 
                     logout();
                     return;
                 }
@@ -846,12 +994,9 @@
                     const el = document.createElement('div');
                     el.className = 'char-card';
 
-                    /* === START: 需要添加的代码 === */
-                    // 为动画设置随机的 CSS 变量
                     el.style.setProperty('--r1', Math.random());
                     el.style.setProperty('--r2', Math.random());
                     el.style.setProperty('--r3', Math.random());
-                    /* === END: 需要添加的代码 === */
                     
                     el.innerHTML = `
                         <div class="card-tools">
@@ -861,22 +1006,16 @@
                         <div class="card-content-wrapper" onclick="openSheet(event, '${c.id}')">
                             <div class="card-header"><span class="c-name">${c.name}</span></div>
                             <div class="info-group">
-							<div class="info-field if-anom">
-                                    <span class="field-label">
-                                        <i class="fas fa-bolt anim-flicker"></i> 异常 // ANOMALY
-                                    </span>
+							    <div class="info-field if-anom">
+                                    <span class="field-label"><i class="fas fa-bolt anim-flicker"></i> 异常 // ANOMALY</span>
                                     <span class="field-val">${c.anom}</span>
                                 </div>
                                 <div class="info-field if-real">
-                                    <span class="field-label">
-                                        <i class="fas fa-fingerprint anim-breathe"></i> 现实 // REALITY
-                                    </span>
+                                    <span class="field-label"><i class="fas fa-fingerprint anim-breathe"></i> 现实 // REALITY</span>
                                     <span class="field-val">${c.real}</span>
                                 </div>
 								<div class="info-field if-func">
-                                    <span class="field-label">
-                                        <i class="fas fa-briefcase anim-float"></i> 职能 // COMPETENCY
-                                    </span>
+                                    <span class="field-label"><i class="fas fa-briefcase anim-float"></i> 职能 // COMPETENCY</span>
                                     <span class="field-val">${c.func}</span>
                                 </div>
                             </div>
@@ -898,23 +1037,13 @@
             try {
                 const res = await fetch('/api/character', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ userId: uid })
                 });
                 if (res.status === 401) { logout(); return; }
                 const data = await res.json();
                 if(data.success) {
-                    // 恢复默认加载文本
-                    const defaultLoaderText = document.querySelector('#transition-overlay .loader-text');
-                    if (defaultLoaderText) {
-                        defaultLoaderText.innerHTML = '访问终端中<span class="dots"></span>';
-                    }
-                    const overlay = document.getElementById('transition-overlay');
-                    overlay.classList.add('active');
-                    setTimeout(() => window.location.href = `sheet.html?id=${data.id}`, 1200);
+                    createTransition('创建新档案', `sheet.html?id=${data.id}`);
                 }
             } catch(e) { 
                 btn.innerHTML = original; 
@@ -924,16 +1053,9 @@
 
         function openSheet(event, id) {
             event.preventDefault();
-            // 恢复默认加载文本
-            const defaultLoaderText = document.querySelector('#transition-overlay .loader-text');
-            if (defaultLoaderText) {
-                defaultLoaderText.innerHTML = '访问终端中<span class="dots"></span>';
-            }
             const card = event.currentTarget.closest('.char-card');
             if(card) card.classList.add('accessing');
-            const overlay = document.getElementById('transition-overlay');
-            overlay.classList.add('active');
-            setTimeout(() => window.location.href = `sheet.html?id=${id}`, 1200);
+            createTransition('访问终端中', `sheet.html?id=${id}`);
         }
 
         let currentAuthId = null;
@@ -952,6 +1074,7 @@
                 document.getElementById('authCode').textContent = data.authCode || 'Error';
             } catch(e) { document.getElementById('authCode').textContent = 'Failed'; }
         }
+
         function copyAuthCode() {
             const code = document.getElementById('authCode').textContent;
             if(navigator.clipboard && code) {
@@ -960,6 +1083,7 @@
                 });
             }
         }
+
         async function delChar(e, id) {
             e.stopPropagation();
             if(!confirm('确定销毁档案？此操作不可逆。')) return;

@@ -895,30 +895,21 @@ app.get('/api/characters', (req, res) => {
     });
 });
 
+// ==========================================
+// 角色卡 API - 获取单个角色 (修正版)
+// ==========================================
 app.get('/api/character/:id', optionalAuth, (req, res) => {
     db.get('SELECT * FROM characters WHERE id = ?', [req.params.id], (err, row) => {
         if (!row) return res.status(404).json({});
 
-        // 检查访问权限
+        // 检查访问权限 (这部分逻辑保持不变)
         const checkAccess = () => {
-            // 超管可以访问所有
-            if (req.user && req.user.role >= ROLE.SUPER_ADMIN) {
-                return true;
-            }
-            // 所有者可以访问
-            if (req.user && req.user.userId === row.user_id) {
-                return true;
-            }
-            // 检查经理授权
+            if (req.user && req.user.role >= ROLE.SUPER_ADMIN) return true;
+            if (req.user && req.user.userId === row.user_id) return true;
             return new Promise((resolve) => {
-                if (!req.user || req.user.role < ROLE.MANAGER) {
-                    resolve(false);
-                    return;
-                }
+                if (!req.user || req.user.role < ROLE.MANAGER) return resolve(false);
                 db.get('SELECT id FROM character_authorizations WHERE character_id = ? AND manager_id = ?',
-                    [req.params.id, req.user.userId], (err, auth) => {
-                        resolve(!!auth);
-                    });
+                    [req.params.id, req.user.userId], (err, auth) => resolve(!!auth));
             });
         };
 
@@ -927,16 +918,26 @@ app.get('/api/character/:id', optionalAuth, (req, res) => {
                 return res.status(403).json({ error: '无权访问此角色卡' });
             }
 
-            // 获取所属账号昵称
             db.get('SELECT name, username FROM users WHERE id = ?', [row.user_id], (err, owner) => {
                 try {
                     const data = JSON.parse(row.data);
+
+                    // ==================== 核心修正 START ====================
+                    // 无论数据库中存的是什么，总是在返回前重新计算总数，确保数据永远是准确的。
+                    
+                    const totalRewards = (data.rewards || []).reduce((sum, r) => sum + (r.count || 1), 0);
+                    const totalReprimands = (data.reprimands || []).reduce((sum, r) => sum + (r.count || 1), 0);
+                    
+                    data.mvpCount = totalRewards;
+                    data.watchCount = totalReprimands;
+                    // ===================== 核心修正 END ======================
+
                     data._ownerId = row.user_id;
                     data._canEdit = hasAccess;
                     data.ownerName = owner ? (owner.name || owner.username) : '未知';
-                    // 确保槽位数据存在，默认3个
                     data.anomSlots = data.anomSlots || 3;
                     data.realSlots = data.realSlots || 3;
+                    
                     res.json(data);
                 } catch (e) {
                     res.status(500).json({});
@@ -1328,10 +1329,12 @@ app.get('/api/character/:id/records', authenticateToken, (req, res) => {
 });
 
 // 添加嘉奖记录
+
+// 添加嘉奖记录
 app.post('/api/character/:id/reward', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
     const charId = req.params.id;
     const { reason, count } = req.body;
-    const recordCount = Math.max(1, Math.min(99, parseInt(count) || 1)); // 限制1-99
+    const recordCount = Math.max(1, Math.min(99, parseInt(count) || 1));
 
     if (!reason || !reason.trim()) {
         return res.status(400).json({ success: false, message: '请填写嘉奖原因' });
@@ -1340,24 +1343,15 @@ app.post('/api/character/:id/reward', authenticateToken, requireRole(ROLE.MANAGE
     db.get('SELECT data, user_id FROM characters WHERE id = ?', [charId], (err, row) => {
         if (!row) return res.status(404).json({ success: false, message: '角色不存在' });
 
-        // 检查权限：需要有授权或是超管，或者角色在经理创建的任务中
+        // ... (权限检查代码保持不变) ...
         const checkAccess = () => {
             if (req.user.role >= ROLE.SUPER_ADMIN) return Promise.resolve(true);
-
             return new Promise((resolve) => {
-                // 首先检查授权表
-                db.get('SELECT id FROM character_authorizations WHERE character_id = ? AND manager_id = ?',
-                    [charId, req.user.userId], (err, auth) => {
-                        if (auth) return resolve(true);
-
-                        // 然后检查任务成员关系 - 角色是否在该经理创建的任务中
-                        db.get(`SELECT 1 FROM field_mission_members fmm
-                            JOIN field_missions fm ON fmm.mission_id = fm.id
-                            WHERE fmm.character_id = ? AND fm.created_by = ? AND fm.status = 'active'`,
-                            [charId, req.user.userId], (err, member) => {
-                                resolve(!!member);
-                            });
-                    });
+                if (req.user.role < ROLE.MANAGER) return resolve(false);
+                db.get('SELECT id FROM character_authorizations WHERE character_id = ? AND manager_id = ?', [charId, req.user.userId], (err, auth) => {
+                    if (auth) return resolve(true);
+                    db.get(`SELECT 1 FROM field_mission_members fmm JOIN field_missions fm ON fmm.mission_id = fm.id WHERE fmm.character_id = ? AND fm.created_by = ? AND fm.status = 'active'`, [charId, req.user.userId], (err, member) => resolve(!!member));
+                });
             });
         };
 
@@ -1368,30 +1362,24 @@ app.post('/api/character/:id/reward', authenticateToken, requireRole(ROLE.MANAGE
 
             try {
                 const data = JSON.parse(row.data);
-
-                // 初始化嘉奖数组
                 if (!data.rewards) data.rewards = [];
 
-                // 添加新记录
                 data.rewards.push({
                     id: Date.now().toString(),
                     reason: reason.trim(),
                     count: recordCount,
                     date: Date.now(),
-                    addedBy: req.user.username,
-                    addedByName: req.user.username
+                    addedByName: req.user.username // 记录操作者
                 });
 
-                // 更新嘉奖总数 (mvpCount)
-                const currentCount = parseInt(data.mvpCount) || 0;
-                data.mvpCount = (currentCount + recordCount).toString();
+                // 核心修正：重新计算总数
+                const totalRewards = data.rewards.reduce((sum, r) => sum + (r.count || 1), 0);
+                data.mvpCount = totalRewards;
 
-                db.run('UPDATE characters SET data = ? WHERE id = ?',
-                    [JSON.stringify(data), charId],
-                    function(err) {
-                        if (err) return res.status(500).json({ success: false });
-                        res.json({ success: true, message: `已添加 ${recordCount} 个嘉奖，当前总计 ${data.mvpCount}` });
-                    });
+                db.run('UPDATE characters SET data = ? WHERE id = ?', [JSON.stringify(data), charId], function(err) {
+                    if (err) return res.status(500).json({ success: false });
+                    res.json({ success: true, message: `已添加 ${recordCount} 个嘉奖` });
+                });
             } catch (e) {
                 res.status(500).json({ success: false, message: '数据解析失败' });
             }
@@ -1403,7 +1391,7 @@ app.post('/api/character/:id/reward', authenticateToken, requireRole(ROLE.MANAGE
 app.post('/api/character/:id/reprimand', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
     const charId = req.params.id;
     const { reason, count } = req.body;
-    const recordCount = Math.max(1, Math.min(99, parseInt(count) || 1)); // 限制1-99
+    const recordCount = Math.max(1, Math.min(99, parseInt(count) || 1));
 
     if (!reason || !reason.trim()) {
         return res.status(400).json({ success: false, message: '请填写申诫原因' });
@@ -1412,27 +1400,18 @@ app.post('/api/character/:id/reprimand', authenticateToken, requireRole(ROLE.MAN
     db.get('SELECT data, user_id FROM characters WHERE id = ?', [charId], (err, row) => {
         if (!row) return res.status(404).json({ success: false, message: '角色不存在' });
 
-        // 检查权限：需要有授权或是超管，或者角色在经理创建的任务中
+        // ... (权限检查代码保持不变) ...
         const checkAccess = () => {
             if (req.user.role >= ROLE.SUPER_ADMIN) return Promise.resolve(true);
-
             return new Promise((resolve) => {
-                // 首先检查授权表
-                db.get('SELECT id FROM character_authorizations WHERE character_id = ? AND manager_id = ?',
-                    [charId, req.user.userId], (err, auth) => {
-                        if (auth) return resolve(true);
-
-                        // 然后检查任务成员关系 - 角色是否在该经理创建的任务中
-                        db.get(`SELECT 1 FROM field_mission_members fmm
-                            JOIN field_missions fm ON fmm.mission_id = fm.id
-                            WHERE fmm.character_id = ? AND fm.created_by = ? AND fm.status = 'active'`,
-                            [charId, req.user.userId], (err, member) => {
-                                resolve(!!member);
-                            });
-                    });
+                if (req.user.role < ROLE.MANAGER) return resolve(false);
+                db.get('SELECT id FROM character_authorizations WHERE character_id = ? AND manager_id = ?', [charId, req.user.userId], (err, auth) => {
+                    if (auth) return resolve(true);
+                    db.get(`SELECT 1 FROM field_mission_members fmm JOIN field_missions fm ON fmm.mission_id = fm.id WHERE fmm.character_id = ? AND fm.created_by = ? AND fm.status = 'active'`, [charId, req.user.userId], (err, member) => resolve(!!member));
+                });
             });
         };
-
+        
         Promise.resolve(checkAccess()).then(hasAccess => {
             if (!hasAccess) {
                 return res.status(403).json({ success: false, message: '无权修改此角色' });
@@ -1440,30 +1419,24 @@ app.post('/api/character/:id/reprimand', authenticateToken, requireRole(ROLE.MAN
 
             try {
                 const data = JSON.parse(row.data);
-
-                // 初始化申诫数组
                 if (!data.reprimands) data.reprimands = [];
 
-                // 添加新记录
                 data.reprimands.push({
                     id: Date.now().toString(),
                     reason: reason.trim(),
                     count: recordCount,
                     date: Date.now(),
-                    addedBy: req.user.username,
                     addedByName: req.user.username
                 });
 
-                // 更新申诫总数 (watchCount)
-                const currentCount = parseInt(data.watchCount) || 0;
-                data.watchCount = (currentCount + recordCount).toString();
+                // 核心修正：重新计算总数
+                const totalReprimands = data.reprimands.reduce((sum, r) => sum + (r.count || 1), 0);
+                data.watchCount = totalReprimands;
 
-                db.run('UPDATE characters SET data = ? WHERE id = ?',
-                    [JSON.stringify(data), charId],
-                    function(err) {
-                        if (err) return res.status(500).json({ success: false });
-                        res.json({ success: true, message: `已添加 ${recordCount} 个申诫，当前总计 ${data.watchCount}` });
-                    });
+                db.run('UPDATE characters SET data = ? WHERE id = ?', [JSON.stringify(data), charId], function(err) {
+                    if (err) return res.status(500).json({ success: false });
+                    res.json({ success: true, message: `已添加 ${recordCount} 个申诫` });
+                });
             } catch (e) {
                 res.status(500).json({ success: false, message: '数据解析失败' });
             }
@@ -1475,7 +1448,7 @@ app.post('/api/character/:id/reprimand', authenticateToken, requireRole(ROLE.MAN
 app.delete('/api/character/:id/record/:recordId', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
     const charId = req.params.id;
     const recordId = req.params.recordId;
-    const { type } = req.query; // 'reward' or 'reprimand'
+    const { type } = req.query;
 
     if (!type || !['reward', 'reprimand'].includes(type)) {
         return res.status(400).json({ success: false, message: '无效的记录类型' });
@@ -1484,24 +1457,15 @@ app.delete('/api/character/:id/record/:recordId', authenticateToken, requireRole
     db.get('SELECT data, user_id FROM characters WHERE id = ?', [charId], (err, row) => {
         if (!row) return res.status(404).json({ success: false, message: '角色不存在' });
 
-        // 检查权限：需要有授权或是超管，或者角色在经理创建的任务中
+        // ... (权限检查代码保持不变) ...
         const checkAccess = () => {
             if (req.user.role >= ROLE.SUPER_ADMIN) return Promise.resolve(true);
-
             return new Promise((resolve) => {
-                // 首先检查授权表
-                db.get('SELECT id FROM character_authorizations WHERE character_id = ? AND manager_id = ?',
-                    [charId, req.user.userId], (err, auth) => {
-                        if (auth) return resolve(true);
-
-                        // 然后检查任务成员关系 - 角色是否在该经理创建的任务中
-                        db.get(`SELECT 1 FROM field_mission_members fmm
-                            JOIN field_missions fm ON fmm.mission_id = fm.id
-                            WHERE fmm.character_id = ? AND fm.created_by = ? AND fm.status = 'active'`,
-                            [charId, req.user.userId], (err, member) => {
-                                resolve(!!member);
-                            });
-                    });
+                if (req.user.role < ROLE.MANAGER) return resolve(false);
+                db.get('SELECT id FROM character_authorizations WHERE character_id = ? AND manager_id = ?', [charId, req.user.userId], (err, auth) => {
+                    if (auth) return resolve(true);
+                    db.get(`SELECT 1 FROM field_mission_members fmm JOIN field_missions fm ON fmm.mission_id = fm.id WHERE fmm.character_id = ? AND fm.created_by = ? AND fm.status = 'active'`, [charId, req.user.userId], (err, member) => resolve(!!member));
+                });
             });
         };
 
@@ -1515,31 +1479,17 @@ app.delete('/api/character/:id/record/:recordId', authenticateToken, requireRole
                 const arrayKey = type === 'reward' ? 'rewards' : 'reprimands';
                 const countKey = type === 'reward' ? 'mvpCount' : 'watchCount';
 
-                if (!data[arrayKey]) {
-                    return res.status(404).json({ success: false, message: '记录不存在' });
-                }
+                if (!data[arrayKey]) return res.status(404).json({ success: false, message: '记录不存在' });
 
-                // 找到要删除的记录，获取其count值
-                const recordToDelete = data[arrayKey].find(r => r.id === recordId);
-                if (!recordToDelete) {
-                    return res.status(404).json({ success: false, message: '记录不存在' });
-                }
-
-                const deletedCount = parseInt(recordToDelete.count) || 1;
-
-                // 从数组中移除记录
+                // 核心修正：删除后重新计算总数
                 data[arrayKey] = data[arrayKey].filter(r => r.id !== recordId);
+                const newTotal = data[arrayKey].reduce((sum, r) => sum + (r.count || 1), 0);
+                data[countKey] = newTotal;
 
-                // 减少对应的计数
-                const currentCount = parseInt(data[countKey]) || 0;
-                data[countKey] = Math.max(0, currentCount - deletedCount).toString();
-
-                db.run('UPDATE characters SET data = ? WHERE id = ?',
-                    [JSON.stringify(data), charId],
-                    function(err) {
-                        if (err) return res.status(500).json({ success: false });
-                        res.json({ success: true, message: `记录已删除，当前${type === 'reward' ? '嘉奖' : '申诫'}总计 ${data[countKey]}` });
-                    });
+                db.run('UPDATE characters SET data = ? WHERE id = ?', [JSON.stringify(data), charId], function(err) {
+                    if (err) return res.status(500).json({ success: false });
+                    res.json({ success: true, message: `记录已删除` });
+                });
             } catch (e) {
                 res.status(500).json({ success: false, message: '数据解析失败' });
             }
@@ -1547,7 +1497,6 @@ app.delete('/api/character/:id/record/:recordId', authenticateToken, requireRole
     });
 });
 
-// ==========================================
 // 分享 API
 // ==========================================
 
@@ -2326,39 +2275,55 @@ app.post('/api/manager/mission', authenticateToken, requireRole(ROLE.MANAGER), (
 });
 
 // 获取经理的所有任务
+// ==========================================
+// 外勤任务 API - 获取经理的所有任务 (修正版)
+// ==========================================
 app.get('/api/manager/missions', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
     const managerId = req.user.userId;
-    const includeArchived = req.query.includeArchived === 'true';
+    
+    // 修正点 1：读取 status 参数
+    const statusFilter = req.query.status; 
 
-    let sql = 'SELECT * FROM field_missions WHERE created_by = ?';
-    if (!includeArchived) {
-        sql += " AND status = 'active'";
+    // 构建基础 SQL 和参数
+    let sql = 'SELECT * FROM field_missions';
+    let params = [];
+    const conditions = [];
+
+    // 如果不是超管，则限制只能看自己创建的任务
+    if (req.user.role < ROLE.SUPER_ADMIN) {
+        conditions.push('created_by = ?');
+        params.push(managerId);
     }
+    
+    // 修正点 2：如果 status 参数有效，则加入 SQL 查询条件
+    if (statusFilter === 'active' || statusFilter === 'archived') {
+        conditions.push('status = ?');
+        params.push(statusFilter);
+    }
+    
+    // 组合查询条件
+    if (conditions.length > 0) {
+        sql += ' WHERE ' + conditions.join(' AND ');
+    }
+
     sql += ' ORDER BY created_at DESC';
 
-    // 超管可以看到所有任务
-    if (req.user.role >= ROLE.SUPER_ADMIN) {
-        sql = 'SELECT * FROM field_missions';
-        if (!includeArchived) {
-            sql += " WHERE status = 'active'";
+    db.all(sql, params, (err, missions) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json([]);
         }
-        sql += ' ORDER BY created_at DESC';
-    }
-
-    db.all(sql, req.user.role >= ROLE.SUPER_ADMIN ? [] : [managerId], (err, missions) => {
-        if (err) return res.status(500).json([]);
 
         if (!missions || missions.length === 0) {
             return res.json([]);
         }
 
-        // 获取每个任务的成员
+        // (下面的代码保持不变，用于获取任务成员)
         let completed = 0;
         const result = [];
-
         missions.forEach(mission => {
             db.all(`
-                SELECT fmm.*, c.data, c.user_id
+                SELECT fmm.character_id, c.data, fmm.member_status, fmm.joined_at
                 FROM field_mission_members fmm
                 JOIN characters c ON fmm.character_id = c.id
                 WHERE fmm.mission_id = ?
@@ -2373,19 +2338,17 @@ app.get('/api/manager/missions', authenticateToken, requireRole(ROLE.MANAGER), (
                         joined_at: m.joined_at
                     };
                 });
-
-                result.push({
-                    id: mission.id,
-                    name: mission.name,
-                    description: mission.description,
-                    status: mission.status,
+                
+                const missionData = {
+                    ...mission,
                     members: memberList,
-                    createdAt: mission.created_at,
-                    updatedAt: mission.updated_at
-                });
+                    mission_type: mission.mission_type || 'containment'
+                };
 
+                result.push(missionData);
                 completed++;
                 if (completed === missions.length) {
+                    result.sort((a, b) => b.created_at - a.created_at);
                     res.json(result);
                 }
             });

@@ -1,5 +1,3 @@
-<!-- sheet.html (完整代码) -->
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -26,24 +24,75 @@
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body { font-family: "Roboto Mono", "Noto Sans SC", "Microsoft YaHei", sans-serif; background-color: var(--deep-bg); background-image: var(--bg-pattern); background-size: 20px 20px; color: var(--text-main); overflow: hidden; height: 100dvh; width: 100vw; position: relative; }
     .container { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; height: 100%; padding: 15px; padding-bottom: 0; }
+    
+    /* 顶部导航 */
     .top-nav { display: flex; align-items: center; justify-content: space-between; margin: 0 0 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; color: white; flex-shrink: 0; }
+    .header-right { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 15px; }
+    
+    /* 顶部邮箱按钮样式 */
+    .top-mail-btn {
+        position: relative;
+        font-size: 20px;
+        color: rgba(255,255,255,0.3); /* 默认灰色 */
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 5px;
+    }
+    .top-mail-btn:hover { color: white; }
+    
+    /* 有未读消息时的样式 */
+    .top-mail-btn.has-unread { 
+        color: var(--signal-red); 
+        animation: mail-pulse 2s infinite; 
+    }
+    @keyframes mail-pulse {
+        0% { text-shadow: 0 0 0 rgba(192, 57, 43, 0); transform: scale(1); }
+        50% { text-shadow: 0 0 10px rgba(192, 57, 43, 0.6); transform: scale(1.1); }
+        100% { text-shadow: 0 0 0 rgba(192, 57, 43, 0); transform: scale(1); }
+    }
+
+    /* 数字标记样式 */
+    .mail-badge {
+        position: absolute;
+        bottom: -2px;
+        left: -4px;
+        background: var(--signal-red);
+        color: white;
+        font-size: 9px;
+        font-weight: 900;
+        padding: 1px 4px;
+        border-radius: 4px;
+        line-height: 1;
+        display: none; 
+        border: 1px solid var(--deep-bg);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
     .brand-logo-sm { display: flex; flex-direction: column; line-height: 0.9; font-weight: 800; font-style: italic; }
     .brand-logo-sm span:first-child { font-size: 14px; color: white; }
     .brand-logo-sm span:last-child { font-size: 8px; color: var(--signal-red); letter-spacing: 2px; }
     .btn-back { background: none; border: none; font-size: 14px; color: rgba(255,255,255,0.7); cursor: pointer; display: flex; align-items: center; gap: 5px; }
     .btn-back:hover { color: white; }
-    h1 { margin: 0; font-size: 16px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; text-align: right; flex: 1; display:flex; flex-direction:column; align-items:flex-end; color: white; }
+    
+    h1 { margin: 0; font-size: 16px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; text-align: right; display:flex; flex-direction:column; align-items:flex-end; color: white; }
     h1 span.sub { font-size: 10px; color: rgba(255,255,255,0.5); font-weight: normal; }
+    
     .offline-tag, .readonly-tag { background: #34495e; color: #bdc3c7; padding: 2px 6px; border-radius: 3px; font-size: 10px; margin-left: 5px; display: none; }
     .offline-mode .offline-tag { display: inline-block; }
     .offline-mode .btn-back, .offline-mode .btn-save-server { display: none; }
     body.readonly-mode .readonly-tag { display: inline-block; background: var(--signal-red); color: white; }
     body.readonly-mode .btn-save, body.readonly-mode .btn-add, body.readonly-mode .btn-del, body.readonly-mode .save-area { display: none !important; }
     body.readonly-mode input, body.readonly-mode textarea, body.readonly-mode .rich-editor, body.readonly-mode select { pointer-events: none; background: transparent; border-color: transparent; color: #555; -webkit-appearance: none; appearance: none; }
+    
+    /* Swiper 调整：宽度改为400%因为只有4页了 */
     .swiper-container { flex-grow: 1; width: 100%; overflow: hidden; position: relative; }
-    .swiper-wrapper { display: flex; width: 500%; height: 100%; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
-    .tab-view { width: 20%; height: 100%; overflow-y: auto; display: block !important; padding-right: 5px; padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 60px); -ms-overflow-style: none; scrollbar-width: none; }
+    .swiper-wrapper { display: flex; width: 400%; height: 100%; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
+    .tab-view { width: 25%; height: 100%; overflow-y: auto; display: block !important; padding-right: 5px; padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 60px); -ms-overflow-style: none; scrollbar-width: none; }
     .tab-view::-webkit-scrollbar { display: none; }
+    
     .panel, .card { background: var(--panel-bg); border-radius: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 20px; margin-bottom: 16px; border: 1px solid var(--border-color); position: relative; overflow: hidden; z-index: 1; }
     .panel::before, .card::before, .panel::after, .card::after { content: ''; position: absolute; z-index: -1; pointer-events: none; opacity: 0.05; transform-origin: center; }
     .panel::before, .card::before { background: #2c3e50; width: 200px; height: 200px; top: calc(-50px + 100px * var(--r1, 0.5)); left: calc(-50px + 100px * var(--r2, 0.5)); clip-path: polygon(50% 0%, 0% 100%, 100% 100%); animation: float-shard calc(25s + 10s * var(--r3, 0.5)) infinite linear; }
@@ -140,13 +189,118 @@
     .nav-btn.n-anom.active { color: var(--accent); }
     .nav-btn.n-real.active { color: var(--reality); }
     .nav-btn.n-item.active { color: var(--signal-red); }
-    .nav-btn.n-mail.active { color: #8e44ad; }
+    /* .nav-btn.n-mail removed from css */
+
+/* === 邮箱全屏模态框 (重工科技感特效) === */
+    .full-page-modal {
+        display: flex;
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        /* 背景色加深，增加透明度，模拟厚重的玻璃或金属板 */
+        background: rgba(15, 23, 42, 0.98);
+        z-index: 5000;
+        flex-direction: column;
+
+        /* 关键：使用 inset 裁剪，模拟从右上角(0,0)展开的矩形闸门 */
+        /* 初始状态：上0，右0，下100%(切掉底部)，左100%(切掉左侧) -> 实际上是一个右上角的点 */
+        clip-path: inset(0 0 100% 100%);
+        
+        /* 沉重的物理曲线：启动稍有阻力，中间极快释放，最后沉重刹车 */
+        transition: clip-path 0.55s cubic-bezier(0.7, 0, 0.2, 1);
+        
+        /* 硬件加速提示 */
+        will-change: clip-path;
+        
+        /* 内部阴影，增加深邃感 */
+        box-shadow: inset 0 0 150px rgba(0,0,0,0.8);
+    }
+
+    .full-page-modal.active {
+        /* 展开状态：完全无裁剪 */
+        clip-path: inset(0 0 0 0);
+    }
+
+    /* 增加一个扫描线背景层，增强科技感 */
+    .full-page-modal::before {
+        content: '';
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 2px,
+            rgba(0, 0, 0, 0.3) 2px,
+            rgba(0, 0, 0, 0.3) 4px
+        );
+        pointer-events: none;
+        z-index: -1;
+    }
+
+    /* 内部内容动画：带有惯性的上浮显示 */
+    .mail-modal-header, .mail-modal-body {
+        opacity: 0;
+        /* 初始位置稍微偏下，并带有轻微的缩放，模拟全息投影生成的感觉 */
+        transform: translateY(30px) scale(0.98);
+        /* 关闭时快速消失，不拖泥带水 */
+        transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    /* 激活时的内部内容 */
+    .full-page-modal.active .mail-modal-header, 
+    .full-page-modal.active .mail-modal-body {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        /* 延迟显示：必须等"闸门"完全落下后，数据才显示，节奏感更强 */
+        transition: 
+            opacity 0.4s ease 0.3s, 
+            transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s; /* 带一点点弹性回弹 */
+    }
+
+    .mail-modal-header {
+        background: #1e293b;
+        padding: 15px 20px;
+        display: flex; justify-content: space-between; align-items: center;
+        /* 顶部加粗红线，强调警告/机密感 */
+        border-bottom: 3px solid var(--signal-red);
+        color: white;
+        flex-shrink: 0;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .mail-modal-header h2 { 
+        margin: 0; border: none; padding: 0; color: white; 
+        font-family: "Roboto Mono", monospace; 
+        letter-spacing: 1px;
+    }
+    .btn-close-mail {
+        background: none; border: none; color: rgba(255,255,255,0.5);
+        font-size: 24px; cursor: pointer; transition: 0.3s;
+    }
+    .btn-close-mail:hover { 
+        color: var(--signal-red); 
+        text-shadow: 0 0 10px var(--signal-red);
+        transform: rotate(90deg) scale(1.1); 
+    }
+
+    .mail-modal-body {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+    }
+    .mail-container-inner {
+        max-width: 900px;
+        width: 100%;
+        margin: 0 auto;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
     /* 邮箱视图样式 */
     .mail-tabs { display: flex; gap: 5px; margin-bottom: 15px; background: #f8f9fa; padding: 5px; border-radius: 6px; }
     .mail-tab { flex: 1; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; background: transparent; color: #7f8c8d; transition: all 0.2s; }
     .mail-tab.active { background: white; color: #8e44ad; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     .mail-tab i { margin-right: 5px; }
-    .mail-content { min-height: 300px; }
+    .mail-content { flex: 1; min-height: 300px; }
     .mail-list { display: flex; flex-direction: column; gap: 10px; }
     .mail-item { background: white; border-radius: 6px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; transition: all 0.2s; border-left: 4px solid #8e44ad; }
     .mail-item:hover { transform: translateX(5px); box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
@@ -626,15 +780,234 @@
 	.nav-arrow.disabled { color: #555; cursor: default; opacity: 0.3; pointer-events: none; }
 	@media (min-width: 1150px) { .nav-arrow { display: block; } }
 	@media (max-width: 1149px) { .nav-arrow { display: none !important; } }
+	/* =========================================
+           邮箱系统 - 红色主题统一补丁
+           ========================================= */
+        
+        /* 1. 邮箱标签页 (Tabs) */
+        .mail-tab.active {
+            color: var(--signal-red) !important; /* 选中文字变红 */
+        }
+        
+        /* 2. 收件箱列表项 (Inbox Items) */
+        .mail-item {
+            border-left-color: var(--signal-red) !important; /* 左侧指示条变红 */
+        }
+        .mail-item:hover {
+            background-color: #fff5f5 !important; /* 悬停背景淡红 */
+        }
+        .mail-item.unread {
+            background-color: #fdf2f2 !important; /* 未读背景淡红 */
+        }
+        
+        /* 3. 已发邮件列表项 (Sent Items) */
+        .mail-item.sent-mail-item {
+            border-left-color: var(--signal-red) !important;
+        }
+        .mail-icon.sent-icon {
+            color: var(--signal-red) !important; /* 纸飞机图标变红 */
+        }
+        .mail-recipient {
+            color: var(--signal-red) !important; /* 收件人名字变红 */
+        }
+
+        /* 4. 写信选项卡 (Compose Options) */
+        .outbox-option:hover,
+        .outbox-option.active {
+            border-color: var(--signal-red) !important;
+        }
+        .outbox-option.active {
+            background: linear-gradient(135deg, #fff5f5, #fff) !important;
+            box-shadow: 0 4px 15px rgba(192, 57, 43, 0.2) !important;
+        }
+        
+        /* 强制所有选项图标变红 */
+        .outbox-option.opt-containment i,
+        .outbox-option.opt-report i,
+        .outbox-option.opt-mail i {
+            color: var(--signal-red) !important;
+        }
+
+        /* 5. 表单样式 (Forms) */
+        .outbox-form input:focus, 
+        .outbox-form textarea:focus, 
+        .outbox-form select:focus {
+            border-color: var(--signal-red) !important;
+            box-shadow: 0 0 0 2px rgba(192, 57, 43, 0.1) !important;
+        }
+        
+        /* 表单标题图标 */
+        .outbox-form h4 i {
+            color: var(--signal-red) !important;
+        }
+
+        /* 发送按钮 */
+        .outbox-form .btn-send {
+            background: linear-gradient(135deg, var(--signal-red), #e74c3c) !important;
+            box-shadow: 0 4px 15px rgba(192, 57, 43, 0.4) !important;
+        }
+        .outbox-form .btn-send:hover {
+            background: linear-gradient(135deg, #a93226, var(--signal-red)) !important;
+        }
+
+        /* 6. 高墙文件图标 (Highwall) */
+        .hw-file i {
+            color: var(--signal-red) !important;
+        }
+        
+        /* 7. 报告中的复选框 */
+        .report-status-item input[type="checkbox"] {
+            accent-color: var(--signal-red) !important;
+        }
+        .report-section h5 {
+            color: var(--signal-red) !important;
+        }
+		/* =========================================
+           桌面端邮箱弹窗适配 (Desktop Mail Modal)
+           ========================================= */
+        @media (min-width: 900px) {
+            .full-page-modal {
+                /* 取消全屏，固定大小 */
+                width: 900px !important;
+                height: 85vh !important;
+                
+                /* 绝对定位居中 */
+                left: 50% !important;
+                top: 50% !important;
+                transform: translate(-50%, -50%) !important;
+                
+                /* 视觉样式优化 */
+                border-radius: 12px !important;
+                border: 1px solid rgba(192, 57, 43, 0.3); /* 红色微光边框 */
+                
+                /* 使用超大阴影来模拟半透明遮罩层，让背景变暗 */
+                box-shadow: 0 30px 60px rgba(0,0,0,0.5), 0 0 0 200vw rgba(0,0,0,0.6) !important;
+            }
+
+            /* 修正头部圆角 */
+            .mail-modal-header {
+                border-radius: 12px 12px 0 0;
+            }
+
+            /* 修正扫描线背景的圆角 */
+            .full-page-modal::before {
+                border-radius: 12px;
+            }
+            
+            /* 调整内部容器宽度，使其填满弹窗 */
+            .mail-container-inner {
+                max-width: 100%;
+                padding: 0 10px;
+            }
+        }
+		/* =========================================
+           移动端体验优化补丁 (Mobile Layout Fix)
+           ========================================= */
+        @media (max-width: 768px) {
+            /* 1. 修复邮箱弹窗被地址栏/底部Bar遮挡的问题 */
+            .full-page-modal {
+                /* 关键：使用动态高度，自动减去浏览器地址栏的高度 */
+                height: 100vh; /* 兼容旧浏览器 */
+                height: 100dvh; /* 新浏览器 */
+                
+                /* 确保底部不被 iPhone 的手势条遮挡 */
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+            
+            .mail-modal-body {
+                /* 增加底部滚动余量，防止最后的内容被挡住 */
+                padding-bottom: 80px !important;
+            }
+
+            /* 2. 优化"写信/寄送"选项 - 改为紧凑横向布局 */
+            .outbox-options {
+                /* 强制单列 */
+                grid-template-columns: 1fr !important;
+                gap: 10px !important;
+            }
+
+            .outbox-option {
+                /* 使用 Grid 布局实现：左边图标，右边文字 */
+                display: grid !important;
+                grid-template-columns: 40px 1fr !important; /* 图标宽40px，文字自适应 */
+                grid-template-rows: auto auto !important;
+                align-items: center !important;
+                text-align: left !important;
+                
+                /* 缩小内边距 */
+                padding: 12px 15px !important;
+                min-height: auto !important;
+            }
+
+            /* 图标调整 */
+            .outbox-option i {
+                grid-row: 1 / 3 !important; /* 图标跨两行 */
+                grid-column: 1 !important;
+                margin-bottom: 0 !important;
+                font-size: 24px !important; /* 缩小图标 */
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            /* 标题调整 */
+            .outbox-option h4 {
+                grid-row: 1 !important;
+                grid-column: 2 !important;
+                margin: 0 !important;
+                font-size: 14px !important;
+                line-height: 1.2;
+            }
+
+            /* 描述文字调整 */
+            .outbox-option p {
+                grid-row: 2 !important;
+                grid-column: 2 !important;
+                margin: 2px 0 0 0 !important;
+                font-size: 11px !important;
+                color: #999;
+                /* 防止文字换行导致太高 */
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
+		
+/* =========================================
+   邮箱标签页移动端图标模式补丁
+   ========================================= */
+@media (max-width: 768px) {
+    /* 1. 隐藏所有标签页按钮内的文字 */
+    .mail-tab span {
+        display: none;
+    }
+
+    /* 2. 移除图标右侧的间距 */
+    .mail-tab i {
+        margin-right: 0;
+    }
+    
+    /* 3. 让图标在按钮内水平居中 */
+    .mail-tab {
+        justify-content: center;
+    }
+}
 </style>
 </head>
 <body>
 <div id="status-msg"><i class="fas fa-save"></i> DATA_SAVED</div>
 <div class="container">
 <div class="top-nav">
-<button class="btn-back" onclick="goBack()"><i class="fas fa-chevron-left"></i> 返回</button>
-<div class="brand-logo-sm"><span>TRIANGLE</span><span>AGENCY</span></div>
-<h1>职员档案 <span class="sub"><span class="offline-tag">OFFLINE</span><span class="readonly-tag">READ-ONLY</span></span></h1>
+    <button class="btn-back" onclick="goBack()"><i class="fas fa-chevron-left"></i> 返回</button>
+    <div class="brand-logo-sm"><span>TRIANGLE</span><span>AGENCY</span></div>
+    <div class="header-right">
+        <!-- 顶部邮箱按钮 -->
+        <div class="top-mail-btn" onclick="openMailModal()" title="邮箱">
+            <i class="fas fa-envelope"></i>
+            <span class="mail-badge" id="topMailBadge">0</span>
+        </div>
+        <h1>职员档案 <span class="sub"><span class="offline-tag">OFFLINE</span><span class="readonly-tag">READ-ONLY</span></span></h1>
+    </div>
 </div>
 <div class="swiper-container" id="swiperContainer">
 <div class="swiper-wrapper" id="swiperWrapper">
@@ -687,26 +1060,34 @@
 <div id="view-anom" class="tab-view"><div class="mod-header"><h2>异常能力</h2><button class="btn-add" onclick="addAnom(null, false)"><i class="fas fa-plus"></i> 添加</button></div><div id="list-anom"></div><div class="save-area"><button class="btn-save btn-save-server" onclick="saveData()"><i class="fas fa-cloud-upload-alt"></i> 上传终端</button><button class="btn-save btn-export" onclick="exportOffline()"><i class="fas fa-download"></i> 离线另存</button></div></div>
 <div id="view-real" class="tab-view"><div class="mod-header"><h2>关系网</h2><button class="btn-add" onclick="addRealSafe()"><i class="fas fa-plus"></i> 添加</button></div><div id="list-real"></div><div class="save-area"><button class="btn-save btn-save-server" onclick="saveData()"><i class="fas fa-cloud-upload-alt"></i> 上传终端</button><button class="btn-save btn-export" onclick="exportOffline()"><i class="fas fa-download"></i> 离线另存</button></div></div>
 <div id="view-item" class="tab-view"><div class="mod-header"><h2>申领物/福利</h2><button class="btn-add" onclick="addItem(null, false)"><i class="fas fa-plus"></i> 添加</button></div><div id="list-item"></div><div class="save-area"><button class="btn-save btn-save-server" onclick="saveData()"><i class="fas fa-cloud-upload-alt"></i> 上传终端</button><button class="btn-save btn-export" onclick="exportOffline()"><i class="fas fa-download"></i> 离线另存</button></div></div>
-<div id="view-mail" class="tab-view">
-    <div class="panel">
+</div>
+</div>
+</div>
+
+<!-- 邮箱全屏模态框 -->
+<div id="mail-full-modal" class="full-page-modal">
+    <div class="mail-modal-header">
         <h2><i class="fas fa-envelope"></i> 机构邮箱</h2>
-        <div class="mail-tabs">
-            <button class="mail-tab active" onclick="switchMailTab('inbox')"><i class="fas fa-inbox"></i> 收件箱</button>
-            <button class="mail-tab" onclick="switchMailTab('sent')"><i class="fas fa-paper-plane"></i> 已发邮件</button>
-            <button class="mail-tab" onclick="switchMailTab('compose')"><i class="fas fa-pen"></i> 写信</button>
-            <button class="mail-tab" id="tab-highwall" onclick="switchMailTab('highwall')" style="display:none;"><i class="fas fa-file-shield"></i> 高墙文件</button>
-        </div>
-        <div class="mail-content" id="mailContent">
-            <div class="mail-empty">
-                <i class="fas fa-envelope-open"></i>
-                <p>加载中...</p>
+        <button class="btn-close-mail" onclick="closeMailModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="mail-modal-body">
+        <div class="mail-container-inner">
+			<div class="mail-tabs">
+				<button class="mail-tab active" onclick="switchMailTab('inbox')"><i class="fas fa-inbox"></i><span>收件箱</span></button>
+				<button class="mail-tab" onclick="switchMailTab('sent')"><i class="fas fa-paper-plane"></i><span>已发邮件</span></button>
+				<button class="mail-tab" onclick="switchMailTab('compose')"><i class="fas fa-pen"></i><span>写信</span></button>
+				<button class="mail-tab" id="tab-highwall" onclick="switchMailTab('highwall')" style="display:none;"><i class="fas fa-file-shield"></i><span>高墙文件</span></button>
+			</div>
+            <div class="mail-content" id="mailContent">
+                <div class="mail-empty">
+                    <i class="fas fa-envelope-open"></i>
+                    <p>加载中...</p>
+                </div>
             </div>
         </div>
     </div>
 </div>
-</div>
-</div>
-</div>
+
 <!-- 高墙特效 (伪装 -> 故障 -> 眼睛 -> 吞噬) -->
 <div id="hw-overlay">
     <!-- 1. 伪装层 -->
@@ -782,7 +1163,7 @@
 <div class="nav-btn n-anom" onclick="switchView('view-anom', this)"><i class="fas fa-bolt"></i><span>异常</span></div>
 <div class="nav-btn n-real" onclick="switchView('view-real', this)"><i class="fas fa-heart"></i><span>关系</span></div>
 <div class="nav-btn n-item" onclick="switchView('view-item', this)"><i class="fas fa-box-open"></i><span>物品</span></div>
-<div class="nav-btn n-mail" onclick="switchView('view-mail', this)"><i class="fas fa-envelope"></i><span>邮箱</span></div>
+<!-- n-mail Removed -->
 </div>
 <script id="__SAVED_DATA__" type="application/json"></script>
 <script>
@@ -962,6 +1343,7 @@ document.addEventListener('click', (e) => {
         (n && n.contains(e.target)) || 
         e.target.closest('.nav-arrow') ||
         e.target.closest('.modal-overlay') || 
+        e.target.closest('.full-page-modal') ||
         e.target.closest('button') ||        
         ['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) {
         return;
@@ -979,22 +1361,36 @@ document.addEventListener('click', (e) => {
 });
 
 let currentTab = 0;
-const tabOrder = ['view-char', 'view-anom', 'view-real', 'view-item', 'view-mail'];
+// 修改 tabOrder，移除了 'view-mail'
+const tabOrder = ['view-char', 'view-anom', 'view-real', 'view-item'];
 const swiperWrapper = document.getElementById('swiperWrapper');
 const navBtns = document.querySelectorAll('.nav-btn');
-function switchView(id, btn) { const i=tabOrder.indexOf(id); if(i!==-1){currentTab=i;updateSwiper();if(id==='view-mail')loadMailbox();} }
-function moveTab(dir) { const n=currentTab+dir; if(n>=0&&n<tabOrder.length){currentTab=n;updateSwiper();if(tabOrder[n]==='view-mail')loadMailbox();} }
-function updateSwiper() { swiperWrapper.style.transform=`translateX(-${currentTab*20}%)`; navBtns.forEach((b,i)=>{if(i===currentTab)b.classList.add('active');else b.classList.remove('active');}); document.querySelectorAll('.tab-view')[currentTab].scrollTop=0; const l=document.querySelector('.arrow-left'), r=document.querySelector('.arrow-right'); if(l&&r){ if(currentTab===0)l.classList.add('disabled');else l.classList.remove('disabled'); if(currentTab===tabOrder.length-1)r.classList.add('disabled');else r.classList.remove('disabled');} }
+function switchView(id, btn) { 
+    if(id === 'view-mail') {
+        openMailModal();
+        return;
+    }
+    const i=tabOrder.indexOf(id); 
+    if(i!==-1){
+        currentTab=i;
+        updateSwiper();
+    } 
+}
+function moveTab(dir) { const n=currentTab+dir; if(n>=0&&n<tabOrder.length){currentTab=n;updateSwiper();} }
+function updateSwiper() { swiperWrapper.style.transform=`translateX(-${currentTab*25}%)`; navBtns.forEach((b,i)=>{if(i===currentTab)b.classList.add('active');else b.classList.remove('active');}); document.querySelectorAll('.tab-view')[currentTab].scrollTop=0; const l=document.querySelector('.arrow-left'), r=document.querySelector('.arrow-right'); if(l&&r){ if(currentTab===0)l.classList.add('disabled');else l.classList.remove('disabled'); if(currentTab===tabOrder.length-1)r.classList.add('disabled');else r.classList.remove('disabled');} }
 let touchStartX=0, touchStartY=0, isSwipingDisabled=false; const minSwipe=60, container=document.getElementById('swiperContainer');
 container.addEventListener('touchstart',e=>{ const t=e.target; if(t.tagName.toLowerCase()==='input'||t.tagName.toLowerCase()==='textarea'||t.isContentEditable||t.tagName.toLowerCase()==='select'){isSwipingDisabled=true;}else{isSwipingDisabled=false;touchStartX=e.changedTouches[0].screenX;touchStartY=e.changedTouches[0].screenY;}},{passive:true});
 container.addEventListener('touchend',e=>{ if(isSwipingDisabled)return; const x=e.changedTouches[0].screenX, y=e.changedTouches[0].screenY; handleSwipe(x,y);},{passive:true});
-function handleSwipe(endX,endY){ const dX=endX-touchStartX, dY=endY-touchStartY; if(Math.abs(dX)>minSwipe&&Math.abs(dX)>Math.abs(dY)){ if(dX<0){if(currentTab<tabOrder.length-1){currentTab++;updateSwiper();if(tabOrder[currentTab]==='view-mail')loadMailbox();}}else{if(currentTab>0){currentTab--;updateSwiper();if(tabOrder[currentTab]==='view-mail')loadMailbox();}}}}
+function handleSwipe(endX,endY){ const dX=endX-touchStartX, dY=endY-touchStartY; if(Math.abs(dX)>minSwipe&&Math.abs(dX)>Math.abs(dY)){ if(dX<0){if(currentTab<tabOrder.length-1){currentTab++;updateSwiper();}}else{if(currentTab>0){currentTab--;updateSwiper();}}}}
 function setRandomVars(el) { el.style.setProperty('--r1',Math.random()); el.style.setProperty('--r2',Math.random()); el.style.setProperty('--r3',Math.random()); }
 document.addEventListener('DOMContentLoaded', async () => {
     document.querySelectorAll('.panel').forEach(setRandomVars);
     await loadConfigData();
     updateSwiper();
     initAttrs();
+    // 页面加载完成后加载邮箱状态
+    loadMailbox(); 
+    
     const offlineDataEl = document.getElementById('__SAVED_DATA__');
     if(offlineDataEl && offlineDataEl.textContent.trim().length > 2) {
         document.body.classList.add('offline-mode');
@@ -1065,6 +1461,15 @@ let currentMailTab = 'inbox';
 let mailData = { inbox: [], sent: [], highwallFiles: [] };
 let isA1Unlocked = false; // 是否解锁了A1高墙文件（控制报告提交权限）
 
+function openMailModal() {
+    document.getElementById('mail-full-modal').classList.add('active');
+    loadMailbox();
+}
+
+function closeMailModal() {
+    document.getElementById('mail-full-modal').classList.remove('active');
+}
+
 function switchMailTab(tab) {
     currentMailTab = tab;
     document.querySelectorAll('.mail-tab').forEach(t => t.classList.remove('active'));
@@ -1077,7 +1482,7 @@ async function loadMailbox() {
     if (!charId || !token) return;
 
     const content = document.getElementById('mailContent');
-    content.innerHTML = '<div class="mail-empty"><i class="fas fa-circle-notch fa-spin"></i><p>加载中...</p></div>';
+    // content.innerHTML = '<div class="mail-empty"><i class="fas fa-circle-notch fa-spin"></i><p>加载中...</p></div>';
 
     try {
         // 检查A1解锁状态
@@ -1113,6 +1518,20 @@ async function loadMailbox() {
             mailData.highwallFiles = await hwRes.json();
         }
 
+        // 更新顶部未读消息标记
+        const unreadCount = mailData.inbox.filter(m => !m.read).length;
+        const mailBtn = document.querySelector('.top-mail-btn');
+        const badge = document.getElementById('topMailBadge');
+
+        if (unreadCount > 0) {
+            mailBtn.classList.add('has-unread');
+            badge.style.display = 'block';
+            badge.textContent = unreadCount;
+        } else {
+            mailBtn.classList.remove('has-unread');
+            badge.style.display = 'none';
+        }
+
         // 高墙文件夹标签 - 只有解锁A1后才显示
         const hwTab = document.getElementById('tab-highwall');
         if (hwTab) {
@@ -1128,7 +1547,9 @@ async function loadMailbox() {
             }
         }
 
+        // 无论是否是当前页签，都刷新内容（因为是在弹窗里）
         renderMailContent();
+        
     } catch (e) {
         console.error('加载邮箱失败:', e);
         content.innerHTML = '<div class="mail-empty"><i class="fas fa-exclamation-triangle"></i><p>加载失败</p></div>';
@@ -1469,6 +1890,15 @@ async function sendContainment() {
     }
 }
 
+function closeSuccessModal() {
+    const modal = document.getElementById('reportSuccessModal');
+    if (modal) {
+        modal.classList.remove('show');
+    }
+}
+
+
+
 async function sendReport() {
     const reportData = {
         status: {
@@ -1509,18 +1939,31 @@ async function sendReport() {
     try {
         const res = await fetch(`/api/character/${charId}/send-report`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
+            headers: getAuthHeaders(),
             body: JSON.stringify(reportData)
         });
 
-        if (!res.ok) throw new Error('提交失败');
-
-        showToast('任务报告已提交', 'success');
+        if (!res.ok) {
+            if (res.status === 409) {
+                 const errorData = await res.json();
+                 showToast(errorData.message || '您已提交过报告', 'error');
+            } else {
+                throw new Error('提交失败，请稍后重试');
+            }
+        } else {
+            // 提交成功！显示弹窗并设置延时关闭
+            const modal = document.getElementById('reportSuccessModal');
+            if (modal) {
+                modal.classList.add('show');
+                
+                // 设置一个 2.5 秒的计时器，之后自动调用关闭函数
+                setTimeout(() => {
+                    closeSuccessModal();
+                }, 2500); 
+            }
+        }
     } catch (e) {
-        showToast('提交失败: ' + e.message, 'error');
+        showToast(e.message, 'error');
     } finally {
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-paper-plane"></i> 提交报告';
@@ -1812,6 +2255,20 @@ async function markMessageRead(msgId) {
         // 更新本地数据
         const msg = mailData.inbox.find(m => m.id === msgId);
         if (msg) msg.read = 1;
+        
+        // 更新顶部未读图标状态
+        const unreadCount = mailData.inbox.filter(m => !m.read).length;
+        const mailBtn = document.querySelector('.top-mail-btn');
+        const badge = document.getElementById('topMailBadge');
+
+        if (unreadCount > 0) {
+            mailBtn.classList.add('has-unread');
+            badge.style.display = 'block';
+            badge.textContent = unreadCount;
+        } else {
+            mailBtn.classList.remove('has-unread');
+            badge.style.display = 'none';
+        }
     } catch (e) {
         console.error('标记已读失败:', e);
     }
@@ -1990,7 +2447,10 @@ document.querySelectorAll('.p-cell').forEach(c=>{c.addEventListener('click',()=>
 function populateData(d){
     SLOT_LIMITS.anomSlots = d.anomSlots || 3;
     SLOT_LIMITS.realSlots = d.realSlots || 3;
-    ['pName','pTrig1','pTrig2','pTrig3','perm1','perm2','perm3','pComm','pRep','mvpCount','watchCount','noteTitle','noteBody'].forEach(id=>{const e=document.getElementById(id);if(d[id]&&e){if(e.tagName==='DIV')e.innerHTML=d[id];else e.value=d[id];}});setHybridInputState('pAnom',d.pAnom);setHybridInputState('pReal',d.pReal);setHybridInputState('pFunc',d.pFunc);if(d.qs)d.qs.forEach((h,i)=>{const q=document.getElementById(`q${i+1}`);if(q)q.innerHTML=h;});if(d.attrs){for(let k in d.attrs){const r=document.querySelector(`.attr-input[data-attr="${k}"]`);if(r){r.value=d.attrs[k].v;renderDots(k,d.attrs[k].v);const dots=r.parentElement.querySelectorAll('.dot');d.attrs[k].m.forEach(idx=>{if(dots[idx-1]){dots[idx-1].classList.remove('active');dots[idx-1].classList.add('marked');}});}}}document.getElementById('list-anom').innerHTML='';document.getElementById('list-real').innerHTML='';document.getElementById('list-item').innerHTML='';
+    ['pName','pTrig1','pTrig2','pTrig3','perm1','perm2','perm3','pComm','pRep','mvpCount','watchCount','noteTitle','noteBody'].forEach(id=>{const e=document.getElementById(id);if(d[id]&&e){if(e.tagName==='DIV')e.innerHTML=d[id];else e.value=d[id];}});
+	    document.getElementById('mvpCount').value = d.mvpCount || (d.rewards || []).reduce((sum, r) => sum + (r.count || 1), 0);
+    document.getElementById('watchCount').value = d.watchCount || (d.reprimands || []).reduce((sum, r) => sum + (r.count || 1), 0);
+	setHybridInputState('pAnom',d.pAnom);setHybridInputState('pReal',d.pReal);setHybridInputState('pFunc',d.pFunc);if(d.qs)d.qs.forEach((h,i)=>{const q=document.getElementById(`q${i+1}`);if(q)q.innerHTML=h;});if(d.attrs){for(let k in d.attrs){const r=document.querySelector(`.attr-input[data-attr="${k}"]`);if(r){r.value=d.attrs[k].v;renderDots(k,d.attrs[k].v);const dots=r.parentElement.querySelectorAll('.dot');d.attrs[k].m.forEach(idx=>{if(dots[idx-1]){dots[idx-1].classList.remove('active');dots[idx-1].classList.add('marked');}});}}}document.getElementById('list-anom').innerHTML='';document.getElementById('list-real').innerHTML='';document.getElementById('list-item').innerHTML='';
     (d.anoms||[]).forEach(x=>addAnom(x, false, true));
     (d.reals||[]).forEach(x=>{const card = addReal(x, true); if(card) document.getElementById('list-real').appendChild(card);});
     (d.items||[]).forEach(x=>addItem(x, false));
@@ -2161,8 +2621,178 @@ function escapeHtmlText(text) {
     .record-meta { font-size: 11px; color: rgba(255,255,255,0.5); }
     .record-meta i { margin-right: 4px; }
     .record-empty { text-align: center; padding: 30px 20px; color: rgba(255,255,255,0.5); }
+/* =========================================
+   报告提交成功 - 动态红勾动画样式 (V2.2)
+   ========================================= */
+.transition-overlay { 
+    position: fixed; top: 0; left: 0; 
+    width: 100vw; height: 100vh; 
+    background: #0f172a; 
+    z-index: 6000;
+    clip-path: inset(50% 0 50% 0); 
+    pointer-events: none;
+    transition: clip-path 0.8s cubic-bezier(0.8, 0, 0.2, 1); 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center; 
+}
+.transition-overlay.active { 
+    pointer-events: all; 
+    clip-path: inset(0 0 0 0); 
+}
+.transition-overlay::before { 
+    content: ''; position: absolute; top: 50%; left: 0; 
+    width: 100%; height: 2px; background: var(--signal-red); 
+    z-index: 100; box-shadow: 0 0 15px var(--signal-red); 
+    opacity: 0; transition: opacity 0.2s; 
+}
+.transition-overlay.active::before { 
+    opacity: 1; animation: line-fade 0.8s forwards; 
+}
+@keyframes line-fade { 
+    0% { opacity: 1; transform: scaleX(0.1); } 
+    50% { opacity: 1; transform: scaleX(1); } 
+    100% { opacity: 0; transform: scaleX(1); } 
+}
+.transition-overlay .loader-content { 
+    text-align: center; color: var(--signal-red); 
+    opacity: 0; transform: scale(0.9); 
+    transition: all 0.4s ease 0.2s; 
+}
+.transition-overlay.active .loader-content { 
+    opacity: 1; transform: scale(1); 
+}
+.transition-overlay .loader-text { 
+    font-family: "Noto Sans SC", sans-serif; 
+    font-size: 16px; letter-spacing: 2px; font-weight: 900; 
+    display: flex; align-items: center; justify-content: center; 
+}
+.transition-overlay .dots::after { 
+    content: ''; width: 1.5em; text-align: left; 
+    display: inline-block; animation: dot-steps 1.5s infinite steps(4, end); 
+}
+@keyframes dot-steps { 
+    0%, 20% { content: ''; } 40% { content: '.'; } 60% { content: '..'; } 80%, 100% { content: '...'; } 
+}
+
+/* --- SVG 动态红勾动画 --- */
+.success-icon-wrapper { 
+    width: 80px; 
+    height: 80px; 
+    margin: 0 auto 20px; /* 调整与文字的间距 */
+}
+.checkmark { 
+    width: 100%; height: 100%; 
+    display: block; 
+    stroke-width: 2.5; 
+    stroke-miterlimit: 10; 
+}
+.checkmark__circle {
+    stroke-dasharray: 166; stroke-dashoffset: 166;
+    stroke-width: 2.5; fill: none;
+    /* 关键修改：圆圈也使用红色 */
+    stroke: var(--signal-red);
+    animation: stroke 0.8s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+.checkmark__check {
+    transform-origin: 50% 50%;
+    stroke-dasharray: 48; stroke-dashoffset: 48;
+    /* 关键修改：对勾使用红色 */
+    stroke: var(--signal-red);
+    animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+}
+@keyframes stroke {
+    100% { stroke-dashoffset: 0; }
+}
+
+/* =========================================
+   任务报告提交成功 - 动态弹窗样式 (V2.1 - 自动消失)
+   ========================================= */
+.success-modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(5px);
+    z-index: 6000;
+    display: none;
+    align-items: center; justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.success-modal-overlay.show {
+    display: flex;
+    opacity: 1;
+}
+
+.success-modal-box {
+    background: rgba(15, 25, 45, 0.95);
+    border: 1px solid rgba(192, 57, 43, 0.3);
+    padding: 30px 40px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 0 40px rgba(192, 57, 43, 0.2), inset 0 0 20px rgba(192, 57, 43, 0.1);
+    transform: scale(0.8) translateY(20px);
+    opacity: 0;
+    animation: success-swoop-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+@keyframes success-swoop-in {
+    to { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.success-modal-box h3 {
+    margin: 20px 0 5px; font-size: 18px; font-weight: 700;
+    color: #e0f0ff; letter-spacing: 1px;
+}
+/* 关键修改：移除了p标签的下边距 */
+.success-modal-box p {
+    margin: 0; font-size: 13px; color: #6090b0;
+}
+
+/* --- SVG 动画样式 --- */
+.success-modal-icon { width: 80px; height: 80px; margin: 0 auto; }
+.checkmark { width: 100%; height: 100%; display: block; stroke-width: 2.5; stroke-miterlimit: 10; }
+.checkmark__circle {
+    stroke-dasharray: 166; stroke-dashoffset: 166;
+    stroke-width: 2.5; fill: none;
+    /* 修改：将描边从渐变改为红色变量 */
+    stroke: var(--signal-red); 
+    animation: stroke 0.8s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+.checkmark__check {
+    transform-origin: 50% 50%;
+    stroke-dasharray: 48; stroke-dashoffset: 48;
+    /* 保持红色 */
+    stroke: var(--signal-red); 
+    animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+}
+@keyframes stroke {
+    100% { stroke-dashoffset: 0; }
+}
+
 </style>
 <div class="nav-arrow arrow-left" onclick="moveTab(-1)"><i class="fas fa-caret-left"></i></div>
 <div class="nav-arrow arrow-right" onclick="moveTab(1)"><i class="fas fa-caret-right"></i></div>
+
+<!-- =========================================
+     报告提交成功 
+     ========================================= -->
+<div id="reportSuccessModal" class="success-modal-overlay">
+    <div class="success-modal-box">
+        <div class="success-modal-icon">
+            <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                <defs>
+                    <linearGradient id="gradient-circle" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#3498db; stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#c0392b; stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+                <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+            </svg>
+        </div>
+        <h3>任务报告已提交</h3>
+    </div>
+</div>
 </body>
 </html>
