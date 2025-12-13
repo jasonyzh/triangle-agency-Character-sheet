@@ -4018,6 +4018,8 @@
             <select id="missionType" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px;margin-bottom:15px;">
                 <option value="containment">收容任务</option>
                 <option value="sweep">清扫任务</option>
+                <option value="disruption">市场扰乱任务</option>
+                <option value="other">其他任务</option>
             </select>
             <label>任务描述</label>
             <textarea id="missionDesc" placeholder="输入任务描述（可选）"></textarea>
@@ -5000,8 +5002,9 @@
             const memberPreview = mission.members && mission.members.length > 0
                 ? mission.members.slice(0, 3).map(m => escapeHtml(m.name)).join('、') + (mission.members.length > 3 ? '...' : '')
                 : '暂无成员';
-            const missionTypeName = mission.mission_type === 'sweep' ? '清扫' : '收容';
-            const missionTypeClass = mission.mission_type === 'sweep' ? 'sweep' : 'containment';
+            const missionTypeNames = { containment: '收容', sweep: '清扫', disruption: '市场扰乱', other: '其他' };
+            const missionTypeName = missionTypeNames[mission.mission_type] || '收容';
+            const missionTypeClass = mission.mission_type || 'containment';
 
             // 构建归档任务的报告信息
             let reportInfoHtml = '';

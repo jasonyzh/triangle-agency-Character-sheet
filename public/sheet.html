@@ -76,7 +76,286 @@
     .brand-logo-sm span:last-child { font-size: 8px; color: var(--signal-red); letter-spacing: 2px; }
     .btn-back { background: none; border: none; font-size: 14px; color: rgba(255,255,255,0.7); cursor: pointer; display: flex; align-items: center; gap: 5px; }
     .btn-back:hover { color: white; }
-    
+
+    /* 顶部可展开按钮通用样式 - 悬浮展开 */
+    .top-expandable-btn {
+        position: relative;
+        font-size: 18px;
+        color: rgba(255,255,255,0.3);
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        gap: 0;
+        padding: 6px 10px;
+        border-radius: 20px;
+        background: rgba(255,255,255,0.05);
+        overflow: hidden;
+        max-width: 40px;
+    }
+    .top-expandable-btn .btn-icon { flex-shrink: 0; width: 20px; text-align: center; }
+    .top-expandable-btn .btn-content {
+        max-width: 0;
+        opacity: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        font-size: 11px;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        color: white;
+    }
+    /* 悬浮时展开 */
+    .top-expandable-btn:hover {
+        color: white;
+        background: rgba(255,255,255,0.15);
+        max-width: 300px;
+    }
+    .top-expandable-btn:hover .btn-content {
+        max-width: 250px;
+        opacity: 1;
+        margin-left: 8px;
+        padding-right: 5px;
+    }
+
+    /* 任务/经理按钮 */
+    .top-mission-btn.has-mission { color: var(--signal-red); }
+    .top-mission-btn.has-manager { color: var(--signal-red); }
+    .top-mission-btn.has-both { color: var(--signal-red); }
+    .top-mission-btn.has-mission:hover { background: rgba(192, 57, 43, 0.3); }
+    .top-mission-btn.has-manager:hover { background: rgba(192, 57, 43, 0.3); }
+    .top-mission-btn.has-both:hover { background: rgba(192, 57, 43, 0.3); }
+
+    /* 邮箱按钮 */
+    .top-mail-btn.has-unread { color: var(--signal-red); }
+    .top-mail-btn.has-unread:hover { background: rgba(192, 57, 43, 0.3); }
+    /* 任务/经理全屏模态框 - 使用与邮箱相同的clip-path动画 */
+    .mission-full-modal {
+        display: flex;
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        background: rgba(15, 23, 42, 0.98);
+        z-index: 5000;
+        flex-direction: column;
+        /* 使用 inset 裁剪，模拟从右上角展开 */
+        clip-path: inset(0 0 100% 100%);
+        transition: clip-path 0.55s cubic-bezier(0.7, 0, 0.2, 1);
+        will-change: clip-path;
+        box-shadow: inset 0 0 150px rgba(0,0,0,0.8);
+    }
+    .mission-full-modal.active {
+        clip-path: inset(0 0 0 0);
+    }
+    /* 扫描线背景 */
+    .mission-full-modal::before {
+        content: '';
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, 0.3) 2px, rgba(0, 0, 0, 0.3) 4px);
+        pointer-events: none;
+        z-index: -1;
+    }
+    .mission-full-modal .mission-modal-header,
+    .mission-full-modal .mission-modal-body {
+        opacity: 0;
+        transform: translateY(30px) scale(0.98);
+        transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    .mission-full-modal.active .mission-modal-header,
+    .mission-full-modal.active .mission-modal-body {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        transition: opacity 0.4s ease 0.3s, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s;
+    }
+    .mission-full-modal .mission-modal-header {
+        background: #1e293b;
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 3px solid #f39c12;
+        color: white;
+        flex-shrink: 0;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .mission-full-modal .mission-modal-header h2 {
+        margin: 0;
+        border: none;
+        padding: 0;
+        color: white;
+        font-family: "Roboto Mono", monospace;
+        letter-spacing: 1px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .mission-full-modal .btn-close-mission {
+        background: none;
+        border: none;
+        color: rgba(255,255,255,0.5);
+        font-size: 24px;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+    .mission-full-modal .btn-close-mission:hover {
+        color: #f39c12;
+        text-shadow: 0 0 10px #f39c12;
+    }
+    .mission-full-modal .mission-modal-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        max-width: 800px;
+        margin: 0 auto;
+        width: 100%;
+    }
+    .mission-section {
+        background: rgba(255,255,255,0.05);
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    .mission-section-title {
+        font-size: 12px;
+        color: rgba(255,255,255,0.5);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .mission-section-title i { color: #f39c12; }
+    .mission-card {
+        background: rgba(255,255,255,0.08);
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 10px;
+    }
+    .mission-card:last-child { margin-bottom: 0; }
+    .mission-card-title {
+        font-weight: bold;
+        color: white;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+    .mission-card-desc {
+        font-size: 13px;
+        color: rgba(255,255,255,0.8);
+        margin-bottom: 12px;
+        padding: 10px;
+        background: rgba(0,0,0,0.2);
+        border-radius: 6px;
+        border-left: 3px solid #f39c12;
+        line-height: 1.5;
+        white-space: pre-wrap;
+    }
+    .mission-card-info {
+        font-size: 12px;
+        color: rgba(255,255,255,0.6);
+        margin-bottom: 4px;
+    }
+    .mission-card-info span { color: #f39c12; font-weight: 500; }
+    .teammate-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+    }
+    .teammate-tag {
+        background: rgba(41, 128, 185, 0.3);
+        color: #5dade2;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 500;
+    }
+    .teammate-tag.is-me {
+        background: #f39c12;
+        color: white;
+    }
+    .manager-tag {
+        background: rgba(243, 156, 18, 0.2);
+        color: #f39c12;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-right: 10px;
+        margin-bottom: 10px;
+    }
+    .no-data-hint {
+        color: rgba(255,255,255,0.4);
+        font-size: 13px;
+        font-style: italic;
+    }
+
+    /* 分享模式高斯模糊 - 模糊整个页面内容 */
+    body.share-locked .container,
+    body.share-locked .nav-bar,
+    body.share-locked .nav-arrow {
+        filter: blur(15px);
+        pointer-events: none;
+        user-select: none;
+    }
+    body.share-locked {
+        overflow: hidden;
+    }
+
+    /* 分享密码模态框 - 最高优先级 */
+    #share-password-modal {
+        z-index: 99999 !important;
+        pointer-events: auto !important;
+    }
+    #share-password-modal .share-modal-content,
+    #share-password-modal .share-modal-body,
+    #share-password-modal input,
+    #share-password-modal button {
+        pointer-events: auto !important;
+    }
+
+    /* 分享模态框 */
+    .share-modal {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.6);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+    }
+    .share-modal-content {
+        background: white;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        overflow: hidden;
+    }
+    .share-modal-header {
+        background: var(--signal-red);
+        color: white;
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .share-modal-header h3 {
+        margin: 0;
+        font-size: 16px;
+    }
+    .share-modal-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 18px;
+        cursor: pointer;
+        opacity: 0.8;
+    }
+    .share-modal-close:hover { opacity: 1; }
+    .share-modal-body {
+        padding: 20px;
+    }
+
     h1 { margin: 0; font-size: 16px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; text-align: right; display:flex; flex-direction:column; align-items:flex-end; color: white; }
     h1 span.sub { font-size: 10px; color: rgba(255,255,255,0.5); font-weight: normal; }
     
@@ -86,6 +365,7 @@
     body.readonly-mode .readonly-tag { display: inline-block; background: var(--signal-red); color: white; }
     body.readonly-mode .btn-save, body.readonly-mode .btn-add, body.readonly-mode .btn-del, body.readonly-mode .save-area { display: none !important; }
     body.readonly-mode input, body.readonly-mode textarea, body.readonly-mode .rich-editor, body.readonly-mode select { pointer-events: none; background: transparent; border-color: transparent; color: #555; -webkit-appearance: none; appearance: none; }
+    body.readonly-mode .attr-btn { display: none !important; }
     
     /* Swiper 调整：宽度改为400%因为只有4页了 */
     .swiper-container { flex-grow: 1; width: 100%; overflow: hidden; position: relative; }
@@ -130,7 +410,10 @@
     @media(min-width: 768px) { .char-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; margin-bottom: 20px; } .char-layout .panel { height: 100%; margin-bottom: 0; } }
     .attr-row { display: flex; align-items: center; margin-bottom: 12px; border-bottom: 1px dashed var(--border-color); padding-bottom: 8px; gap: 8px; }
     .attr-label { flex: 0 0 50px; background: #333; color: white; text-align: center; border-radius: 3px; font-size: 10px; padding: 4px 0; font-weight: bold; }
-    .attr-input { flex: 0 0 36px; text-align: center; font-weight: bold; padding: 4px; background: white; border: 1px solid #ccc; color: var(--signal-red); }
+    .attr-input { flex: 0 0 50px; text-align: center; font-weight: bold; padding: 4px; background: white; border: 1px solid #ccc; color: var(--signal-red); font-size: 12px; }
+    .attr-btn { width: 18px; height: 18px; border: 1px solid #bdc3c7; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0; background: #f8f9fa; color: #555; }
+    .attr-btn:hover { background: #e9ecef; border-color: #adb5bd; color: #333; }
+    .attr-btn:active { transform: scale(0.95); background: #dee2e6; }
     .attr-dots-container { flex: 1; display: flex; justify-content: center; }
     .attr-dots { display: flex; gap: 4px; }
     .dot { width: 16px; height: 16px; border: 1px solid #bdc3c7; border-radius: 50%; cursor: pointer; flex-shrink: 0; transition: all 0.2s; background: #fff; }
@@ -944,6 +1227,24 @@
                 max-width: 100%;
                 padding: 0 10px;
             }
+
+            /* 任务模态框桌面端适配 */
+            .mission-full-modal {
+                width: 700px !important;
+                height: 70vh !important;
+                left: 50% !important;
+                top: 50% !important;
+                transform: translate(-50%, -50%) !important;
+                border-radius: 12px !important;
+                border: 1px solid rgba(243, 156, 18, 0.3);
+                box-shadow: 0 30px 60px rgba(0,0,0,0.5), 0 0 0 200vw rgba(0,0,0,0.6) !important;
+            }
+            .mission-full-modal .mission-modal-header {
+                border-radius: 12px 12px 0 0;
+            }
+            .mission-full-modal::before {
+                border-radius: 12px;
+            }
         }
 		/* =========================================
            移动端体验优化补丁 (Mobile Layout Fix)
@@ -954,13 +1255,23 @@
                 /* 关键：使用动态高度，自动减去浏览器地址栏的高度 */
                 height: 100vh; /* 兼容旧浏览器 */
                 height: 100dvh; /* 新浏览器 */
-                
+
                 /* 确保底部不被 iPhone 的手势条遮挡 */
                 padding-bottom: env(safe-area-inset-bottom);
             }
-            
+
             .mail-modal-body {
                 /* 增加底部滚动余量，防止最后的内容被挡住 */
+                padding-bottom: 80px !important;
+            }
+
+            /* 任务模态框移动端适配 */
+            .mission-full-modal {
+                height: 100vh;
+                height: 100dvh;
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+            .mission-full-modal .mission-modal-body {
                 padding-bottom: 80px !important;
             }
 
@@ -1046,10 +1357,15 @@
     <button class="btn-back" onclick="goBack()"><i class="fas fa-chevron-left"></i> 返回</button>
     <div class="brand-logo-sm"><span>TRIANGLE</span><span>AGENCY</span></div>
     <div class="header-right">
-        <!-- 顶部邮箱按钮 -->
-        <div class="top-mail-btn" onclick="openMailModal()" title="邮箱">
-            <i class="fas fa-envelope"></i>
-            <span class="mail-badge" id="topMailBadge">0</span>
+        <!-- 任务/经理信息按钮（可展开） -->
+        <div class="top-expandable-btn top-mission-btn" onclick="toggleMissionPanel()" title="任务与经理">
+            <span class="btn-icon"><i class="fas fa-briefcase"></i></span>
+            <span class="btn-content" id="missionBtnContent">加载中...</span>
+        </div>
+        <!-- 顶部邮箱按钮（可展开） -->
+        <div class="top-expandable-btn top-mail-btn" onclick="toggleMailPanel()" title="邮箱">
+            <span class="btn-icon"><i class="fas fa-envelope"></i></span>
+            <span class="btn-content" id="mailBtnContent">0 封未读</span>
         </div>
         <h1>职员档案 <span class="sub"><span class="offline-tag">OFFLINE</span><span class="readonly-tag">READ-ONLY</span></span></h1>
     </div>
@@ -1088,25 +1404,106 @@
 </div>
 <div class="panel"><h2><i class="fas fa-file-contract"></i> 欢迎你，特工！</h2><div style="margin-bottom:12px;"><label>1. 你是如何与你的异常接触的？</label><div class="rich-editor" id="q1" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>2. 机构是如何找到你的？</label><div class="rich-editor" id="q2" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>3. 你的能力有独特的外在视觉表现吗？</label><div class="rich-editor" id="q3" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>4. 你喝咖啡有什么偏好？</label><div class="rich-editor" id="q4" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>5. 请描述你过往的工作经历</label><div class="rich-editor" id="q5" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>6. 你对Adobe、Excel和Google套件的熟悉程度如何？</label><div class="rich-editor" id="q6" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>7. 在协作工作环境中，你能做出什么贡献？</label><div class="rich-editor" id="q7" contenteditable="true"></div></div></div>
 <div class="panel"><h2><i class="fas fa-sticky-note"></i> 备注/笔记</h2><label>标题</label><input type="text" id="noteTitle" style="margin-bottom: 12px; font-weight: bold;"><label>内容</label><div class="rich-editor" id="noteBody" contenteditable="true" placeholder="摘要..."></div></div>
-<div class="save-area"><button class="btn-save btn-save-server" onclick="saveData()"><i class="fas fa-cloud-upload-alt"></i> 上传终端</button>
+<div class="save-area">
+<button class="btn-save btn-save-server" onclick="saveData()"><i class="fas fa-cloud-upload-alt"></i> 上传终端</button>
 <button class="btn-save btn-export" onclick="exportOffline()"><i class="fas fa-download"></i> 离线另存</button>
+<button class="btn-save btn-export" onclick="exportJson()"><i class="fas fa-download"></i> 导出JSON</button>
+<button class="btn-save btn-export" onclick="triggerImport()"><i class="fas fa-upload"></i> 导入覆盖</button>
+<button class="btn-save btn-export" onclick="openShareModal()"><i class="fas fa-share-alt"></i> 页面分享</button>
+<input type="file" id="jsonInput" accept=".json" style="display:none" onchange="handleImportJson(this)">
+</div>
+</div>
+<div id="view-anom" class="tab-view"><div class="mod-header"><h2>异常能力</h2><button class="btn-add" onclick="addAnom(null, false)"><i class="fas fa-plus"></i> 添加</button></div><div id="list-anom"></div><div class="save-area"><button class="btn-save btn-save-server" onclick="saveData()"><i class="fas fa-cloud-upload-alt"></i> 上传终端</button><button class="btn-save btn-export" onclick="exportOffline()"><i class="fas fa-download"></i> 离线另存</button><button class="btn-save btn-export" onclick="exportJson()"><i class="fas fa-download"></i> 导出JSON</button><button class="btn-save btn-export" onclick="triggerImport()"><i class="fas fa-upload"></i> 导入覆盖</button><button class="btn-save btn-export" onclick="openShareModal()"><i class="fas fa-share-alt"></i> 页面分享</button></div></div>
+<div id="view-real" class="tab-view"><div class="mod-header"><h2>关系网</h2><button class="btn-add" onclick="addRealSafe()"><i class="fas fa-plus"></i> 添加</button></div><div id="list-real"></div><div class="save-area"><button class="btn-save btn-save-server" onclick="saveData()"><i class="fas fa-cloud-upload-alt"></i> 上传终端</button><button class="btn-save btn-export" onclick="exportOffline()"><i class="fas fa-download"></i> 离线另存</button><button class="btn-save btn-export" onclick="exportJson()"><i class="fas fa-download"></i> 导出JSON</button><button class="btn-save btn-export" onclick="triggerImport()"><i class="fas fa-upload"></i> 导入覆盖</button><button class="btn-save btn-export" onclick="openShareModal()"><i class="fas fa-share-alt"></i> 页面分享</button></div></div>
+<div id="view-item" class="tab-view"><div class="mod-header"><h2>申领物/福利</h2><button class="btn-add" onclick="addItem(null, false)"><i class="fas fa-plus"></i> 添加</button></div><div id="list-item"></div><div class="save-area"><button class="btn-save btn-save-server" onclick="saveData()"><i class="fas fa-cloud-upload-alt"></i> 上传终端</button><button class="btn-save btn-export" onclick="exportOffline()"><i class="fas fa-download"></i> 离线另存</button><button class="btn-save btn-export" onclick="exportJson()"><i class="fas fa-download"></i> 导出JSON</button><button class="btn-save btn-export" onclick="triggerImport()"><i class="fas fa-upload"></i> 导入覆盖</button><button class="btn-save btn-export" onclick="openShareModal()"><i class="fas fa-share-alt"></i> 页面分享</button></div></div>
+</div>
+</div>
+</div>
 
-<button class="btn-save btn-export" onclick="exportJson()">
-        <i class="fas fa-download"></i> 导出JSON
-    </button>
-    <!-- 导入 JSON 按钮 -->
-    <button class="btn-save btn-export" onclick="triggerImport()">
-        <i class="fas fa-download"></i> 导入覆盖
-    </button>
-	<input type="file" id="jsonInput" accept=".json" style="display:none" onchange="handleImportJson(this)">
-	
+<!-- 分享密码输入模态框 -->
+<div id="share-password-modal" class="share-modal" style="display: none;">
+    <div class="share-modal-content">
+        <div class="share-modal-header" style="background: var(--signal-red);">
+            <h3><i class="fas fa-lock"></i> 需要密码</h3>
+        </div>
+        <div class="share-modal-body" style="text-align: center;">
+            <p style="color: #666; margin-bottom: 20px;">此角色卡已加密，请输入访问密码</p>
+            <input type="password" id="share-pwd-input" placeholder="请输入密码"
+                style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 6px; text-align: center; font-size: 16px;"
+                onkeypress="if(event.key==='Enter')submitSharePassword()">
+            <div id="share-pwd-error" style="display: none; color: var(--signal-red); margin-top: 10px; font-size: 13px;">
+                <i class="fas fa-exclamation-circle"></i> 密码错误，请重试
+            </div>
+            <button onclick="submitSharePassword()"
+                style="width: 100%; margin-top: 15px; padding: 12px; background: var(--signal-red); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">
+                <i class="fas fa-unlock"></i> 解锁查看
+            </button>
+        </div>
+    </div>
 </div>
+
+<!-- 分享模态框 -->
+<div id="share-modal" class="share-modal" onclick="if(event.target===this)closeShareModal()">
+    <div class="share-modal-content">
+        <div class="share-modal-header">
+            <h3><i class="fas fa-share-alt"></i> 页面分享</h3>
+            <button class="share-modal-close" onclick="closeShareModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="share-modal-body">
+            <div id="share-status" style="margin-bottom: 15px;"></div>
+
+            <!-- 创建分享表单 -->
+            <div id="share-form" style="display: none;">
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-size: 13px; color: #666;">访问密码（可选）</label>
+                    <input type="text" id="share-password" placeholder="留空则无需密码" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-size: 13px; color: #666;">过期时间</label>
+                    <select id="share-expire" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+                        <option value="0">永不过期</option>
+                        <option value="1">1天</option>
+                        <option value="7">7天</option>
+                        <option value="30">30天</option>
+                    </select>
+                </div>
+                <button onclick="createShare()" style="width: 100%; padding: 12px; background: var(--signal-red); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">
+                    <i class="fas fa-link"></i> 创建分享链接
+                </button>
+            </div>
+
+            <!-- 已有分享链接 -->
+            <div id="share-link-area" style="display: none;">
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-size: 13px; color: #666;">分享链接</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="share-url" readonly style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px; background: #f8f9fa;">
+                        <button onclick="copyShareUrl()" style="padding: 10px 15px; background: var(--signal-red); color: white; border: none; border-radius: 6px; cursor: pointer;">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                <div style="font-size: 13px; color: #666; margin-bottom: 15px;">
+                    <div>需要密码: <span id="share-has-password">-</span></div>
+                    <div>过期时间: <span id="share-expires">-</span></div>
+                </div>
+                <button onclick="deleteShare()" style="width: 100%; padding: 12px; background: #e74c3c; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">
+                    <i class="fas fa-trash"></i> 取消分享
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
-<div id="view-anom" class="tab-view"><div class="mod-header"><h2>异常能力</h2><button class="btn-add" onclick="addAnom(null, false)"><i class="fas fa-plus"></i> 添加</button></div><div id="list-anom"></div><div class="save-area"><button class="btn-save btn-save-server" onclick="saveData()"><i class="fas fa-cloud-upload-alt"></i> 上传终端</button><button class="btn-save btn-export" onclick="exportOffline()"><i class="fas fa-download"></i> 离线另存</button></div></div>
-<div id="view-real" class="tab-view"><div class="mod-header"><h2>关系网</h2><button class="btn-add" onclick="addRealSafe()"><i class="fas fa-plus"></i> 添加</button></div><div id="list-real"></div><div class="save-area"><button class="btn-save btn-save-server" onclick="saveData()"><i class="fas fa-cloud-upload-alt"></i> 上传终端</button><button class="btn-save btn-export" onclick="exportOffline()"><i class="fas fa-download"></i> 离线另存</button></div></div>
-<div id="view-item" class="tab-view"><div class="mod-header"><h2>申领物/福利</h2><button class="btn-add" onclick="addItem(null, false)"><i class="fas fa-plus"></i> 添加</button></div><div id="list-item"></div><div class="save-area"><button class="btn-save btn-save-server" onclick="saveData()"><i class="fas fa-cloud-upload-alt"></i> 上传终端</button><button class="btn-save btn-export" onclick="exportOffline()"><i class="fas fa-download"></i> 离线另存</button></div></div>
-</div>
-</div>
+
+<!-- 任务/经理全屏模态框 -->
+<div id="mission-full-modal" class="mission-full-modal">
+    <div class="mission-modal-header">
+        <h2><i class="fas fa-briefcase"></i> 任务与经理</h2>
+        <button class="btn-close-mission" onclick="closeMissionModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="mission-modal-body" id="missionModalBody">
+        <div class="no-data-hint">加载中...</div>
+    </div>
 </div>
 
 <!-- 邮箱全屏模态框 -->
@@ -1214,8 +1611,11 @@
 <script>
 const params = new URLSearchParams(window.location.search);
 const charId = params.get('id');
-const isReadOnly = params.get('readonly') === 'true';
+const shareCode = params.get('share');
+const isReadOnly = params.get('readonly') === 'true' || !!shareCode;
 const token = localStorage.getItem('ta_token');
+let isShareMode = !!shareCode;
+let shareNeedsPassword = false;
 
 // 获取带认证的请求头
 function getAuthHeaders() {
@@ -1374,6 +1774,9 @@ document.addEventListener('mousedown', (e) => {
 
 // 2. 点击监听（包含穿透修复）
 document.addEventListener('click', (e) => {
+    // 分享锁定状态下禁止翻页
+    if (document.body.classList.contains('share-locked')) return;
+
     // A. 拖拽检测：如果移动超过 5 像素，视为选中文本或拖拽，不触发翻页
     const diffX = Math.abs(e.clientX - mouseStartX);
     const diffY = Math.abs(e.clientY - mouseStartY);
@@ -1381,15 +1784,15 @@ document.addEventListener('click', (e) => {
 
     const c = document.querySelector('.container');
     const n = document.querySelector('.nav-bar');
-    
+
     // B. 排除区域（点击这些地方不会触发翻页）
-    if (window.innerWidth <= 930 || 
-        c.contains(e.target) || 
-        (n && n.contains(e.target)) || 
+    if (window.innerWidth <= 930 ||
+        c.contains(e.target) ||
+        (n && n.contains(e.target)) ||
         e.target.closest('.nav-arrow') ||
-        e.target.closest('.modal-overlay') || 
+        e.target.closest('.modal-overlay') ||
         e.target.closest('.full-page-modal') ||
-        e.target.closest('button') ||        
+        e.target.closest('button') ||
         ['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) {
         return;
     }
@@ -1433,13 +1836,37 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadConfigData();
     updateSwiper();
     initAttrs();
-    // 页面加载完成后加载邮箱状态
-    loadMailbox(); 
-    
+
     const offlineDataEl = document.getElementById('__SAVED_DATA__');
     if(offlineDataEl && offlineDataEl.textContent.trim().length > 2) {
         document.body.classList.add('offline-mode');
         populateData(JSON.parse(offlineDataEl.textContent));
+    } else if (isShareMode) {
+        // 分享模式：先检查是否需要密码
+        try {
+            const statusRes = await fetch(`/api/share/${shareCode}/status`);
+            if (!statusRes.ok) {
+                let errMsg = '分享链接无效或已过期';
+                try {
+                    const errData = await statusRes.json();
+                    errMsg = errData.message || errMsg;
+                } catch (e) {}
+                alert(errMsg);
+                return;
+            }
+            const statusData = await statusRes.json();
+            if (statusData.needPassword) {
+                // 需要密码，先添加模糊效果再显示密码输入框
+                document.body.classList.add('share-locked');
+                showSharePasswordModal();
+            } else {
+                // 不需要密码，直接加载
+                await loadShareData('');
+            }
+        } catch (e) {
+            console.error('检查分享状态出错:', e);
+            alert('无法连接服务器，请检查网络');
+        }
     } else {
         if(!charId) { window.location.href='dashboard.html'; return; }
         try {
@@ -1450,6 +1877,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             const data=await res.json();
             populateData(data);
+            // 页面加载完成后加载邮箱状态
+            loadMailbox();
+            // 加载任务和经理信息
+            loadMissionInfo();
         }
         catch(e) { if(!document.getElementById('list-anom').children.length) addAnom(null, false); if(!document.getElementById('list-real').children.length) document.getElementById('list-real').appendChild(addReal()); if(!document.getElementById('list-item').children.length) addItem(null, false); }
     }
@@ -1459,16 +1890,31 @@ if (isReadOnly) {
     document.addEventListener('DOMContentLoaded', () => {
          document.querySelectorAll('[contenteditable]').forEach(el => el.setAttribute('contenteditable', 'false'));
          ['pAnom', 'pReal', 'pFunc'].forEach(id => { document.getElementById(`grp-${id}`).classList.add('show-input'); });
+         // 分享模式下隐藏邮箱和任务按钮
+         if (isShareMode) {
+             document.querySelector('.top-mail-btn')?.remove();
+             document.querySelector('.top-mission-btn')?.remove();
+         }
     });
 }
 // ==========================================================
 // MODIFIED: 重写 goBack 函数以支持多来源返回
 // ==========================================================
 async function goBack() {
+    // 分享模式：关闭窗口或跳转到首页
+    if (isShareMode) {
+        if (window.opener) {
+            window.close();
+        } else {
+            window.location.href = '/';
+        }
+        return;
+    }
+
     // 1. 确定目标URL
     const params = new URLSearchParams(window.location.search);
     const cameFromManager = params.get('from') === 'manager';
-    
+
     let destinationUrl = 'dashboard.html'; // 默认是仪表盘
     if (cameFromManager) {
         destinationUrl = 'manager.html'; // 如果来自经理页，则返回经理页
@@ -1494,7 +1940,7 @@ async function goBack() {
             // 即使保存失败，也继续跳转
         }
     }
-    
+
     // 4. 跳转到目标URL
     window.location.href = destinationUrl;
 }
@@ -1506,6 +1952,178 @@ let currentMailTab = 'inbox';
 let mailData = { inbox: [], sent: [], highwallFiles: [] };
 let isA1Unlocked = false; // 是否解锁了A1高墙文件（控制报告提交权限）
 let canSendMessages = true; // 是否有发信权限（经理可控制）
+
+// 任务和经理信息
+let missionInfo = { inMission: false, missions: [], managers: [] };
+
+// 点击任务按钮切换全屏模态框
+function toggleMissionPanel() {
+    const modal = document.getElementById('mission-full-modal');
+    if (modal.classList.contains('active')) {
+        closeMissionModal();
+    } else {
+        openMissionModal();
+    }
+}
+
+// 打开任务全屏模态框
+function openMissionModal() {
+    document.getElementById('mission-full-modal').classList.add('active');
+    loadMissionInfo();
+    renderMissionModalContent();
+}
+
+// 关闭任务全屏模态框
+function closeMissionModal() {
+    document.getElementById('mission-full-modal').classList.remove('active');
+}
+
+// 渲染任务模态框内容
+function renderMissionModalContent() {
+    const body = document.getElementById('missionModalBody');
+    if (!body) return;
+
+    let html = '';
+
+    // 经理区块
+    html += '<div class="mission-section">';
+    html += '<div class="mission-section-title"><i class="fas fa-user-tie"></i> 负责经理</div>';
+    if (missionInfo.managers && missionInfo.managers.length > 0) {
+        html += '<div class="manager-list">';
+        missionInfo.managers.forEach(m => {
+            html += `<span class="manager-tag"><i class="fas fa-user-shield"></i> ${escapeHtml(m.name)}</span>`;
+        });
+        html += '</div>';
+    } else {
+        html += '<div class="no-data-hint">暂无负责经理</div>';
+    }
+    html += '</div>';
+
+    // 任务区块
+    html += '<div class="mission-section">';
+    html += '<div class="mission-section-title"><i class="fas fa-tasks"></i> 当前任务</div>';
+    if (missionInfo.inMission && missionInfo.missions && missionInfo.missions.length > 0) {
+        const missionTypeNames = { containment: '收容任务', sweep: '清扫任务', disruption: '市场扰乱任务', other: '其他任务' };
+        missionInfo.missions.forEach(mission => {
+            html += '<div class="mission-card">';
+            html += `<div class="mission-card-title">${escapeHtml(mission.missionName)}</div>`;
+            // 显示任务概述
+            if (mission.missionDescription) {
+                html += `<div class="mission-card-desc">${escapeHtml(mission.missionDescription)}</div>`;
+            }
+            const typeName = missionTypeNames[mission.missionType] || '任务';
+            const statusText = mission.missionStatus === 'active' ? '进行中' : '已结案';
+            html += `<div class="mission-card-info">类型: <span>${typeName}</span></div>`;
+            html += `<div class="mission-card-info">状态: <span style="${mission.missionStatus === 'active' ? 'color:#27ae60;' : 'color:#95a5a6;'}">${statusText}</span></div>`;
+            if (mission.creatorName) {
+                html += `<div class="mission-card-info">创建者: <span>${escapeHtml(mission.creatorName)}</span></div>`;
+            }
+            if (mission.teammates && mission.teammates.length > 0) {
+                html += '<div class="mission-card-info">队友:</div>';
+                html += '<div class="teammate-list">';
+                mission.teammates.forEach(t => {
+                    const isMe = t.characterId == charId;
+                    html += `<span class="teammate-tag ${isMe ? 'is-me' : ''}">${escapeHtml(t.characterName)}${isMe ? ' (我)' : ''}</span>`;
+                });
+                html += '</div>';
+            }
+            html += '</div>';
+        });
+    } else {
+        html += '<div class="no-data-hint">暂无进行中的任务</div>';
+    }
+    html += '</div>';
+
+    body.innerHTML = html;
+}
+
+// 切换邮箱面板 - 点击切换全屏模态框
+function toggleMailPanel() {
+    const modal = document.getElementById('mail-full-modal');
+    if (modal.classList.contains('active')) {
+        closeMailModal();
+    } else {
+        openMailModal();
+    }
+}
+
+async function loadMissionInfo() {
+    if (!charId || !token) {
+        updateMissionButtonContent();
+        renderMissionModalContent();
+        return;
+    }
+
+    const content = document.getElementById('missionBtnContent');
+    if (content) content.textContent = '加载中...';
+
+    try {
+        const res = await fetch(`/api/character/${charId}/mission`, {
+            headers: getAuthHeaders()
+        });
+        if (res.ok) {
+            missionInfo = await res.json();
+            updateMissionButton();
+            updateMissionButtonContent();
+            renderMissionModalContent(); // 重新渲染模态框内容
+        } else {
+            if (content) content.textContent = '加载失败';
+        }
+    } catch (e) {
+        console.error('加载任务信息失败:', e);
+        if (content) content.textContent = '加载失败';
+    }
+}
+
+function updateMissionButton() {
+    const btn = document.querySelector('.top-mission-btn');
+    if (!btn) return;
+
+    btn.classList.remove('has-mission', 'has-manager', 'has-both');
+
+    const hasMission = missionInfo.inMission;
+    const hasManager = missionInfo.managers && missionInfo.managers.length > 0;
+
+    if (hasMission && hasManager) {
+        btn.classList.add('has-both');
+    } else if (hasMission) {
+        btn.classList.add('has-mission');
+    } else if (hasManager) {
+        btn.classList.add('has-manager');
+    }
+}
+
+function updateMissionButtonContent() {
+    const content = document.getElementById('missionBtnContent');
+    if (!content) return;
+
+    let parts = [];
+
+    // 经理信息
+    if (missionInfo.managers && missionInfo.managers.length > 0) {
+        const managerNames = missionInfo.managers.map(m => m.name).join(', ');
+        parts.push(`经理: ${managerNames}`);
+    }
+
+    // 任务信息
+    if (missionInfo.inMission && missionInfo.missions && missionInfo.missions.length > 0) {
+        const missionNames = missionInfo.missions.map(m => m.missionName).join(', ');
+        parts.push(`任务: ${missionNames}`);
+    }
+
+    if (parts.length === 0) {
+        content.textContent = '暂无任务/经理';
+    } else {
+        content.textContent = parts.join(' | ');
+    }
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 
 function openMailModal() {
     document.getElementById('mail-full-modal').classList.add('active');
@@ -1564,18 +2182,17 @@ async function loadMailbox() {
             mailData.highwallFiles = await hwRes.json();
         }
 
-        // 更新顶部未读消息标记
+        // 更新顶部未读消息标记和展开内容
         const unreadCount = mailData.inbox.filter(m => !m.read).length;
         const mailBtn = document.querySelector('.top-mail-btn');
-        const badge = document.getElementById('topMailBadge');
+        const mailContent = document.getElementById('mailBtnContent');
 
         if (unreadCount > 0) {
             mailBtn.classList.add('has-unread');
-            badge.style.display = 'block';
-            badge.textContent = unreadCount;
+            if (mailContent) mailContent.textContent = `${unreadCount} 封未读`;
         } else {
             mailBtn.classList.remove('has-unread');
-            badge.style.display = 'none';
+            if (mailContent) mailContent.textContent = '无未读邮件';
         }
 
         // 高墙文件夹标签 - 只有解锁A1后才显示
@@ -2359,19 +2976,18 @@ async function markMessageRead(msgId) {
         // 更新本地数据
         const msg = mailData.inbox.find(m => m.id === msgId);
         if (msg) msg.read = 1;
-        
-        // 更新顶部未读图标状态
+
+        // 更新顶部未读图标状态和展开内容
         const unreadCount = mailData.inbox.filter(m => !m.read).length;
         const mailBtn = document.querySelector('.top-mail-btn');
-        const badge = document.getElementById('topMailBadge');
+        const mailContent = document.getElementById('mailBtnContent');
 
         if (unreadCount > 0) {
             mailBtn.classList.add('has-unread');
-            badge.style.display = 'block';
-            badge.textContent = unreadCount;
+            if (mailContent) mailContent.textContent = `${unreadCount} 封未读`;
         } else {
             mailBtn.classList.remove('has-unread');
-            badge.style.display = 'none';
+            if (mailContent) mailContent.textContent = '无未读邮件';
         }
     } catch (e) {
         console.error('标记已读失败:', e);
@@ -2494,8 +3110,158 @@ async function submitAppeal(reportId) {
 }
 
 const ATTRS=['专注','欺瞒','活力','共情','主动','坚毅','气场','专业','诡秘'];
-function initAttrs(){ const c=document.getElementById('attrs-list');c.innerHTML='';ATTRS.forEach(a=>{ const d=document.createElement('div');d.className='attr-row';d.innerHTML=`<div class="attr-label">${a}</div><input type="text" class="attr-input" data-attr="${a}" value="0"><div class="attr-dots-container"><div class="attr-dots" data-attr="${a}">${Array(9).fill(0).map((_,i)=>`<div class="dot" data-i="${i+1}"></div>`).join('')}</div></div>`;c.appendChild(d); const i=d.querySelector('input');i.oninput=(e)=>renderDots(a,e.target.value);d.querySelectorAll('.dot').forEach(dot=>{dot.onclick=()=>{if(isReadOnly)return;const max=parseInt(i.value)||0,idx=parseInt(dot.dataset.i);if(idx>max)return;if(dot.classList.contains('marked')){dot.classList.remove('marked');dot.classList.add('active');}else{dot.classList.remove('active');dot.classList.add('marked');}}});});}
-function renderDots(a,v){const val=parseInt(v)||0;document.querySelectorAll(`.attr-dots[data-attr="${a}"] .dot`).forEach((d,i)=>{if(i<val){if(!d.classList.contains('marked'))d.classList.add('active');}else{d.classList.remove('active','marked');}}); }
+// 存储每个属性的marked点位置
+let attrMarkedDots = {};
+
+function initAttrs(){
+    const c=document.getElementById('attrs-list');
+    c.innerHTML='';
+    ATTRS.forEach(a=>{
+        attrMarkedDots[a] = new Set(); // 初始化marked点集合
+        const d=document.createElement('div');
+        d.className='attr-row';
+        d.innerHTML=`<div class="attr-label">${a}</div><button class="attr-btn attr-btn-minus" data-attr="${a}" title="减少上限">−</button><input type="text" class="attr-input" data-attr="${a}" value="0/0" placeholder="当前/最大"><button class="attr-btn attr-btn-plus" data-attr="${a}" title="增加上限">+</button><div class="attr-dots-container"><div class="attr-dots" data-attr="${a}">${Array(9).fill(0).map((_,i)=>`<div class="dot" data-i="${i+1}"></div>`).join('')}</div></div>`;
+        c.appendChild(d);
+        const i=d.querySelector('input');
+
+        // +/- 按钮逻辑
+        d.querySelector('.attr-btn-minus').onclick = () => {
+            if(isReadOnly) return;
+            const {current, max} = getAttrValues(a);
+            if(max <= 0) return;
+            const newMax = max - 1;
+            // 移除超出新上限的红点
+            const newMarked = new Set();
+            attrMarkedDots[a].forEach(idx => {
+                if(idx <= newMax) newMarked.add(idx);
+            });
+            attrMarkedDots[a] = newMarked;
+            // 计算新的current
+            const markedCount = attrMarkedDots[a].size;
+            const newCurrent = newMax - markedCount;
+            i.value = `${newCurrent}/${newMax}`;
+            renderDotsNew(a, newMax);
+        };
+
+        d.querySelector('.attr-btn-plus').onclick = () => {
+            if(isReadOnly) return;
+            const {current, max} = getAttrValues(a);
+            if(max >= 9) return;
+            const newMax = max + 1;
+            // 红点数量不变，current增加1
+            const markedCount = attrMarkedDots[a].size;
+            const newCurrent = newMax - markedCount;
+            i.value = `${newCurrent}/${newMax}`;
+            renderDotsNew(a, newMax);
+        };
+
+        // 输入框变化时更新点
+        i.oninput=(e)=>{
+            const val = e.target.value;
+            const parts = val.split('/');
+            if(parts.length === 2) {
+                const current = parseInt(parts[0]) || 0;
+                const max = parseInt(parts[1]) || 0;
+                // 重新计算marked点（保留max范围内的）
+                const newMarked = new Set();
+                attrMarkedDots[a].forEach(idx => {
+                    if(idx <= max) newMarked.add(idx);
+                });
+                // 确保marked数量 = max - current
+                const neededMarked = max - current;
+                if(newMarked.size > neededMarked) {
+                    // 移除多余的marked
+                    const arr = Array.from(newMarked).sort((x,y) => y - x);
+                    while(arr.length > neededMarked) arr.pop();
+                    attrMarkedDots[a] = new Set(arr);
+                } else {
+                    attrMarkedDots[a] = newMarked;
+                }
+                renderDotsNew(a, max);
+            } else {
+                const v = parseInt(val) || 0;
+                attrMarkedDots[a] = new Set();
+                renderDotsNew(a, v);
+            }
+        };
+        // 点击点的逻辑
+        d.querySelectorAll('.dot').forEach(dot=>{
+            dot.onclick=()=>{
+                if(isReadOnly)return;
+                const idx=parseInt(dot.dataset.i);
+                const {current, max} = getAttrValues(a);
+
+                if(dot.classList.contains('active')) {
+                    // 点击黑色点 - 该点变红
+                    attrMarkedDots[a].add(idx);
+                    updateAttrInput(a);
+                    renderDotsNew(a, max);
+                } else if(dot.classList.contains('marked')) {
+                    // 点击红色点 - 该点变回黑色
+                    attrMarkedDots[a].delete(idx);
+                    updateAttrInput(a);
+                    renderDotsNew(a, max);
+                } else {
+                    // 点击空白点 - 增加上限到该位置，红点不变
+                    const markedCount = attrMarkedDots[a].size;
+                    const newCurrent = idx - markedCount;
+                    i.value = `${newCurrent}/${idx}`;
+                    renderDotsNew(a, idx);
+                }
+            };
+        });
+    });
+}
+
+function getAttrValues(a) {
+    const input = document.querySelector(`.attr-input[data-attr="${a}"]`);
+    const val = input.value;
+    const parts = val.split('/');
+    if(parts.length === 2) {
+        return { current: parseInt(parts[0]) || 0, max: parseInt(parts[1]) || 0 };
+    }
+    const v = parseInt(val) || 0;
+    return { current: v, max: v };
+}
+
+function updateAttrInput(a) {
+    const input = document.querySelector(`.attr-input[data-attr="${a}"]`);
+    const parts = input.value.split('/');
+    const max = parts.length === 2 ? (parseInt(parts[1]) || 0) : (parseInt(parts[0]) || 0);
+    const markedCount = attrMarkedDots[a].size;
+    const current = max - markedCount;
+    input.value = `${current}/${max}`;
+}
+
+function setAttrValues(a, current, max) {
+    const input = document.querySelector(`.attr-input[data-attr="${a}"]`);
+    input.value = `${current}/${max}`;
+    // 清空marked，重新根据current/max设置
+    attrMarkedDots[a] = new Set();
+    renderDotsNew(a, max);
+}
+
+function renderDotsNew(a, max) {
+    const dots = document.querySelectorAll(`.attr-dots[data-attr="${a}"] .dot`);
+    const marked = attrMarkedDots[a] || new Set();
+    dots.forEach((d, i) => {
+        const idx = i + 1;
+        d.classList.remove('active', 'marked');
+        if(idx <= max) {
+            if(marked.has(idx)) {
+                d.classList.add('marked'); // 红色 - 已消耗的点
+            } else {
+                d.classList.add('active'); // 黑色 - 当前可用的点
+            }
+        }
+    });
+}
+
+// 兼容旧版数据的渲染函数
+function renderDots(a,v){
+    const val=parseInt(v)||0;
+    setAttrValues(a, val, val);
+}
 function createDelBtn(type){
     return`<button class="btn-del" onclick="deleteCard(this, '${type}')">×</button>`;
 }
@@ -2652,7 +3418,45 @@ function populateData(d){
     ['pName','pTrig1','pTrig2','pTrig3','perm1','perm2','perm3','pComm','pRep','mvpCount','watchCount','noteTitle','noteBody'].forEach(id=>{const e=document.getElementById(id);if(d[id]&&e){if(e.tagName==='DIV')e.innerHTML=d[id];else e.value=d[id];}});
 	    document.getElementById('mvpCount').value = d.mvpCount || (d.rewards || []).reduce((sum, r) => sum + (r.count || 1), 0);
     document.getElementById('watchCount').value = d.watchCount || (d.reprimands || []).reduce((sum, r) => sum + (r.count || 1), 0);
-	setHybridInputState('pAnom',d.pAnom);setHybridInputState('pReal',d.pReal);setHybridInputState('pFunc',d.pFunc);if(d.qs)d.qs.forEach((h,i)=>{const q=document.getElementById(`q${i+1}`);if(q)q.innerHTML=h;});if(d.attrs){for(let k in d.attrs){const r=document.querySelector(`.attr-input[data-attr="${k}"]`);if(r){r.value=d.attrs[k].v;renderDots(k,d.attrs[k].v);const dots=r.parentElement.querySelectorAll('.dot');d.attrs[k].m.forEach(idx=>{if(dots[idx-1]){dots[idx-1].classList.remove('active');dots[idx-1].classList.add('marked');}});}}}document.getElementById('list-anom').innerHTML='';document.getElementById('list-real').innerHTML='';document.getElementById('list-item').innerHTML='';
+	setHybridInputState('pAnom',d.pAnom);setHybridInputState('pReal',d.pReal);setHybridInputState('pFunc',d.pFunc);if(d.qs)d.qs.forEach((h,i)=>{const q=document.getElementById(`q${i+1}`);if(q)q.innerHTML=h;});
+    // 处理属性数据 - 兼容旧格式和新格式
+    if(d.attrs){
+        for(let k in d.attrs){
+            const attrData = d.attrs[k];
+            const input = document.querySelector(`.attr-input[data-attr="${k}"]`);
+            if(input){
+                let max = 0, current = 0;
+                const markedPositions = attrData.m || [];
+
+                // 检查是否是新格式（包含current和max）
+                if(typeof attrData === 'object' && attrData.current !== undefined && attrData.max !== undefined) {
+                    current = attrData.current;
+                    max = attrData.max;
+                } else if(typeof attrData === 'object' && attrData.v !== undefined) {
+                    // 旧格式 - v是单个数值或"当前/最大"格式
+                    const val = attrData.v;
+                    if(typeof val === 'string' && val.includes('/')) {
+                        const parts = val.split('/');
+                        current = parseInt(parts[0]) || 0;
+                        max = parseInt(parts[1]) || 0;
+                    } else {
+                        max = parseInt(val) || 0;
+                        current = max;
+                    }
+                }
+
+                // 设置输入框值
+                input.value = `${current}/${max}`;
+
+                // 恢复marked点位置
+                attrMarkedDots[k] = new Set(markedPositions.filter(idx => idx <= max));
+
+                // 渲染点
+                renderDotsNew(k, max);
+            }
+        }
+    }
+    document.getElementById('list-anom').innerHTML='';document.getElementById('list-real').innerHTML='';document.getElementById('list-item').innerHTML='';
     (d.anoms||[]).forEach(x=>addAnom(x, false, true));
     (d.reals||[]).forEach(x=>{const card = addReal(x, true); if(card) document.getElementById('list-real').appendChild(card);});
     (d.items||[]).forEach(x=>addItem(x, false));
@@ -2669,7 +3473,51 @@ function populateData(d){
         composeTab.style.display = canSendMessages ? '' : 'none';
     }
 }
-function gatherData(){const d={pName:document.getElementById('pName').value,pAnom:document.getElementById('pAnom').value,pReal:document.getElementById('pReal').value,pFunc:document.getElementById('pFunc').value,pTrig1:document.getElementById('pTrig1').innerHTML,pTrig2:document.getElementById('pTrig2').innerHTML,pTrig3:document.getElementById('pTrig3').innerHTML,perm1:document.getElementById('perm1').value,perm2:document.getElementById('perm2').value,perm3:document.getElementById('perm3').value,pComm:document.getElementById('pComm').value,pRep:document.getElementById('pRep').value,mvpCount:document.getElementById('mvpCount').value,watchCount:document.getElementById('watchCount').value,noteTitle:document.getElementById('noteTitle').value,noteBody:document.getElementById('noteBody').innerHTML,qs:[],attrs:{},anoms:[],reals:[],items:[],pf:[],pr:[],pa:[],pf_ign:[],pr_ign:[],pa_ign:[],anomSlots:SLOT_LIMITS.anomSlots,realSlots:SLOT_LIMITS.realSlots};for(let i=1;i<=7;i++)d.qs.push(document.getElementById(`q${i}`).innerHTML);ATTRS.forEach(a=>{const r=document.querySelector(`.attr-input[data-attr="${a}"]`).parentElement,m=[];r.querySelectorAll('.dot.marked').forEach(dt=>m.push(parseInt(dt.dataset.i)));d.attrs[a]={v:r.querySelector('input').value,m:m};});document.querySelectorAll('#list-anom .card').forEach(c=>{d.anoms.push({name:c.querySelector('.f-name').value,trig:c.querySelector('.f-trig').value,qual:c.querySelector('.f-qual').value,succ:c.querySelector('.f-succ').innerHTML,fail:c.querySelector('.f-fail').innerHTML,chk:c.querySelector('.f-chk').checked,tdesc:c.querySelector('.f-tdesc').value,t1:c.querySelector('.f-t1').value,t1v:c.querySelector('.f-t1-val').value,t2:c.querySelector('.f-t2').value,t2v:c.querySelector('.f-t2-val').value,p1:Array.from(c.querySelectorAll('.d1 .sq-dot')).map(e=>e.classList.contains('active')),p2:Array.from(c.querySelectorAll('.d2 .sq-dot')).map(e=>e.classList.contains('active'))});});document.querySelectorAll('#list-real .card').forEach(c=>{let l=0;c.querySelectorAll('.r-dots .dot').forEach((e,i)=>{if(e.classList.contains('active'))l=i+1});d.reals.push({name:c.querySelector('.f-name').value,actor:c.querySelector('.f-actor').value,desc:c.querySelector('.f-desc').innerHTML,act:c.querySelector('.f-act').checked,conn:c.querySelector('.f-conn').innerHTML,lvl:l});});document.querySelectorAll('#list-item .card').forEach(c=>{d.items.push({item:c.querySelector('.f-item').value,pd:c.querySelector('.f-pd').value,eff:c.querySelector('.f-eff').innerHTML});});document.querySelectorAll('.f-cell.active').forEach(e=>d.pf.push(parseInt(e.dataset.idx)));document.querySelectorAll('.r-cell.active').forEach(e=>d.pr.push(parseInt(e.dataset.idx)));document.querySelectorAll('.a-cell.active').forEach(e=>d.pa.push(parseInt(e.dataset.idx)));document.querySelectorAll('.f-cell.ignored').forEach(e=>d.pf_ign.push(parseInt(e.dataset.idx)));document.querySelectorAll('.r-cell.ignored').forEach(e=>d.pr_ign.push(parseInt(e.dataset.idx)));document.querySelectorAll('.a-cell.ignored').forEach(e=>d.pa_ign.push(parseInt(e.dataset.idx)));return d;}
+function gatherData(){
+    const d={
+        pName:document.getElementById('pName').value,
+        pAnom:document.getElementById('pAnom').value,
+        pReal:document.getElementById('pReal').value,
+        pFunc:document.getElementById('pFunc').value,
+        pTrig1:document.getElementById('pTrig1').innerHTML,
+        pTrig2:document.getElementById('pTrig2').innerHTML,
+        pTrig3:document.getElementById('pTrig3').innerHTML,
+        perm1:document.getElementById('perm1').value,
+        perm2:document.getElementById('perm2').value,
+        perm3:document.getElementById('perm3').value,
+        pComm:document.getElementById('pComm').value,
+        pRep:document.getElementById('pRep').value,
+        mvpCount:document.getElementById('mvpCount').value,
+        watchCount:document.getElementById('watchCount').value,
+        noteTitle:document.getElementById('noteTitle').value,
+        noteBody:document.getElementById('noteBody').innerHTML,
+        qs:[],attrs:{},anoms:[],reals:[],items:[],pf:[],pr:[],pa:[],pf_ign:[],pr_ign:[],pa_ign:[],
+        anomSlots:SLOT_LIMITS.anomSlots,
+        realSlots:SLOT_LIMITS.realSlots
+    };
+    for(let i=1;i<=7;i++)d.qs.push(document.getElementById(`q${i}`).innerHTML);
+    // 保存属性数据 - 新格式，同时兼容旧格式v字段
+    ATTRS.forEach(a=>{
+        const {current, max} = getAttrValues(a);
+        const m = Array.from(attrMarkedDots[a] || []);
+        d.attrs[a]={
+            v: `${current}/${max}`,  // 保持旧格式兼容
+            current: current,
+            max: max,
+            m: m
+        };
+    });
+    document.querySelectorAll('#list-anom .card').forEach(c=>{d.anoms.push({name:c.querySelector('.f-name').value,trig:c.querySelector('.f-trig').value,qual:c.querySelector('.f-qual').value,succ:c.querySelector('.f-succ').innerHTML,fail:c.querySelector('.f-fail').innerHTML,chk:c.querySelector('.f-chk').checked,tdesc:c.querySelector('.f-tdesc').value,t1:c.querySelector('.f-t1').value,t1v:c.querySelector('.f-t1-val').value,t2:c.querySelector('.f-t2').value,t2v:c.querySelector('.f-t2-val').value,p1:Array.from(c.querySelectorAll('.d1 .sq-dot')).map(e=>e.classList.contains('active')),p2:Array.from(c.querySelectorAll('.d2 .sq-dot')).map(e=>e.classList.contains('active'))});});
+    document.querySelectorAll('#list-real .card').forEach(c=>{let l=0;c.querySelectorAll('.r-dots .dot').forEach((e,i)=>{if(e.classList.contains('active'))l=i+1});d.reals.push({name:c.querySelector('.f-name').value,actor:c.querySelector('.f-actor').value,desc:c.querySelector('.f-desc').innerHTML,act:c.querySelector('.f-act').checked,conn:c.querySelector('.f-conn').innerHTML,lvl:l});});
+    document.querySelectorAll('#list-item .card').forEach(c=>{d.items.push({item:c.querySelector('.f-item').value,pd:c.querySelector('.f-pd').value,eff:c.querySelector('.f-eff').innerHTML});});
+    document.querySelectorAll('.f-cell.active').forEach(e=>d.pf.push(parseInt(e.dataset.idx)));
+    document.querySelectorAll('.r-cell.active').forEach(e=>d.pr.push(parseInt(e.dataset.idx)));
+    document.querySelectorAll('.a-cell.active').forEach(e=>d.pa.push(parseInt(e.dataset.idx)));
+    document.querySelectorAll('.f-cell.ignored').forEach(e=>d.pf_ign.push(parseInt(e.dataset.idx)));
+    document.querySelectorAll('.r-cell.ignored').forEach(e=>d.pr_ign.push(parseInt(e.dataset.idx)));
+    document.querySelectorAll('.a-cell.ignored').forEach(e=>d.pa_ign.push(parseInt(e.dataset.idx)));
+    return d;
+}
 function showToast(msg, type='success') {
     const m = document.getElementById('status-msg');
     m.innerHTML = type === 'error' ? `<i class="fas fa-exclamation-circle"></i> ${msg}` : `<i class="fas fa-save"></i> ${msg}`;
@@ -2727,6 +3575,153 @@ function handleImportJson(input) {
     };
     reader.readAsText(file);
     input.value = '';
+}
+
+// 页面分享功能
+let currentShareInfo = null;
+
+// 显示分享密码输入框
+function showSharePasswordModal() {
+    document.body.classList.add('share-locked');
+    document.getElementById('share-password-modal').style.display = 'flex';
+    // 自动聚焦到密码输入框
+    setTimeout(() => {
+        document.getElementById('share-pwd-input').focus();
+    }, 100);
+}
+
+// 加载分享数据
+async function loadShareData(password) {
+    try {
+        const res = await fetch(`/api/share/${shareCode}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: password || '' })
+        });
+        const result = await res.json();
+
+        if (res.ok && result.success) {
+            // 成功加载，移除模糊和模态框
+            document.body.classList.remove('share-locked');
+            document.getElementById('share-password-modal').style.display = 'none';
+            populateData(result.data);
+        } else if (result.needPassword) {
+            // 需要密码但没提供或密码错误，显示密码框
+            showSharePasswordModal();
+        } else if (result.message === '密码错误') {
+            document.getElementById('share-pwd-error').style.display = 'block';
+        } else {
+            alert(result.message || '加载失败');
+        }
+    } catch (e) {
+        console.error('加载分享数据出错:', e);
+        alert('网络错误，请检查网络连接');
+    }
+}
+
+// 提交分享密码
+function submitSharePassword() {
+    const pwd = document.getElementById('share-pwd-input').value;
+    document.getElementById('share-pwd-error').style.display = 'none';
+    loadShareData(pwd);
+}
+
+function openShareModal() {
+    if (!charId) {
+        showToast('离线模式无法分享', 'error');
+        return;
+    }
+    document.getElementById('share-modal').style.display = 'flex';
+    loadShareStatus();
+}
+
+function closeShareModal() {
+    document.getElementById('share-modal').style.display = 'none';
+}
+
+async function loadShareStatus() {
+    const statusDiv = document.getElementById('share-status');
+    const formDiv = document.getElementById('share-form');
+    const linkDiv = document.getElementById('share-link-area');
+
+    statusDiv.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> 加载中...';
+    formDiv.style.display = 'none';
+    linkDiv.style.display = 'none';
+
+    try {
+        const res = await fetch(`/api/character/${charId}/share`, {
+            headers: getAuthHeaders()
+        });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.exists) {
+                currentShareInfo = data;
+                // 使用sheet.html的只读分享模式
+                const shareUrl = `${window.location.origin}/sheet.html?share=${data.shareCode}`;
+                statusDiv.innerHTML = `<div style="color: #27ae60;"><i class="fas fa-check-circle"></i> 已创建分享链接</div>`;
+                linkDiv.style.display = 'block';
+                document.getElementById('share-url').value = shareUrl;
+                document.getElementById('share-has-password').textContent = data.hasPassword ? '是' : '否';
+                document.getElementById('share-expires').textContent = data.expiresAt ? new Date(data.expiresAt).toLocaleString() : '永不过期';
+            } else {
+                currentShareInfo = null;
+                statusDiv.innerHTML = '<div style="color: #95a5a6;">尚未创建分享链接</div>';
+                formDiv.style.display = 'block';
+            }
+        } else {
+            statusDiv.innerHTML = '<div style="color: #e74c3c;">加载失败</div>';
+        }
+    } catch (e) {
+        statusDiv.innerHTML = '<div style="color: #e74c3c;">网络错误</div>';
+    }
+}
+
+async function createShare() {
+    const password = document.getElementById('share-password').value.trim();
+    const expireDays = parseInt(document.getElementById('share-expire').value) || 0;
+
+    try {
+        const res = await fetch(`/api/character/${charId}/share`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ password, expireDays })
+        });
+        if (res.ok) {
+            showToast('分享链接已创建', 'success');
+            loadShareStatus();
+        } else {
+            const data = await res.json();
+            showToast(data.message || '创建失败', 'error');
+        }
+    } catch (e) {
+        showToast('网络错误', 'error');
+    }
+}
+
+async function deleteShare() {
+    if (!confirm('确定要取消分享吗？')) return;
+
+    try {
+        const res = await fetch(`/api/character/${charId}/share`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+        if (res.ok) {
+            showToast('分享已取消', 'success');
+            loadShareStatus();
+        } else {
+            showToast('取消失败', 'error');
+        }
+    } catch (e) {
+        showToast('网络错误', 'error');
+    }
+}
+
+function copyShareUrl() {
+    const urlInput = document.getElementById('share-url');
+    urlInput.select();
+    document.execCommand('copy');
+    showToast('链接已复制', 'success');
 }
 
 // 嘉奖/申诫历史记录功能

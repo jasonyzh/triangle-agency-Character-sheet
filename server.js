@@ -3834,7 +3834,7 @@ app.post('/api/manager/mission/:id/archive', authenticateToken, requireRole(ROLE
     });
 });
 
-// 角色卡查询所属任务和队友
+// 角色卡查询所属任务、队友和经理信息
 app.get('/api/character/:charId/mission', authenticateToken, (req, res) => {
     const charId = req.params.charId;
 
@@ -3846,43 +3846,83 @@ app.get('/api/character/:charId/mission', authenticateToken, (req, res) => {
             return res.status(403).json({ error: '无权访问' });
         }
 
-        // 查找该角色所属的活跃任务
-        db.get(`
-            SELECT fm.*, fmm.member_status
-            FROM field_mission_members fmm
-            JOIN field_missions fm ON fmm.mission_id = fm.id
-            WHERE fmm.character_id = ? AND fm.status = 'active'
-            ORDER BY fm.created_at DESC
-            LIMIT 1
-        `, [charId], (err, mission) => {
-            if (!mission) {
-                return res.json({ inMission: false });
-            }
+        // 先获取该角色卡的负责经理
+        db.all(`
+            SELECT DISTINCT u.id, u.name, u.username
+            FROM character_authorizations ca
+            JOIN users u ON ca.manager_id = u.id
+            WHERE ca.character_id = ?
+        `, [charId], (err, managers) => {
+            const managerList = (managers || []).map(m => ({
+                id: m.id,
+                name: m.name || m.username
+            }));
 
-            // 获取同任务的队友
+            // 查找该角色所属的所有活跃任务
             db.all(`
-                SELECT fmm.character_id, fmm.member_status, c.data
+                SELECT fm.*, fmm.member_status, u.name as creator_name, u.username as creator_username
                 FROM field_mission_members fmm
-                JOIN characters c ON fmm.character_id = c.id
-                WHERE fmm.mission_id = ?
-            `, [mission.id], (err, members) => {
-                const teammates = (members || []).map(m => {
-                    let d = {};
-                    try { d = JSON.parse(m.data); } catch(e) {}
-                    return {
-                        characterId: m.character_id,
-                        characterName: d.pName || '未命名',
-                        status: m.member_status,
-                        isMe: m.character_id === charId
-                    };
-                });
+                JOIN field_missions fm ON fmm.mission_id = fm.id
+                LEFT JOIN users u ON fm.created_by = u.id
+                WHERE fmm.character_id = ? AND fm.status = 'active'
+                ORDER BY fm.created_at DESC
+            `, [charId], (err, missions) => {
+                if (!missions || missions.length === 0) {
+                    return res.json({
+                        inMission: false,
+                        managers: managerList
+                    });
+                }
 
-                res.json({
-                    inMission: true,
-                    missionId: mission.id,
-                    missionName: mission.name,
-                    myStatus: mission.member_status,
-                    teammates
+                // 获取所有任务的队友信息
+                const missionIds = missions.map(m => m.id);
+                const placeholders = missionIds.map(() => '?').join(',');
+
+                db.all(`
+                    SELECT fmm.mission_id, fmm.character_id, fmm.member_status, c.data
+                    FROM field_mission_members fmm
+                    JOIN characters c ON fmm.character_id = c.id
+                    WHERE fmm.mission_id IN (${placeholders})
+                `, missionIds, (err, allMembers) => {
+                    // 按任务分组队友
+                    const membersByMission = {};
+                    (allMembers || []).forEach(m => {
+                        if (!membersByMission[m.mission_id]) {
+                            membersByMission[m.mission_id] = [];
+                        }
+                        let d = {};
+                        try { d = JSON.parse(m.data); } catch(e) {}
+                        membersByMission[m.mission_id].push({
+                            characterId: m.character_id,
+                            characterName: d.pName || '未命名',
+                            status: m.member_status,
+                            isMe: m.character_id === charId
+                        });
+                    });
+
+                    // 构建任务列表
+                    const missionList = missions.map(m => ({
+                        missionId: m.id,
+                        missionName: m.name,
+                        missionDescription: m.description,
+                        missionType: m.mission_type,
+                        missionStatus: m.status,
+                        myStatus: m.member_status,
+                        creatorName: m.creator_name || m.creator_username || '未知',
+                        creatorId: m.created_by,
+                        teammates: membersByMission[m.id] || []
+                    }));
+
+                    res.json({
+                        inMission: true,
+                        missions: missionList,
+                        // 兼容旧版本，返回第一个任务的信息
+                        missionId: missionList[0].missionId,
+                        missionName: missionList[0].missionName,
+                        myStatus: missionList[0].myStatus,
+                        teammates: missionList[0].teammates,
+                        managers: managerList
+                    });
                 });
             });
         });
