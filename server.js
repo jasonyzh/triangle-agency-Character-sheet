@@ -269,6 +269,64 @@ db.serialize(() => {
         FOREIGN KEY(issued_by) REFERENCES users(id) ON DELETE SET NULL
     )`);
 
+    // 申领物商店表
+    db.run(`CREATE TABLE IF NOT EXISTS shop_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        description TEXT,
+        created_by INTEGER NOT NULL,
+        is_global INTEGER DEFAULT 0,
+        is_active INTEGER DEFAULT 1,
+        created_at INTEGER,
+        updated_at INTEGER,
+        FOREIGN KEY(created_by) REFERENCES users(id) ON DELETE CASCADE
+    )`);
+
+    // 申领物标价选项表
+    db.run(`CREATE TABLE IF NOT EXISTS shop_item_prices (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        item_id INTEGER NOT NULL,
+        price_name TEXT NOT NULL,
+        price_cost INTEGER NOT NULL,
+        currency_type TEXT DEFAULT 'commendation',
+        usage_type TEXT DEFAULT 'permanent',
+        usage_count INTEGER DEFAULT 0,
+        sort_order INTEGER DEFAULT 0,
+        FOREIGN KEY(item_id) REFERENCES shop_items(id) ON DELETE CASCADE
+    )`);
+
+    // 迁移: 为shop_item_prices添加字段
+    db.all("PRAGMA table_info(shop_item_prices)", [], (err, columns) => {
+        if (err) return;
+        const columnNames = columns.map(c => c.name);
+        if (!columnNames.includes('usage_type')) {
+            db.run("ALTER TABLE shop_item_prices ADD COLUMN usage_type TEXT DEFAULT 'permanent'");
+        }
+        if (!columnNames.includes('usage_count')) {
+            db.run("ALTER TABLE shop_item_prices ADD COLUMN usage_count INTEGER DEFAULT 0");
+        }
+        if (!columnNames.includes('currency_type')) {
+            db.run("ALTER TABLE shop_item_prices ADD COLUMN currency_type TEXT DEFAULT 'commendation'");
+        }
+    });
+
+    // 申领物购买记录表
+    db.run(`CREATE TABLE IF NOT EXISTS shop_purchases (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        item_id INTEGER NOT NULL,
+        price_id INTEGER NOT NULL,
+        character_id TEXT NOT NULL,
+        cost_paid INTEGER NOT NULL,
+        purchased_at INTEGER,
+        approved_by INTEGER,
+        approved_at INTEGER,
+        status TEXT DEFAULT 'pending',
+        FOREIGN KEY(item_id) REFERENCES shop_items(id) ON DELETE CASCADE,
+        FOREIGN KEY(price_id) REFERENCES shop_item_prices(id) ON DELETE CASCADE,
+        FOREIGN KEY(character_id) REFERENCES characters(id) ON DELETE CASCADE,
+        FOREIGN KEY(approved_by) REFERENCES users(id) ON DELETE SET NULL
+    )`);
+
     // 为 field_missions 添加新字段的迁移
     db.all("PRAGMA table_info(field_missions)", [], (err, columns) => {
         if (err) return;
@@ -1242,20 +1300,35 @@ app.get('/api/manager/characters', authenticateToken, requireRole(ROLE.MANAGER),
     const parseCharData = (row, authId = null) => {
         let d = {};
         try { d = JSON.parse(row.data); } catch(e) {}
+
+        // 计算嘉奖总数（从rewards数组）
+        let totalCommendations = 0;
+        if (Array.isArray(d.rewards)) {
+            totalCommendations = d.rewards.reduce((sum, r) => sum + (r.count || 1), 0);
+        }
+        totalCommendations += parseInt(d.commendations) || 0;
+
+        // 计算申诫总数（从reprimands数组）
+        let totalReprimands = 0;
+        if (Array.isArray(d.reprimands)) {
+            totalReprimands = d.reprimands.reduce((sum, r) => sum + (r.count || 1), 0);
+        }
+
         return {
             id: row.id,
             name: d.pName || "未命名干员",
             func: d.pFunc || "---",
             anom: d.pAnom || "---",
             real: d.pReal || "---",
-            commendations: parseInt(d.commendations) || 0,
-            reprimands: parseInt(d.reprimands) || 0,
+            commendations: totalCommendations,
+            reprimands: totalReprimands,
             mvpCount: parseInt(d.mvpCount) || 0,
             probationCount: parseInt(d.probationCount) || 0,
             ownerName: row.owner_name,
             ownerId: row.user_id,
             authId: authId,
-            canSendMessages: row.can_send_messages !== 0 // 默认允许发信
+            canSendMessages: row.can_send_messages !== 0, // 默认允许发信
+            reprimandShopAccess: d.reprimandShopAccess === true // 申诫商店权限，默认关闭
         };
     };
 
@@ -2398,6 +2471,46 @@ app.put('/api/manager/character/:charId/message-permission', authenticateToken, 
     }
 });
 
+// 经理切换角色申诫商店权限
+app.put('/api/manager/character/:charId/reprimand-shop-access', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    try {
+        const managerId = req.user.userId;
+        const charId = req.params.charId;
+        const { reprimandShopAccess } = req.body;
+
+        // 检查经理是否有该角色卡的授权
+        const isAuthorized = await checkManagerCharacterAuth(managerId, charId);
+        if (!isAuthorized && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权操作该角色卡' });
+        }
+
+        // 获取角色当前数据
+        const char = await new Promise((resolve, reject) => {
+            db.get('SELECT data FROM characters WHERE id = ?', [charId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!char) {
+            return res.status(404).json({ success: false, message: '角色不存在' });
+        }
+
+        // 更新charData中的reprimandShopAccess字段
+        let charData = {};
+        try { charData = JSON.parse(char.data); } catch(e) {}
+        charData.reprimandShopAccess = !!reprimandShopAccess;
+
+        db.run('UPDATE characters SET data = ? WHERE id = ?', [JSON.stringify(charData), charId], function(err) {
+            if (err) return res.status(500).json({ success: false, message: err.message });
+            res.json({ success: true, reprimandShopAccess: charData.reprimandShopAccess });
+        });
+    } catch (e) {
+        console.error('切换申诫商店权限失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
 // 经理直接发放奖惩
 app.post('/api/manager/character/:charId/reward', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
     try {
@@ -2638,11 +2751,28 @@ app.get('/api/manager/missions', authenticateToken, requireRole(ROLE.MANAGER), (
                 const memberList = (members || []).map(m => {
                     let d = {};
                     try { d = JSON.parse(m.data); } catch(e) {}
+
+                    // 计算嘉奖/申诫总数
+                    let commendations = 0;
+                    if (Array.isArray(d.rewards)) {
+                        commendations = d.rewards.reduce((sum, r) => sum + (r.count || 1), 0);
+                    }
+                    commendations += parseInt(d.commendations) || 0;
+
+                    let reprimands = 0;
+                    if (Array.isArray(d.reprimands)) {
+                        reprimands = d.reprimands.reduce((sum, r) => sum + (r.count || 1), 0);
+                    }
+
                     return {
                         character_id: m.character_id,
                         name: d.pName || '未命名',
                         member_status: m.member_status,
-                        joined_at: m.joined_at
+                        joined_at: m.joined_at,
+                        commendations: commendations,
+                        reprimands: reprimands,
+                        mvpCount: parseInt(d.mvpCount) || 0,
+                        probationCount: parseInt(d.probationCount) || 0
                     };
                 });
 
@@ -2886,44 +3016,42 @@ app.get('/api/manager/mission/:id/agent/:charId', authenticateToken, requireRole
             let charData = {};
             try { charData = JSON.parse(char.data); } catch(e) {}
 
-            // 获取嘉奖记录
-            db.all('SELECT * FROM character_rewards WHERE character_id = ? ORDER BY created_at DESC', [charId], (err, rewards) => {
-                // 获取申诫记录
-                db.all('SELECT * FROM character_reprimands WHERE character_id = ? ORDER BY created_at DESC', [charId], (err, reprimands) => {
-                    res.json({
-                        success: true,
-                        agent: {
-                            id: char.id,
-                            name: charData.pName || '未命名',
-                            // 基础属性
-                            physical: charData.physical || 3,
-                            mental: charData.mental || 3,
-                            social: charData.social || 3,
-                            luck: charData.luck || 3,
-                            hp: charData.hp || 10,
-                            mp: charData.mp || 10,
-                            san: charData.san || 50,
-                            // 次级属性
-                            str: charData.str || 0,
-                            dex: charData.dex || 0,
-                            con: charData.con || 0,
-                            int: charData.intVal || 0,
-                            wis: charData.wis || 0,
-                            cha: charData.cha || 0,
-                            // 异常能力
-                            abilities: charData.anomAbilities || [],
-                            abilitySlots: charData.anomSlots || 3,
-                            // 关系网络
-                            relations: charData.relations || [],
-                            relationSlots: charData.realSlots || 3,
-                            // GM备注
-                            gmNotes: charData.gmNotes || '',
-                            // 嘉奖和申诫
-                            rewards: rewards || [],
-                            reprimands: reprimands || []
-                        }
-                    });
-                });
+            // 嘉奖和申诫数据从charData中获取（存储在JSON中）
+            const rewards = charData.rewards || [];
+            const reprimands = charData.reprimands || [];
+
+            res.json({
+                success: true,
+                agent: {
+                    id: char.id,
+                    name: charData.pName || '未命名',
+                    // 基础属性
+                    physical: charData.physical || 3,
+                    mental: charData.mental || 3,
+                    social: charData.social || 3,
+                    luck: charData.luck || 3,
+                    hp: charData.hp || 10,
+                    mp: charData.mp || 10,
+                    san: charData.san || 50,
+                    // 次级属性
+                    str: charData.str || 0,
+                    dex: charData.dex || 0,
+                    con: charData.con || 0,
+                    int: charData.intVal || 0,
+                    wis: charData.wis || 0,
+                    cha: charData.cha || 0,
+                    // 异常能力
+                    abilities: charData.anomAbilities || [],
+                    abilitySlots: charData.anomSlots || 3,
+                    // 关系网络
+                    relations: charData.relations || [],
+                    relationSlots: charData.realSlots || 3,
+                    // GM备注
+                    gmNotes: charData.gmNotes || '',
+                    // 嘉奖和申诫（从charData中读取）
+                    rewards: rewards,
+                    reprimands: reprimands
+                }
             });
         });
     });
@@ -4512,6 +4640,432 @@ app.put('/api/manager/mission/:id/branch', authenticateToken, requireRole(ROLE.M
                 if (err) return res.status(500).json({ success: false });
                 res.json({ success: true });
             });
+    });
+});
+
+// ==================== 申领物商店API ====================
+
+// 获取申领物列表（经理端）
+app.get('/api/manager/shop/items', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    // 经理看到：自己创建的 + 全局的(admin创建的)
+    const query = req.user.role >= ROLE.SUPER_ADMIN
+        ? `SELECT si.*, u.name as creator_name FROM shop_items si
+           LEFT JOIN users u ON si.created_by = u.id
+           WHERE si.is_active = 1 ORDER BY si.created_at DESC`
+        : `SELECT si.*, u.name as creator_name FROM shop_items si
+           LEFT JOIN users u ON si.created_by = u.id
+           WHERE si.is_active = 1 AND (si.created_by = ? OR si.is_global = 1)
+           ORDER BY si.created_at DESC`;
+
+    const params = req.user.role >= ROLE.SUPER_ADMIN ? [] : [req.user.userId];
+
+    db.all(query, params, (err, items) => {
+        if (err) return res.status(500).json({ success: false, message: '获取失败' });
+
+        // 获取每个物品的标价选项
+        const itemIds = items.map(i => i.id);
+        if (itemIds.length === 0) {
+            return res.json({ success: true, items: [] });
+        }
+
+        const placeholders = itemIds.map(() => '?').join(',');
+        db.all(`SELECT * FROM shop_item_prices WHERE item_id IN (${placeholders}) ORDER BY sort_order`, itemIds, (err, prices) => {
+            const pricesByItem = {};
+            (prices || []).forEach(p => {
+                if (!pricesByItem[p.item_id]) pricesByItem[p.item_id] = [];
+                pricesByItem[p.item_id].push(p);
+            });
+
+            const result = items.map(item => ({
+                ...item,
+                prices: pricesByItem[item.id] || [],
+                canEdit: item.created_by === req.user.userId || req.user.role >= ROLE.SUPER_ADMIN
+            }));
+
+            res.json({ success: true, items: result });
+        });
+    });
+});
+
+// 创建申领物
+app.post('/api/manager/shop/items', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    const { title, description, prices, isGlobal } = req.body;
+
+    if (!title || !title.trim()) {
+        return res.status(400).json({ success: false, message: '请填写物品标题' });
+    }
+
+    if (!prices || !Array.isArray(prices) || prices.length === 0) {
+        return res.status(400).json({ success: false, message: '请至少添加一个标价选项' });
+    }
+
+    // 只有超管可以创建全局物品
+    const global = (isGlobal && req.user.role >= ROLE.SUPER_ADMIN) ? 1 : 0;
+    const now = Date.now();
+
+    db.run(`INSERT INTO shop_items (title, description, created_by, is_global, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)`,
+        [title.trim(), description || '', req.user.userId, global, now, now],
+        function(err) {
+            if (err) return res.status(500).json({ success: false, message: '创建失败' });
+
+            const itemId = this.lastID;
+
+            // 插入标价选项
+            // usage_type: 'permanent'=永久, 'consumable'=一次性消耗, 'per_mission'=每任务可用次数
+            // currency_type: 'commendation'=嘉奖, 'reprimand'=申诫
+            const stmt = db.prepare('INSERT INTO shop_item_prices (item_id, price_name, price_cost, currency_type, usage_type, usage_count, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)');
+            prices.forEach((p, idx) => {
+                if (p.name && p.cost >= 0) {
+                    const currencyType = p.currencyType || 'commendation';
+                    const usageType = p.usageType || 'permanent';
+                    const usageCount = parseInt(p.usageCount) || 0;
+                    stmt.run(itemId, p.name.trim(), parseInt(p.cost) || 0, currencyType, usageType, usageCount, idx);
+                }
+            });
+            stmt.finalize();
+
+            res.json({ success: true, itemId, message: '申领物创建成功' });
+        });
+});
+
+// 更新申领物
+app.put('/api/manager/shop/items/:id', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    const itemId = req.params.id;
+    const { title, description, prices, isGlobal } = req.body;
+
+    db.get('SELECT * FROM shop_items WHERE id = ?', [itemId], (err, item) => {
+        if (!item) return res.status(404).json({ success: false, message: '物品不存在' });
+
+        // 只有创建者或超管可以编辑
+        if (item.created_by !== req.user.userId && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权编辑此物品' });
+        }
+
+        const global = (isGlobal && req.user.role >= ROLE.SUPER_ADMIN) ? 1 : 0;
+        const now = Date.now();
+
+        db.run('UPDATE shop_items SET title = ?, description = ?, is_global = ?, updated_at = ? WHERE id = ?',
+            [title.trim(), description || '', global, now, itemId],
+            function(err) {
+                if (err) return res.status(500).json({ success: false });
+
+                // 删除旧标价，插入新标价
+                db.run('DELETE FROM shop_item_prices WHERE item_id = ?', [itemId], () => {
+                    if (prices && Array.isArray(prices)) {
+                        const stmt = db.prepare('INSERT INTO shop_item_prices (item_id, price_name, price_cost, currency_type, usage_type, usage_count, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)');
+                        prices.forEach((p, idx) => {
+                            if (p.name && p.cost >= 0) {
+                                const currencyType = p.currencyType || 'commendation';
+                                const usageType = p.usageType || 'permanent';
+                                const usageCount = parseInt(p.usageCount) || 0;
+                                stmt.run(itemId, p.name.trim(), parseInt(p.cost) || 0, currencyType, usageType, usageCount, idx);
+                            }
+                        });
+                        stmt.finalize();
+                    }
+                    res.json({ success: true, message: '更新成功' });
+                });
+            });
+    });
+});
+
+// 删除申领物
+app.delete('/api/manager/shop/items/:id', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    const itemId = req.params.id;
+
+    db.get('SELECT * FROM shop_items WHERE id = ?', [itemId], (err, item) => {
+        if (!item) return res.status(404).json({ success: false, message: '物品不存在' });
+
+        if (item.created_by !== req.user.userId && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权删除此物品' });
+        }
+
+        // 软删除
+        db.run('UPDATE shop_items SET is_active = 0 WHERE id = ?', [itemId], function(err) {
+            if (err) return res.status(500).json({ success: false });
+            res.json({ success: true, message: '删除成功' });
+        });
+    });
+});
+
+// 玩家获取可购买的申领物列表
+app.get('/api/character/:charId/shop', authenticateToken, (req, res) => {
+    const charId = req.params.charId;
+
+    // 验证角色归属
+    db.get('SELECT * FROM characters WHERE id = ?', [charId], (err, char) => {
+        if (!char) return res.status(404).json({ success: false, message: '角色不存在' });
+        if (char.user_id !== req.user.userId && req.user.role < ROLE.MANAGER) {
+            return res.status(403).json({ success: false, message: '无权访问' });
+        }
+
+        let charData = {};
+        try { charData = JSON.parse(char.data); } catch(e) {}
+
+        // 检查申诫商店权限
+        const hasReprimandAccess = charData.reprimandShopAccess === true;
+
+        // 计算可用嘉奖数
+        let availableCommendations = 0;
+        if (Array.isArray(charData.rewards)) {
+            availableCommendations = charData.rewards.reduce((sum, r) => sum + (r.count || 1), 0);
+        }
+        availableCommendations += parseInt(charData.commendations) || 0;
+
+        // 计算可用申诫数（仅在有权限时返回）
+        let availableReprimands = 0;
+        if (hasReprimandAccess && Array.isArray(charData.reprimands)) {
+            availableReprimands = charData.reprimands.reduce((sum, r) => sum + (r.count || 1), 0);
+        }
+
+        // 获取该角色被哪些经理管理
+        db.all(`SELECT DISTINCT manager_id FROM character_authorizations WHERE character_id = ?`, [charId], (err, auths) => {
+            const managerIds = (auths || []).map(a => a.manager_id);
+
+            // 获取全局物品 + 管理该角色的经理创建的物品
+            let query, params;
+            if (managerIds.length > 0) {
+                const placeholders = managerIds.map(() => '?').join(',');
+                query = `SELECT si.*, u.name as creator_name FROM shop_items si
+                         LEFT JOIN users u ON si.created_by = u.id
+                         WHERE si.is_active = 1 AND (si.is_global = 1 OR si.created_by IN (${placeholders}))
+                         ORDER BY si.is_global DESC, si.created_at DESC`;
+                params = managerIds;
+            } else {
+                query = `SELECT si.*, u.name as creator_name FROM shop_items si
+                         LEFT JOIN users u ON si.created_by = u.id
+                         WHERE si.is_active = 1 AND si.is_global = 1
+                         ORDER BY si.created_at DESC`;
+                params = [];
+            }
+
+            db.all(query, params, (err, items) => {
+                if (err) return res.status(500).json({ success: false });
+
+                const itemIds = items.map(i => i.id);
+                if (itemIds.length === 0) {
+                    const responseData = { success: true, items: [], availableCommendations };
+                    if (hasReprimandAccess) responseData.availableReprimands = availableReprimands;
+                    return res.json(responseData);
+                }
+
+                const placeholders = itemIds.map(() => '?').join(',');
+                db.all(`SELECT * FROM shop_item_prices WHERE item_id IN (${placeholders}) ORDER BY sort_order`, itemIds, (err, prices) => {
+                    const pricesByItem = {};
+                    (prices || []).forEach(p => {
+                        // 如果没有申诫商店权限，过滤掉申诫标价
+                        if (!hasReprimandAccess && p.currency_type === 'reprimand') {
+                            return;
+                        }
+                        if (!pricesByItem[p.item_id]) pricesByItem[p.item_id] = [];
+                        pricesByItem[p.item_id].push(p);
+                    });
+
+                    const result = items.map(item => ({
+                        ...item,
+                        prices: pricesByItem[item.id] || []
+                    }));
+
+                    const responseData = { success: true, items: result, availableCommendations };
+                    if (hasReprimandAccess) responseData.availableReprimands = availableReprimands;
+                    res.json(responseData);
+                });
+            });
+        });
+    });
+});
+
+// 玩家购买申领物
+app.post('/api/character/:charId/shop/purchase', authenticateToken, (req, res) => {
+    const charId = req.params.charId;
+    const { itemId, priceId } = req.body;
+
+    db.get('SELECT * FROM characters WHERE id = ?', [charId], (err, char) => {
+        if (!char) return res.status(404).json({ success: false, message: '角色不存在' });
+        if (char.user_id !== req.user.userId) {
+            return res.status(403).json({ success: false, message: '只能为自己的角色购买' });
+        }
+
+        let charData = {};
+        try { charData = JSON.parse(char.data); } catch(e) {}
+
+        // 获取标价信息
+        db.get(`SELECT sip.*, si.title as item_title FROM shop_item_prices sip
+                JOIN shop_items si ON sip.item_id = si.id
+                WHERE sip.id = ? AND sip.item_id = ? AND si.is_active = 1`, [priceId, itemId], (err, price) => {
+            if (!price) {
+                return res.status(404).json({ success: false, message: '标价选项不存在' });
+            }
+
+            const currencyType = price.currency_type || 'commendation';
+            const currencyName = currencyType === 'reprimand' ? '申诫' : '嘉奖';
+
+            // 检查申诫商店权限
+            if (currencyType === 'reprimand' && charData.reprimandShopAccess !== true) {
+                return res.status(403).json({ success: false, message: '没有申诫商店权限' });
+            }
+            let available = 0;
+
+            if (currencyType === 'reprimand') {
+                // 计算可用申诫
+                if (Array.isArray(charData.reprimands)) {
+                    available = charData.reprimands.reduce((sum, r) => sum + (r.count || 1), 0);
+                }
+            } else {
+                // 计算可用嘉奖
+                if (Array.isArray(charData.rewards)) {
+                    available = charData.rewards.reduce((sum, r) => sum + (r.count || 1), 0);
+                }
+                available += parseInt(charData.commendations) || 0;
+            }
+
+            if (available < price.price_cost) {
+                return res.status(400).json({ success: false, message: `${currencyName}不足，需要 ${price.price_cost} ${currencyName}，当前只有 ${available} ${currencyName}` });
+            }
+
+            // 扣除货币
+            let remaining = price.price_cost;
+
+            if (currencyType === 'reprimand') {
+                // 从 reprimands 数组扣
+                if (Array.isArray(charData.reprimands)) {
+                    const newReprimands = [];
+                    for (const r of charData.reprimands) {
+                        if (remaining <= 0) {
+                            newReprimands.push(r);
+                            continue;
+                        }
+                        const count = r.count || 1;
+                        if (count <= remaining) {
+                            remaining -= count;
+                        } else {
+                            r.count = count - remaining;
+                            remaining = 0;
+                            newReprimands.push(r);
+                        }
+                    }
+                    charData.reprimands = newReprimands;
+                }
+            } else {
+                // 先从 commendations 数值扣
+                if (charData.commendations && charData.commendations > 0) {
+                    const deduct = Math.min(charData.commendations, remaining);
+                    charData.commendations -= deduct;
+                    remaining -= deduct;
+                }
+
+                // 再从 rewards 数组扣
+                if (remaining > 0 && Array.isArray(charData.rewards)) {
+                    const newRewards = [];
+                    for (const r of charData.rewards) {
+                        if (remaining <= 0) {
+                            newRewards.push(r);
+                            continue;
+                        }
+                        const count = r.count || 1;
+                        if (count <= remaining) {
+                            remaining -= count;
+                        } else {
+                            r.count = count - remaining;
+                            remaining = 0;
+                            newRewards.push(r);
+                        }
+                    }
+                    charData.rewards = newRewards;
+                }
+            }
+
+            // 获取物品详细信息用于添加到角色物品列表
+            db.get('SELECT title, description FROM shop_items WHERE id = ?', [itemId], (err, itemInfo) => {
+                if (err) return res.status(500).json({ success: false });
+
+                // 将物品添加到角色的物品列表
+                if (!Array.isArray(charData.items)) charData.items = [];
+
+                // 构建物品对象，包含可用次数信息
+                const newItem = {
+                    item: `${itemInfo.title} (${price.price_name})`,
+                    pd: `通过申领获得 - ${price.price_cost}${currencyName}`,
+                    eff: itemInfo.description || ''
+                };
+
+                // 根据使用类型设置可用次数
+                const usageType = price.usage_type || 'permanent';
+                if (usageType === 'consumable') {
+                    newItem.usageType = 'consumable';
+                    newItem.usageRemaining = 1;
+                    newItem.pd += ' [一次性]';
+                } else if (usageType === 'per_mission') {
+                    newItem.usageType = 'per_mission';
+                    newItem.usageCount = price.usage_count || 1;
+                    newItem.usageRemaining = price.usage_count || 1;
+                    newItem.pd += ` [每任务${price.usage_count || 1}次]`;
+                }
+                // permanent类型不需要额外标记
+
+                charData.items.push(newItem);
+
+                // 更新角色数据
+                db.run('UPDATE characters SET data = ? WHERE id = ?', [JSON.stringify(charData), charId], (err) => {
+                    if (err) return res.status(500).json({ success: false });
+
+                    // 记录购买
+                    const now = Date.now();
+                    db.run(`INSERT INTO shop_purchases (item_id, price_id, character_id, cost_paid, purchased_at, status) VALUES (?, ?, ?, ?, ?, 'completed')`,
+                        [itemId, priceId, charId, price.price_cost, now],
+                        function(err) {
+                            if (err) return res.status(500).json({ success: false });
+
+                            res.json({
+                                success: true,
+                                message: `成功购买「${price.item_title}」- ${price.price_name}，消耗 ${price.price_cost} 嘉奖，物品已添加到您的物品列表`,
+                                remainingCommendations: availableCommendations - price.price_cost
+                            });
+                        });
+                });
+            });
+        });
+    });
+});
+
+// 获取购买记录（经理端）
+app.get('/api/manager/shop/purchases', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    const query = req.user.role >= ROLE.SUPER_ADMIN
+        ? `SELECT sp.*, si.title as item_title, sip.price_name, c.data as char_data
+           FROM shop_purchases sp
+           JOIN shop_items si ON sp.item_id = si.id
+           JOIN shop_item_prices sip ON sp.price_id = sip.id
+           JOIN characters c ON sp.character_id = c.id
+           ORDER BY sp.purchased_at DESC LIMIT 100`
+        : `SELECT sp.*, si.title as item_title, sip.price_name, c.data as char_data
+           FROM shop_purchases sp
+           JOIN shop_items si ON sp.item_id = si.id
+           JOIN shop_item_prices sip ON sp.price_id = sip.id
+           JOIN characters c ON sp.character_id = c.id
+           WHERE si.created_by = ? OR si.is_global = 1
+           ORDER BY sp.purchased_at DESC LIMIT 100`;
+
+    const params = req.user.role >= ROLE.SUPER_ADMIN ? [] : [req.user.userId];
+
+    db.all(query, params, (err, purchases) => {
+        if (err) return res.status(500).json({ success: false });
+
+        const result = purchases.map(p => {
+            let charData = {};
+            try { charData = JSON.parse(p.char_data); } catch(e) {}
+            return {
+                id: p.id,
+                itemTitle: p.item_title,
+                priceName: p.price_name,
+                costPaid: p.cost_paid,
+                characterName: charData.pName || '未命名',
+                characterId: p.character_id,
+                purchasedAt: p.purchased_at,
+                status: p.status
+            };
+        });
+
+        res.json({ success: true, purchases: result });
     });
 });
 

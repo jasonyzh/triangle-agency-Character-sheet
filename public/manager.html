@@ -315,6 +315,27 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
+        .agent-stats-mini {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+        .agent-stats-mini .stat-badge {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .agent-stats-mini .stat-badge.commend {
+            background: #fef3e2;
+            color: #d48806;
+        }
+        .agent-stats-mini .stat-badge.reprimand {
+            background: #fef2f0;
+            color: #cf1322;
+        }
         .agent-status-row {
             display: flex;
             align-items: center;
@@ -411,6 +432,268 @@
             text-align: center;
             padding: 60px 20px;
             color: #7f8c8d;
+        }
+        .requisition-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        .shop-item-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            transition: box-shadow 0.2s;
+        }
+        .shop-item-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .shop-item-card.global {
+            border-left: 3px solid var(--manager-blue);
+        }
+        .shop-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        .shop-item-title {
+            font-weight: bold;
+            color: var(--text-dark);
+            font-size: 14px;
+        }
+        .shop-item-badge {
+            background: var(--manager-blue);
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .shop-item-desc {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 12px;
+            line-height: 1.5;
+            max-height: 60px;
+            overflow: hidden;
+        }
+        .shop-item-prices {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+        .shop-price-tag {
+            background: #fff3cd;
+            color: #856404;
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .shop-price-tag .cost {
+            font-weight: bold;
+            color: #d48806;
+        }
+        .shop-price-tag .usage {
+            font-size: 10px;
+            color: #888;
+        }
+        .shop-item-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .shop-item-actions button {
+            flex: 1;
+            padding: 6px 10px;
+            font-size: 11px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-edit-item {
+            background: #e8f4fd;
+            color: var(--manager-blue);
+        }
+        .btn-edit-item:hover { background: #d0e8fa; }
+        .btn-delete-item {
+            background: #fce8e8;
+            color: #c0392b;
+        }
+        .btn-delete-item:hover { background: #f5d0d0; }
+
+        /* 申领物模态框 */
+        .shop-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .shop-modal-overlay.show { display: flex; }
+        .shop-modal {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        .shop-modal-header {
+            background: var(--manager-blue);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .shop-modal-header h3 {
+            margin: 0;
+            font-size: 16px;
+        }
+        .shop-modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            opacity: 0.8;
+        }
+        .shop-modal-close:hover { opacity: 1; }
+        .shop-modal-body {
+            padding: 20px;
+        }
+        .shop-form-group {
+            margin-bottom: 15px;
+        }
+        .shop-form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 5px;
+        }
+        .shop-form-group input[type="text"],
+        .shop-form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            box-sizing: border-box;
+        }
+        .shop-form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        .price-options-container {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px dashed #ddd;
+        }
+        .price-option-item {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border: 1px solid #e0e0e0;
+        }
+        .price-option-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .price-option-row input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .price-option-row input.cost-input {
+            width: 80px;
+            flex: none;
+        }
+        .price-option-row select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .price-option-row input.count-input {
+            width: 60px;
+            flex: none;
+        }
+        .btn-remove-price {
+            background: #fce8e8;
+            color: #c0392b;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .btn-add-price {
+            width: 100%;
+            padding: 10px;
+            background: #e8f4fd;
+            color: var(--manager-blue);
+            border: 1px dashed var(--manager-blue);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .btn-add-price:hover { background: #d0e8fa; }
+        .shop-modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .btn-cancel-shop {
+            padding: 10px 20px;
+            background: #f5f5f5;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .btn-save-shop {
+            padding: 10px 20px;
+            background: var(--manager-blue);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .btn-save-shop:hover { background: var(--manager-blue-dark); }
+        .global-checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            background: #fff3cd;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+        .global-checkbox-container input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
         }
 
         /* 授权码输入 */
@@ -686,6 +969,25 @@
         }
         .btn-msg-perm.disabled:hover {
             background: #e74c3c;
+            color: white;
+        }
+        /* 申诫商店权限按钮样式 */
+        .btn-rep-shop {
+            background: rgba(155, 89, 182, 0.1);
+            border: 1px solid #9b59b6;
+            color: #9b59b6;
+        }
+        .btn-rep-shop:hover {
+            background: #9b59b6;
+            color: white;
+        }
+        .btn-rep-shop.disabled {
+            background: rgba(149, 165, 166, 0.1);
+            border: 1px solid #95a5a6;
+            color: #95a5a6;
+        }
+        .btn-rep-shop.disabled:hover {
+            background: #95a5a6;
             color: white;
         }
 
@@ -2575,22 +2877,22 @@
         }
         .status-tag.neutralized {
             background: rgba(39, 174, 96, 0.15);
-            color: #2ecc71;
+            color: #1e8449;
             border: 1px solid rgba(39, 174, 96, 0.3);
         }
         .status-tag.captured {
             background: rgba(52, 152, 219, 0.15);
-            color: #3498db;
+            color: #2471a3;
             border: 1px solid rgba(52, 152, 219, 0.3);
         }
         .status-tag.escaped {
             background: rgba(231, 76, 60, 0.15);
-            color: #e74c3c;
+            color: #c0392b;
             border: 1px solid rgba(231, 76, 60, 0.3);
         }
         .status-tag.other {
             background: rgba(241, 196, 15, 0.15);
-            color: #f1c40f;
+            color: #9a7b0a;
             border: 1px solid rgba(241, 196, 15, 0.3);
         }
 
@@ -2609,7 +2911,7 @@
         .analysis-item label {
             display: block;
             font-size: 10px;
-            color: #888;
+            color: #666;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin-bottom: 4px;
@@ -2711,11 +3013,12 @@
         }
         .objective-item {
             padding: 10px 12px;
-            background: rgba(255,255,255,0.03);
+            background: #fff;
             border-radius: 6px;
+            border: 1px solid #e8e8e8;
         }
         .objective-target {
-            color: #ecf0f1;
+            color: #2c3e50;
             font-weight: 500;
             margin-bottom: 6px;
         }
@@ -2725,7 +3028,7 @@
             font-size: 11px;
         }
         .objective-details span {
-            color: #7f8c8d;
+            color: #555;
             display: flex;
             align-items: center;
             gap: 5px;
@@ -4174,6 +4477,54 @@
     </div>
 </div>
 
+<!-- 申领物编辑模态框 -->
+<div class="shop-modal-overlay" id="shopItemModal">
+    <div class="shop-modal">
+        <div class="shop-modal-header">
+            <h3><i class="fas fa-box"></i> <span id="shopModalTitle">新增申领物</span></h3>
+            <button class="shop-modal-close" onclick="closeShopModal()">&times;</button>
+        </div>
+        <div class="shop-modal-body">
+            <input type="hidden" id="shopItemId" value="">
+
+            <div class="shop-form-group">
+                <label><i class="fas fa-tag"></i> 物品名称</label>
+                <input type="text" id="shopItemName" placeholder="输入物品名称...">
+            </div>
+
+            <div class="shop-form-group">
+                <label><i class="fas fa-file-alt"></i> 物品效果描述</label>
+                <textarea id="shopItemDesc" placeholder="输入物品的详细效果..."></textarea>
+            </div>
+
+            <div class="shop-form-group">
+                <label><i class="fas fa-coins"></i> 标价选项</label>
+                <div class="price-options-container" id="priceOptionsContainer">
+                    <!-- 价格选项会动态添加 -->
+                </div>
+                <button class="btn-add-price" onclick="addPriceOption()">
+                    <i class="fas fa-plus"></i> 添加标价选项
+                </button>
+            </div>
+
+            <div class="shop-form-group" id="globalCheckboxGroup" style="display:none;">
+                <div class="global-checkbox-container">
+                    <input type="checkbox" id="shopItemGlobal">
+                    <label for="shopItemGlobal" style="margin:0;font-weight:normal;">
+                        <i class="fas fa-globe"></i> 设为全局物品（所有经理可见）
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="shop-modal-footer">
+            <button class="btn-cancel-shop" onclick="closeShopModal()">取消</button>
+            <button class="btn-save-shop" onclick="saveShopItem()">
+                <i class="fas fa-save"></i> 保存
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
     const token = localStorage.getItem('ta_token');
     const role = parseInt(localStorage.getItem('ta_role') || '0');
@@ -4296,6 +4647,11 @@
             const msgPermIcon = c.canSendMessages ? 'fa-envelope' : 'fa-envelope-circle-xmark';
             const msgPermTitle = c.canSendMessages ? '禁止发信' : '允许发信';
 
+            // 申诫商店权限
+            const repShopClass = c.reprimandShopAccess ? '' : 'disabled';
+            const repShopIcon = c.reprimandShopAccess ? 'fa-store' : 'fa-store-slash';
+            const repShopTitle = c.reprimandShopAccess ? '关闭申诫商店' : '开放申诫商店';
+
             return `
             <div class="char-card" data-char-id="${c.id}">
                 <div class="card-header" onclick="openSheet('${c.id}')">
@@ -4336,6 +4692,9 @@
                     </button>
                     <button class="btn-card-action btn-msg-perm ${msgPermClass}" onclick="event.stopPropagation(); toggleMessagePermission('${c.id}', '${safeCharName}', ${c.canSendMessages})" title="${msgPermTitle}">
                         <i class="fas ${msgPermIcon}"></i>
+                    </button>
+                    <button class="btn-card-action btn-rep-shop ${repShopClass}" onclick="event.stopPropagation(); toggleReprimandShopAccess('${c.id}', '${safeCharName}', ${c.reprimandShopAccess})" title="${repShopTitle}">
+                        <i class="fas ${repShopIcon}"></i>
                     </button>
                     ${removeAuthBtn}
                     <button class="btn-card-action btn-view" onclick="openSheet('${c.id}')">
@@ -4509,6 +4868,48 @@
                         btn.title = '允许发信';
                         btn.onclick = function(e) { e.stopPropagation(); toggleMessagePermission(charId, charName, false); };
                         icon.className = 'fas fa-envelope-circle-xmark';
+                    }
+                }
+            } else {
+                showToast(data.message || '操作失败');
+            }
+        } catch (e) {
+            showToast('操作失败');
+        }
+    }
+
+    // 切换申诫商店权限
+    async function toggleReprimandShopAccess(charId, charName, currentStatus) {
+        const action = currentStatus ? '关闭' : '开放';
+        if (!confirm(`确定要${action} "${charName}" 的申诫商店权限吗？\n\n${currentStatus ? '关闭后该角色将无法看到申诫标价的商品。' : '开放后该角色可以使用申诫购买商品。'}`)) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/manager/character/${charId}/reprimand-shop-access`, {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ reprimandShopAccess: !currentStatus })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                showToast(`已${action}该角色的申诫商店权限`, true);
+                // 更新按钮状态
+                const card = document.querySelector(`.char-card[data-char-id="${charId}"]`);
+                if (card) {
+                    const btn = card.querySelector('.btn-rep-shop');
+                    const icon = btn.querySelector('i');
+                    if (data.reprimandShopAccess) {
+                        btn.classList.remove('disabled');
+                        btn.title = '关闭申诫商店';
+                        btn.onclick = function(e) { e.stopPropagation(); toggleReprimandShopAccess(charId, charName, true); };
+                        icon.className = 'fas fa-store';
+                    } else {
+                        btn.classList.add('disabled');
+                        btn.title = '开放申诫商店';
+                        btn.onclick = function(e) { e.stopPropagation(); toggleReprimandShopAccess(charId, charName, false); };
+                        icon.className = 'fas fa-store-slash';
                     }
                 }
             } else {
@@ -5563,6 +5964,11 @@
         if (tabName === 'missions') {
             loadMissions();
         }
+
+        // 切换到申领物页时加载申领物列表
+        if (tabName === 'requisitions') {
+            loadShopItems();
+        }
     }
 
     // ==========================================
@@ -5640,6 +6046,10 @@
                     <div class="agent-avatar">${initial}</div>
                     <div class="agent-info">
                         <div class="agent-name">${escapeHtml(member.name)}</div>
+                        <div class="agent-stats-mini">
+                            <span class="stat-badge commend" title="嘉奖"><i class="fas fa-medal"></i> ${member.commendations || 0}</span>
+                            <span class="stat-badge reprimand" title="申诫"><i class="fas fa-exclamation-triangle"></i> ${member.reprimands || 0}</span>
+                        </div>
                         <div class="agent-status-row" onclick="event.stopPropagation()">
                             <input type="text" class="agent-status-input"
                                 value="${escapeHtml(member.member_status || '待命')}"
@@ -6824,9 +7234,245 @@
         }
     }
 
-    // 申领物管理（预留）
+    // ==========================================
+    // 申领物商店管理
+    // ==========================================
+    let shopItems = [];
+
+    async function loadShopItems() {
+        try {
+            const res = await fetch('/api/manager/shop/items', {
+                headers: getAuthHeaders()
+            });
+            const data = await res.json();
+            if (data.success) {
+                shopItems = data.items || [];
+                renderShopItems();
+            }
+        } catch (e) {
+            console.error('加载申领物失败:', e);
+        }
+    }
+
+    function renderShopItems() {
+        const container = document.getElementById('requisitionList');
+        if (!container) return;
+
+        if (shopItems.length === 0) {
+            container.innerHTML = `
+                <div class="requisition-empty">
+                    <i class="fas fa-box-open" style="font-size:48px;margin-bottom:15px;opacity:0.3;"></i>
+                    <p>暂无申领物</p>
+                    <p style="font-size:12px;color:#95a5a6;">点击上方按钮添加新的申领物</p>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = shopItems.map(item => {
+            const pricesHtml = (item.prices || []).map(p => {
+                let usageLabel = '';
+                if (p.usage_type === 'consumable') {
+                    usageLabel = ' <span class="usage">[一次性]</span>';
+                } else if (p.usage_type === 'per_mission') {
+                    usageLabel = ` <span class="usage">[每任务${p.usage_count || 1}次]</span>`;
+                }
+                const currencyName = p.currency_type === 'reprimand' ? '申诫' : '嘉奖';
+                return `<div class="shop-price-tag">
+                    ${escapeHtml(p.price_name)}: <span class="cost">${p.price_cost}${currencyName}</span>${usageLabel}
+                </div>`;
+            }).join('');
+
+            const globalBadge = item.is_global ? '<span class="shop-item-badge">全局</span>' : '';
+            const canEdit = item.canEdit || role >= 10;
+
+            return `
+                <div class="shop-item-card ${item.is_global ? 'global' : ''}">
+                    <div class="shop-item-header">
+                        <div class="shop-item-title">${escapeHtml(item.title)}</div>
+                        ${globalBadge}
+                    </div>
+                    <div class="shop-item-desc">${escapeHtml(item.description || '暂无描述')}</div>
+                    <div class="shop-item-prices">${pricesHtml || '<span style="color:#999;font-size:11px;">未设置标价</span>'}</div>
+                    ${canEdit ? `
+                    <div class="shop-item-actions">
+                        <button class="btn-edit-item" onclick="editShopItem(${item.id})">
+                            <i class="fas fa-edit"></i> 编辑
+                        </button>
+                        <button class="btn-delete-item" onclick="deleteShopItem(${item.id})">
+                            <i class="fas fa-trash"></i> 删除
+                        </button>
+                    </div>` : ''}
+                </div>`;
+        }).join('');
+    }
+
     function openRequisitionModal() {
-        showToast('申领物管理功能开发中...');
+        document.getElementById('shopModalTitle').textContent = '新增申领物';
+        document.getElementById('shopItemId').value = '';
+        document.getElementById('shopItemName').value = '';
+        document.getElementById('shopItemDesc').value = '';
+        document.getElementById('shopItemGlobal').checked = false;
+        document.getElementById('priceOptionsContainer').innerHTML = '';
+
+        // 只有超管才能看到全局选项
+        document.getElementById('globalCheckboxGroup').style.display = (role >= 10) ? 'block' : 'none';
+
+        // 添加一个默认的价格选项
+        addPriceOption();
+
+        document.getElementById('shopItemModal').classList.add('show');
+    }
+
+    function closeShopModal() {
+        document.getElementById('shopItemModal').classList.remove('show');
+    }
+
+    function addPriceOption(name = '', cost = '', usageType = 'permanent', usageCount = 1, currencyType = 'commendation') {
+        const container = document.getElementById('priceOptionsContainer');
+        const optionDiv = document.createElement('div');
+        optionDiv.className = 'price-option-item';
+
+        const countStyle = usageType === 'per_mission' ? '' : 'style="display:none;"';
+
+        optionDiv.innerHTML = `
+            <div class="price-option-row">
+                <input type="text" class="price-name" placeholder="标价名称（如：一次使用）" value="${escapeHtml(name)}">
+                <input type="number" class="cost-input" placeholder="数量" value="${cost}" min="0">
+                <select class="currency-type">
+                    <option value="commendation" ${currencyType === 'commendation' ? 'selected' : ''}>嘉奖</option>
+                    <option value="reprimand" ${currencyType === 'reprimand' ? 'selected' : ''}>申诫</option>
+                </select>
+                <button class="btn-remove-price" onclick="this.closest('.price-option-item').remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="price-option-row">
+                <select class="usage-type" onchange="toggleUsageCount(this)">
+                    <option value="permanent" ${usageType === 'permanent' ? 'selected' : ''}>永久使用</option>
+                    <option value="consumable" ${usageType === 'consumable' ? 'selected' : ''}>一次性消耗</option>
+                    <option value="per_mission" ${usageType === 'per_mission' ? 'selected' : ''}>每任务限次</option>
+                </select>
+                <span class="count-wrapper" ${countStyle}>
+                    次数: <input type="number" class="count-input" value="${usageCount}" min="1">
+                </span>
+            </div>
+        `;
+
+        container.appendChild(optionDiv);
+    }
+
+    function toggleUsageCount(select) {
+        const wrapper = select.closest('.price-option-row').querySelector('.count-wrapper');
+        if (select.value === 'per_mission') {
+            wrapper.style.display = '';
+        } else {
+            wrapper.style.display = 'none';
+        }
+    }
+
+    async function editShopItem(itemId) {
+        const item = shopItems.find(i => i.id === itemId);
+        if (!item) return;
+
+        document.getElementById('shopModalTitle').textContent = '编辑申领物';
+        document.getElementById('shopItemId').value = itemId;
+        document.getElementById('shopItemName').value = item.title || '';
+        document.getElementById('shopItemDesc').value = item.description || '';
+        document.getElementById('shopItemGlobal').checked = !!item.is_global;
+        document.getElementById('priceOptionsContainer').innerHTML = '';
+
+        // 只有超管才能看到全局选项
+        document.getElementById('globalCheckboxGroup').style.display = (role >= 10) ? 'block' : 'none';
+
+        // 添加现有的价格选项
+        if (item.prices && item.prices.length > 0) {
+            item.prices.forEach(p => {
+                addPriceOption(p.price_name, p.price_cost, p.usage_type || 'permanent', p.usage_count || 1, p.currency_type || 'commendation');
+            });
+        } else {
+            addPriceOption();
+        }
+
+        document.getElementById('shopItemModal').classList.add('show');
+    }
+
+    async function saveShopItem() {
+        const itemId = document.getElementById('shopItemId').value;
+        const title = document.getElementById('shopItemName').value.trim();
+        const description = document.getElementById('shopItemDesc').value.trim();
+        const isGlobal = document.getElementById('shopItemGlobal').checked;
+
+        if (!title) {
+            showToast('请输入物品名称');
+            return;
+        }
+
+        // 收集标价选项
+        const priceItems = document.querySelectorAll('#priceOptionsContainer .price-option-item');
+        const prices = [];
+        priceItems.forEach(item => {
+            const name = item.querySelector('.price-name').value.trim();
+            const cost = parseInt(item.querySelector('.cost-input').value) || 0;
+            const currencyType = item.querySelector('.currency-type').value;
+            const usageType = item.querySelector('.usage-type').value;
+            const usageCount = parseInt(item.querySelector('.count-input')?.value) || 1;
+
+            if (name) {
+                prices.push({ name, cost, currencyType, usageType, usageCount });
+            }
+        });
+
+        if (prices.length === 0) {
+            showToast('请至少添加一个标价选项');
+            return;
+        }
+
+        try {
+            const url = itemId
+                ? `/api/manager/shop/items/${itemId}`
+                : '/api/manager/shop/items';
+            const method = itemId ? 'PUT' : 'POST';
+
+            const res = await fetch(url, {
+                method,
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ title, description, prices, isGlobal })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                showToast(itemId ? '申领物更新成功' : '申领物创建成功', true);
+                closeShopModal();
+                loadShopItems();
+            } else {
+                showToast(data.message || '保存失败');
+            }
+        } catch (e) {
+            console.error('保存申领物失败:', e);
+            showToast('保存失败');
+        }
+    }
+
+    async function deleteShopItem(itemId) {
+        if (!confirm('确定要删除这个申领物吗？此操作不可恢复。')) return;
+
+        try {
+            const res = await fetch(`/api/manager/shop/items/${itemId}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                showToast('申领物已删除', true);
+                loadShopItems();
+            } else {
+                showToast(data.message || '删除失败');
+            }
+        } catch (e) {
+            console.error('删除申领物失败:', e);
+            showToast('删除失败');
+        }
     }
 
     // ==========================================

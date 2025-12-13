@@ -1033,6 +1033,178 @@ GET /api/character/:charId/mission
 
 ---
 
+## 申领物商店接口（经理）
+
+### 获取申领物列表
+
+```
+GET /api/manager/shop/items
+```
+
+**需要认证**: 是（经理权限）
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "items": [
+    {
+      "id": 1,
+      "title": "物品名称",
+      "description": "物品描述",
+      "is_global": 0,
+      "created_by": 1,
+      "creator_name": "经理名",
+      "canEdit": true,
+      "prices": [
+        {
+          "id": 1,
+          "price_name": "标准版",
+          "price_cost": 2,
+          "currency_type": "commendation",
+          "usage_type": "permanent",
+          "usage_count": 0
+        }
+      ]
+    }
+  ]
+}
+```
+
+### 创建申领物
+
+```
+POST /api/manager/shop/items
+```
+
+**需要认证**: 是（经理权限）
+
+**请求体**:
+```json
+{
+  "title": "物品名称",
+  "description": "物品描述",
+  "isGlobal": false,
+  "prices": [
+    {
+      "name": "标准版",
+      "cost": 2,
+      "currencyType": "commendation",
+      "usageType": "permanent",
+      "usageCount": 0
+    }
+  ]
+}
+```
+
+**标价参数说明**:
+- `currencyType`: 货币类型，`commendation`（嘉奖）或 `reprimand`（申诫）
+- `usageType`: 使用类型
+  - `permanent`: 永久物品
+  - `consumable`: 一次性物品
+  - `per_mission`: 每任务限次物品
+- `usageCount`: 使用次数（仅 `per_mission` 类型有效）
+
+### 更新申领物
+
+```
+PUT /api/manager/shop/items/:id
+```
+
+**需要认证**: 是（经理权限）
+
+### 删除申领物
+
+```
+DELETE /api/manager/shop/items/:id
+```
+
+**需要认证**: 是（经理权限）
+
+---
+
+## 申领物商店接口（玩家）
+
+### 获取可购买的申领物列表
+
+```
+GET /api/character/:charId/shop
+```
+
+**需要认证**: 是
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "items": [...],
+  "availableCommendations": 5,
+  "availableReprimands": 2
+}
+```
+
+> 注：`availableReprimands` 仅在角色有申诫商店权限时返回
+
+### 购买申领物
+
+```
+POST /api/character/:charId/shop/purchase
+```
+
+**需要认证**: 是
+
+**请求体**:
+```json
+{
+  "itemId": 1,
+  "priceId": 1
+}
+```
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "message": "购买成功",
+  "newItem": {
+    "item": "物品名称",
+    "pd": "物品描述",
+    "eff": "",
+    "usageType": "permanent",
+    "usageRemaining": null
+  }
+}
+```
+
+---
+
+## 申诫商店权限接口（经理）
+
+### 切换申诫商店权限
+
+```
+PUT /api/manager/character/:charId/reprimand-shop-access
+```
+
+**需要认证**: 是（经理权限）
+
+**请求体**:
+```json
+{
+  "reprimandShopAccess": true
+}
+```
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "reprimandShopAccess": true
+}
+```
+
+---
+
 ## 错误响应
 
 所有接口在发生错误时返回以下格式：

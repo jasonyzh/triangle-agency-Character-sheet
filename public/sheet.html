@@ -367,10 +367,10 @@
     body.readonly-mode input, body.readonly-mode textarea, body.readonly-mode .rich-editor, body.readonly-mode select { pointer-events: none; background: transparent; border-color: transparent; color: #555; -webkit-appearance: none; appearance: none; }
     body.readonly-mode .attr-btn { display: none !important; }
     
-    /* Swiper 调整：宽度改为400%因为只有4页了 */
+    /* Swiper 调整：宽度改为500%因为有5页了（档案、异常、关系、物品、商店） */
     .swiper-container { flex-grow: 1; width: 100%; overflow: hidden; position: relative; }
-    .swiper-wrapper { display: flex; width: 400%; height: 100%; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
-    .tab-view { width: 25%; height: 100%; overflow-y: auto; display: block !important; padding-right: 5px; padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 60px); -ms-overflow-style: none; scrollbar-width: none; }
+    .swiper-wrapper { display: flex; width: 500%; height: 100%; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
+    .tab-view { width: 20%; height: 100%; overflow-y: auto; display: block !important; padding-right: 5px; padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 60px); -ms-overflow-style: none; scrollbar-width: none; }
     .tab-view::-webkit-scrollbar { display: none; }
     
     .panel, .card { background: var(--panel-bg); border-radius: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 20px; margin-bottom: 16px; border: 1px solid var(--border-color); position: relative; overflow: hidden; z-index: 1; }
@@ -1397,6 +1397,164 @@
         justify-content: center;
     }
 }
+
+/* 申领物商店标签页样式 */
+.nav-btn.n-shop.active { color: #f39c12; }
+
+.shop-view-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.shop-view-header h2 {
+    margin: 0;
+    font-size: 16px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.shop-view-header h2 i {
+    color: #f39c12;
+}
+.shop-currency-display {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.currency-badge {
+    background: rgba(255,255,255,0.1);
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 13px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.currency-badge.commend {
+    background: rgba(241, 196, 15, 0.2);
+    border: 1px solid rgba(241, 196, 15, 0.4);
+}
+.currency-badge.commend i { color: #f1c40f; }
+.currency-badge.reprimand {
+    background: rgba(231, 76, 60, 0.2);
+    border: 1px solid rgba(231, 76, 60, 0.4);
+}
+.currency-badge.reprimand i { color: #e74c3c; }
+
+.shop-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.shop-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: rgba(255,255,255,0.5);
+}
+.shop-empty i {
+    font-size: 64px;
+    margin-bottom: 20px;
+    opacity: 0.3;
+    display: block;
+}
+.shop-empty p {
+    font-size: 14px;
+}
+.shop-item-card {
+    background: var(--panel-bg);
+    border-radius: 10px;
+    padding: 18px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.shop-item-card.global {
+    border-left: 4px solid #3498db;
+}
+.shop-item-title {
+    font-weight: bold;
+    font-size: 15px;
+    color: var(--text-main);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.shop-item-title .global-tag {
+    background: #3498db;
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: normal;
+}
+.shop-item-desc {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+.shop-price-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.shop-price-btn {
+    background: white;
+    border: 2px solid #f39c12;
+    color: #e67e22;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    min-width: 100px;
+}
+.shop-price-btn:hover {
+    background: #fff3cd;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
+}
+.shop-price-btn.disabled {
+    border-color: #ccc;
+    color: #999;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+.shop-price-btn.disabled:hover {
+    background: white;
+    transform: none;
+    box-shadow: none;
+}
+.shop-price-btn .price-name {
+    font-weight: bold;
+    font-size: 13px;
+}
+.shop-price-btn .price-cost {
+    font-size: 11px;
+}
+.shop-price-btn .price-usage {
+    font-size: 10px;
+    color: #888;
+}
+.shop-readonly-notice {
+    background: rgba(231, 76, 60, 0.1);
+    border: 1px solid rgba(231, 76, 60, 0.3);
+    color: #e74c3c;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 13px;
+}
 </style>
 </head>
 <body>
@@ -1451,7 +1609,7 @@
 <div class="track-sec"><h3 class="c-real" style="font-size:12px; margin:5px 0;">现实</h3><div class="track-row"><div class="p-grid"><div class="p-cell r-cell" data-idx="1"><span>C4</span></div><div class="p-cell r-cell" data-idx="2"></div><div class="p-cell r-cell" data-idx="3"></div><div class="p-cell r-cell" data-idx="4"><span>L11</span></div><div class="p-cell r-cell" data-idx="5"></div><div class="p-cell r-cell" data-idx="6"></div><div class="p-cell r-cell" data-idx="7"></div><div class="p-cell r-cell" data-idx="8"><span>E2</span></div><div class="p-cell r-cell" data-idx="9"></div><div class="p-cell r-cell" data-idx="10"><span>O4</span></div></div><div class="p-grid"><div class="p-cell r-cell" data-idx="11"></div><div class="p-cell r-cell" data-idx="12"><span>J3</span></div><div class="p-cell r-cell" data-idx="13"></div><div class="p-cell r-cell" data-idx="14"><span>T6</span></div><div class="p-cell r-cell" data-idx="15"></div><div class="p-cell r-cell" data-idx="16"><span>V2</span></div><div class="p-cell r-cell" data-idx="17"></div><div class="p-cell r-cell" data-idx="18"></div><div class="p-cell r-cell" data-idx="19"></div><div class="p-cell r-cell" data-idx="20"><span>X3</span></div></div><div class="p-grid"><div class="p-cell r-cell" data-idx="21"></div><div class="p-cell r-cell" data-idx="22"><span>H5</span></div><div class="p-cell r-cell" data-idx="23"></div><div class="p-cell r-cell" data-idx="24"></div><div class="p-cell r-cell" data-idx="25"></div><div class="p-cell r-cell" data-idx="26"></div><div class="p-cell r-cell" data-idx="27"><span>E3</span></div><div class="p-cell r-cell" data-idx="28"></div><div class="p-cell r-cell" data-idx="29"></div><div class="p-cell r-cell" data-idx="30"></div></div></div><div class="track-rule">当你既未获得任务MVP也未进入察看期时，你可以将你与任意一段关系的连结提升1点。</div><div class="track-rule">每当你在现实记录条上标记一格时，将你与任意一段"关系"的"连结"提升1点，然后对关系网内的每段关系重复此操作。</div></div>
 <div class="track-sec"><h3 class="c-anom" style="font-size:12px; margin:5px 0;">异常</h3><div class="track-row"><div class="p-grid"><div class="p-cell a-cell" data-idx="1"><span>H4</span></div><div class="p-cell a-cell" data-idx="2"><span>H3</span></div><div class="p-cell a-cell" data-idx="3"></div><div class="p-cell a-cell" data-idx="4"></div><div class="p-cell a-cell" data-idx="5"><span>U2</span></div><div class="p-cell a-cell" data-idx="6"></div><div class="p-cell a-cell" data-idx="7"><span>X2</span></div><div class="p-cell a-cell" data-idx="8"></div><div class="p-cell a-cell" data-idx="9"></div><div class="p-cell a-cell" data-idx="10"></div></div><div class="p-grid"><div class="p-cell a-cell" data-idx="11"><span>N1</span></div><div class="p-cell a-cell" data-idx="12"></div><div class="p-cell a-cell" data-idx="13"><span>Q2</span></div><div class="p-cell a-cell" data-idx="14"></div><div class="p-cell a-cell" data-idx="15"></div><div class="p-cell a-cell" data-idx="16"></div><div class="p-cell a-cell" data-idx="17"><span>L10</span></div><div class="p-cell a-cell" data-idx="18"></div><div class="p-cell a-cell" data-idx="19"><span>G8</span></div><div class="p-cell a-cell" data-idx="20"></div></div><div class="p-grid"><div class="p-cell a-cell" data-idx="21"></div><div class="p-cell a-cell" data-idx="22"></div><div class="p-cell a-cell" data-idx="23"><span>A7</span></div><div class="p-cell a-cell" data-idx="24"></div><div class="p-cell a-cell" data-idx="25"></div><div class="p-cell a-cell" data-idx="26"></div><div class="p-cell a-cell" data-idx="27"></div><div class="p-cell a-cell" data-idx="28"></div><div class="p-cell a-cell" data-idx="29"></div><div class="p-cell a-cell" data-idx="30"></div></div></div><div class="track-rule">当你进入察看期时，在你的异常记录条上标记1格，且无需从其他记录条上移除一格。</div><div class="track-rule">每当你在异常记录条上标记一格时，选择一项：<br>➤练习：在任意一项异常能力上标记"熟练"。 <br>➤广为人知：从一项异常能力中移除"熟练"标记，并向你的团队提出该能力的问题。在获得最多票数的答案轨道上做标记，然后获得所有已解锁的能力。</div></div>
 </div>
-<div class="panel"><h2><i class="fas fa-file-contract"></i> 欢迎你，特工！</h2><div style="margin-bottom:12px;"><label>1. 你是如何与你的异常接触的？</label><div class="rich-editor" id="q1" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>2. 机构是如何找到你的？</label><div class="rich-editor" id="q2" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>3. 你的能力有独特的外在视觉表现吗？</label><div class="rich-editor" id="q3" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>4. 你喝咖啡有什么偏好？</label><div class="rich-editor" id="q4" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>5. 请描述你过往的工作经历</label><div class="rich-editor" id="q5" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>6. 你对Adobe、Excel和Google套件的熟悉程度如何？</label><div class="rich-editor" id="q6" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>7. 在协作工作环境中，你能做出什么贡献？</label><div class="rich-editor" id="q7" contenteditable="true"></div></div></div>
+<div class="panel"><h2><i class="fas fa-file-contract"></i> 欢迎你，特工！</h2><div style="margin-bottom:12px;"><label>1. 你是如何与异常接触的？</label><div class="rich-editor" id="q1" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>2. 公司是如何找到你的？</label><div class="rich-editor" id="q2" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>3. 你的期望年薪是多少？</label><div class="rich-editor" id="q3" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>4. 你的外貌特征是什么？</label><div class="rich-editor" id="q4" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>5. 你的异常能力是否有独特的视觉表现？</label><div class="rich-editor" id="q5" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>6. 你喜欢什么样的咖啡？</label><div class="rich-editor" id="q6" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>7. 在你的人际关系中，谁是你的主要联络人，为什么？</label><div class="rich-editor" id="q7" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>8. 在协作工作环境里，你能为团队带来什么？</label><div class="rich-editor" id="q8" contenteditable="true"></div></div></div>
 <div class="panel"><h2><i class="fas fa-sticky-note"></i> 备注/笔记</h2><label>标题</label><input type="text" id="noteTitle" style="margin-bottom: 12px; font-weight: bold;"><label>内容</label><div class="rich-editor" id="noteBody" contenteditable="true" placeholder="摘要..."></div></div>
 <div class="save-area">
 <button class="btn-save btn-save-server" onclick="saveData()"><i class="fas fa-cloud-upload-alt"></i> 上传终端</button>
@@ -1465,6 +1623,21 @@
 <div id="view-anom" class="tab-view"><div class="mod-header"><h2>异常能力</h2><button class="btn-add" onclick="addAnom(null, false)"><i class="fas fa-plus"></i> 添加</button></div><div id="list-anom"></div><div class="save-area"><button class="btn-save btn-save-server" onclick="saveData()"><i class="fas fa-cloud-upload-alt"></i> 上传终端</button><button class="btn-save btn-export" onclick="exportOffline()"><i class="fas fa-download"></i> 离线另存</button><button class="btn-save btn-export" onclick="exportJson()"><i class="fas fa-download"></i> 导出JSON</button><button class="btn-save btn-export" onclick="triggerImport()"><i class="fas fa-upload"></i> 导入覆盖</button><button class="btn-save btn-export" onclick="openShareModal()"><i class="fas fa-share-alt"></i> 页面分享</button></div></div>
 <div id="view-real" class="tab-view"><div class="mod-header"><h2>关系网</h2><button class="btn-add" onclick="addRealSafe()"><i class="fas fa-plus"></i> 添加</button></div><div id="list-real"></div><div class="save-area"><button class="btn-save btn-save-server" onclick="saveData()"><i class="fas fa-cloud-upload-alt"></i> 上传终端</button><button class="btn-save btn-export" onclick="exportOffline()"><i class="fas fa-download"></i> 离线另存</button><button class="btn-save btn-export" onclick="exportJson()"><i class="fas fa-download"></i> 导出JSON</button><button class="btn-save btn-export" onclick="triggerImport()"><i class="fas fa-upload"></i> 导入覆盖</button><button class="btn-save btn-export" onclick="openShareModal()"><i class="fas fa-share-alt"></i> 页面分享</button></div></div>
 <div id="view-item" class="tab-view"><div class="mod-header"><h2>申领物/福利</h2><button class="btn-add" onclick="addItem(null, false)"><i class="fas fa-plus"></i> 添加</button></div><div id="list-item"></div><div class="save-area"><button class="btn-save btn-save-server" onclick="saveData()"><i class="fas fa-cloud-upload-alt"></i> 上传终端</button><button class="btn-save btn-export" onclick="exportOffline()"><i class="fas fa-download"></i> 离线另存</button><button class="btn-save btn-export" onclick="exportJson()"><i class="fas fa-download"></i> 导出JSON</button><button class="btn-save btn-export" onclick="triggerImport()"><i class="fas fa-upload"></i> 导入覆盖</button><button class="btn-save btn-export" onclick="openShareModal()"><i class="fas fa-share-alt"></i> 页面分享</button></div></div>
+<div id="view-shop" class="tab-view">
+    <div class="shop-view-header">
+        <h2><i class="fas fa-store"></i> 申领物商店</h2>
+        <div class="shop-currency-display">
+            <div class="currency-badge commend"><i class="fas fa-award"></i> <span id="shopViewCommend">0</span> 嘉奖</div>
+            <div class="currency-badge reprimand"><i class="fas fa-exclamation-triangle"></i> <span id="shopViewReprimand">0</span> 申诫</div>
+        </div>
+    </div>
+    <div id="shopItemsList" class="shop-items-list">
+        <div class="shop-empty">
+            <i class="fas fa-store-slash"></i>
+            <p>加载中...</p>
+        </div>
+    </div>
+</div>
 </div>
 </div>
 </div>
@@ -1654,7 +1827,7 @@
 <div class="nav-btn n-anom" onclick="switchView('view-anom', this)"><i class="fas fa-bolt"></i><span>异常</span></div>
 <div class="nav-btn n-real" onclick="switchView('view-real', this)"><i class="fas fa-heart"></i><span>关系</span></div>
 <div class="nav-btn n-item" onclick="switchView('view-item', this)"><i class="fas fa-box-open"></i><span>物品</span></div>
-<!-- n-mail Removed -->
+<div class="nav-btn n-shop" onclick="switchView('view-shop', this)"><i class="fas fa-store"></i><span>商店</span></div>
 </div>
 <script id="__SAVED_DATA__" type="application/json"></script>
 <script>
@@ -1858,27 +2031,31 @@ document.addEventListener('click', (e) => {
 });
 
 let currentTab = 0;
-// 修改 tabOrder，移除了 'view-mail'
-const tabOrder = ['view-char', 'view-anom', 'view-real', 'view-item'];
+// 修改 tabOrder，移除了 'view-mail'，添加了 'view-shop'
+const tabOrder = ['view-char', 'view-anom', 'view-real', 'view-item', 'view-shop'];
 const swiperWrapper = document.getElementById('swiperWrapper');
 const navBtns = document.querySelectorAll('.nav-btn');
-function switchView(id, btn) { 
+function switchView(id, btn) {
     if(id === 'view-mail') {
         openMailModal();
         return;
     }
-    const i=tabOrder.indexOf(id); 
+    const i=tabOrder.indexOf(id);
     if(i!==-1){
         currentTab=i;
         updateSwiper();
-    } 
+        // 切换到商店页时加载商店数据
+        if(id === 'view-shop') {
+            loadShopView();
+        }
+    }
 }
-function moveTab(dir) { const n=currentTab+dir; if(n>=0&&n<tabOrder.length){currentTab=n;updateSwiper();} }
-function updateSwiper() { swiperWrapper.style.transform=`translateX(-${currentTab*25}%)`; navBtns.forEach((b,i)=>{if(i===currentTab)b.classList.add('active');else b.classList.remove('active');}); document.querySelectorAll('.tab-view')[currentTab].scrollTop=0; const l=document.querySelector('.arrow-left'), r=document.querySelector('.arrow-right'); if(l&&r){ if(currentTab===0)l.classList.add('disabled');else l.classList.remove('disabled'); if(currentTab===tabOrder.length-1)r.classList.add('disabled');else r.classList.remove('disabled');} }
+function moveTab(dir) { const n=currentTab+dir; if(n>=0&&n<tabOrder.length){currentTab=n;updateSwiper(); if(tabOrder[currentTab]==='view-shop')loadShopView();} }
+function updateSwiper() { swiperWrapper.style.transform=`translateX(-${currentTab*20}%)`; navBtns.forEach((b,i)=>{if(i===currentTab)b.classList.add('active');else b.classList.remove('active');}); document.querySelectorAll('.tab-view')[currentTab].scrollTop=0; const l=document.querySelector('.arrow-left'), r=document.querySelector('.arrow-right'); if(l&&r){ if(currentTab===0)l.classList.add('disabled');else l.classList.remove('disabled'); if(currentTab===tabOrder.length-1)r.classList.add('disabled');else r.classList.remove('disabled');} }
 let touchStartX=0, touchStartY=0, isSwipingDisabled=false; const minSwipe=60, container=document.getElementById('swiperContainer');
 container.addEventListener('touchstart',e=>{ const t=e.target; if(t.tagName.toLowerCase()==='input'||t.tagName.toLowerCase()==='textarea'||t.isContentEditable||t.tagName.toLowerCase()==='select'){isSwipingDisabled=true;}else{isSwipingDisabled=false;touchStartX=e.changedTouches[0].screenX;touchStartY=e.changedTouches[0].screenY;}},{passive:true});
 container.addEventListener('touchend',e=>{ if(isSwipingDisabled)return; const x=e.changedTouches[0].screenX, y=e.changedTouches[0].screenY; handleSwipe(x,y);},{passive:true});
-function handleSwipe(endX,endY){ const dX=endX-touchStartX, dY=endY-touchStartY; if(Math.abs(dX)>minSwipe&&Math.abs(dX)>Math.abs(dY)){ if(dX<0){if(currentTab<tabOrder.length-1){currentTab++;updateSwiper();}}else{if(currentTab>0){currentTab--;updateSwiper();}}}}
+function handleSwipe(endX,endY){ const dX=endX-touchStartX, dY=endY-touchStartY; if(Math.abs(dX)>minSwipe&&Math.abs(dX)>Math.abs(dY)){ if(dX<0){if(currentTab<tabOrder.length-1){currentTab++;updateSwiper();if(tabOrder[currentTab]==='view-shop')loadShopView();}}else{if(currentTab>0){currentTab--;updateSwiper();}}}}
 function setRandomVars(el) { el.style.setProperty('--r1',Math.random()); el.style.setProperty('--r2',Math.random()); el.style.setProperty('--r3',Math.random()); }
 document.addEventListener('DOMContentLoaded', async () => {
     document.querySelectorAll('.panel').forEach(setRandomVars);
@@ -3687,7 +3864,7 @@ function gatherData(){
         anomSlots:SLOT_LIMITS.anomSlots,
         realSlots:SLOT_LIMITS.realSlots
     };
-    for(let i=1;i<=7;i++)d.qs.push(document.getElementById(`q${i}`).innerHTML);
+    for(let i=1;i<=8;i++)d.qs.push(document.getElementById(`q${i}`).innerHTML);
     // 保存属性数据 - 新格式，同时兼容旧格式v字段
     ATTRS.forEach(a=>{
         const {current, max} = getAttrValues(a);
@@ -3816,6 +3993,154 @@ function submitSharePassword() {
     const pwd = document.getElementById('share-pwd-input').value;
     document.getElementById('share-pwd-error').style.display = 'none';
     loadShareData(pwd);
+}
+
+// ==========================================
+// 申领物商店功能 (Tab View)
+// ==========================================
+let shopViewData = { items: [], availableCommendations: 0, availableReprimands: 0 };
+
+async function loadShopView() {
+    const container = document.getElementById('shopItemsList');
+    const commendEl = document.getElementById('shopViewCommend');
+    const reprimandEl = document.getElementById('shopViewReprimand');
+
+    if (!charId) {
+        container.innerHTML = `
+            <div class="shop-empty">
+                <i class="fas fa-store-slash"></i>
+                <p>离线模式无法使用商店</p>
+            </div>`;
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="shop-empty">
+            <i class="fas fa-circle-notch fa-spin"></i>
+            <p>加载中...</p>
+        </div>`;
+
+    try {
+        const res = await fetch(`/api/character/${charId}/shop`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+            shopViewData = data;
+            renderShopView();
+        } else {
+            container.innerHTML = `
+                <div class="shop-empty">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>${data.message || '加载失败'}</p>
+                </div>`;
+        }
+    } catch (e) {
+        console.error('加载商店失败:', e);
+        container.innerHTML = `
+            <div class="shop-empty">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>加载失败</p>
+            </div>`;
+    }
+}
+
+function renderShopView() {
+    const container = document.getElementById('shopItemsList');
+    const availableCommend = shopViewData.availableCommendations || 0;
+    // 检查是否有申诫商店权限（API返回availableReprimands字段表示有权限）
+    const hasReprimandAccess = 'availableReprimands' in shopViewData;
+    const availableReprimand = hasReprimandAccess ? (shopViewData.availableReprimands || 0) : 0;
+
+    document.getElementById('shopViewCommend').textContent = availableCommend;
+
+    // 根据权限显示/隐藏申诫余额
+    const reprimandBadge = document.querySelector('.shop-currency-display .currency-badge.reprimand');
+    if (reprimandBadge) {
+        reprimandBadge.style.display = hasReprimandAccess ? '' : 'none';
+    }
+    if (hasReprimandAccess) {
+        document.getElementById('shopViewReprimand').textContent = availableReprimand;
+    }
+
+    // 检查是否为只读或分享模式
+    const canPurchase = !isReadOnly && !isShareMode;
+
+    if (!shopViewData.items || shopViewData.items.length === 0) {
+        container.innerHTML = `
+            <div class="shop-empty">
+                <i class="fas fa-store-slash"></i>
+                <p>暂无可购买的申领物</p>
+            </div>`;
+        return;
+    }
+
+    container.innerHTML = shopViewData.items.map(item => {
+        const pricesHtml = (item.prices || []).map(p => {
+            const currencyType = p.currency_type || 'commendation';
+            const currencyName = currencyType === 'reprimand' ? '申诫' : '嘉奖';
+            const available = currencyType === 'reprimand' ? availableReprimand : availableCommend;
+            const canAfford = available >= p.price_cost;
+            const isDisabled = !canPurchase || !canAfford;
+            let usageLabel = '';
+            if (p.usage_type === 'consumable') {
+                usageLabel = '[一次性]';
+            } else if (p.usage_type === 'per_mission') {
+                usageLabel = `[每任务${p.usage_count || 1}次]`;
+            }
+
+            let disabledReason = '';
+            if (!canPurchase) {
+                disabledReason = '只读模式';
+            } else if (!canAfford) {
+                disabledReason = `${currencyName}不足`;
+            }
+
+            return `<button class="shop-price-btn ${isDisabled ? 'disabled' : ''}"
+                ${!isDisabled ? `onclick="purchaseItem(${item.id}, ${p.id})"` : 'disabled'}
+                ${disabledReason ? `title="${disabledReason}"` : ''}>
+                <span class="price-name">${escapeHtml(p.price_name)}</span>
+                <span class="price-cost">${p.price_cost} ${currencyName}</span>
+                ${usageLabel ? `<span class="price-usage">${usageLabel}</span>` : ''}
+            </button>`;
+        }).join('');
+
+        return `
+            <div class="shop-item-card ${item.is_global ? 'global' : ''}">
+                <div class="shop-item-title">${escapeHtml(item.title)}</div>
+                <div class="shop-item-desc">${escapeHtml(item.description || '暂无描述')}</div>
+                <div class="shop-price-options">${pricesHtml || '<span style="color:#999;font-size:11px;">未设置标价</span>'}</div>
+            </div>`;
+    }).join('');
+}
+
+async function purchaseItem(itemId, priceId) {
+    if (!confirm('确定要购买这个物品吗？购买后将扣除相应费用。')) return;
+
+    try {
+        const res = await fetch(`/api/character/${charId}/shop/purchase`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ itemId, priceId })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+            showToast('购买成功！物品已添加到你的物品列表', 'success');
+            // 重新加载商店视图以更新余额
+            loadShopView();
+            // 重新加载角色数据以更新物品列表
+            loadData();
+        } else {
+            showToast(data.message || '购买失败');
+        }
+    } catch (e) {
+        console.error('购买失败:', e);
+        showToast('购买失败');
+    }
 }
 
 function openShareModal() {
