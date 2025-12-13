@@ -5443,25 +5443,36 @@
     }
 
     function renderReportData(data) {
+        // 支持多异常格式
+        const anomalies = data.anomalies && data.anomalies.length > 0
+            ? data.anomalies
+            : [{ status: data.status || {}, analysis: data.analysis || {} }];
+
+        let anomalyHtml = '';
+        anomalies.forEach((anomaly, idx) => {
+            const titleSuffix = anomalies.length > 1 ? ` #${idx + 1}` : '';
+            anomalyHtml += `
+                <div class="report-section" ${anomalies.length > 1 ? 'style="border:1px solid #e0e0e0;border-radius:6px;padding:10px;margin-bottom:10px;"' : ''}>
+                    ${anomalies.length > 1 ? `<div style="font-weight:bold;color:#e67e22;margin-bottom:8px;">异常${titleSuffix}</div>` : ''}
+                    <h4>异常状态${titleSuffix}</h4>
+                    <div class="report-status">
+                        ${anomaly.status?.neutralized ? '✓ 已中和' : ''}
+                        ${anomaly.status?.captured ? '✓ 已捕获' : ''}
+                        ${anomaly.status?.escaped ? '✓ 已逃脱' : ''}
+                        ${anomaly.status?.other ? `✓ 其他: ${escapeHtml(anomaly.status.other || '')}` : ''}
+                    </div>
+                    <h4 style="margin-top:10px;">异常分析${titleSuffix}</h4>
+                    <table class="report-table">
+                        <tr><td>代号</td><td>${escapeHtml(anomaly.analysis?.codename || '-')}</td></tr>
+                        <tr><td>行为</td><td>${escapeHtml(anomaly.analysis?.behavior || '-')}</td></tr>
+                        <tr><td>焦点</td><td>${escapeHtml(anomaly.analysis?.focus || '-')}</td></tr>
+                        <tr><td>领域</td><td>${escapeHtml(anomaly.analysis?.domain || '-')}</td></tr>
+                    </table>
+                </div>`;
+        });
+
         return `
-            <div class="report-section">
-                <h4>异常状态</h4>
-                <div class="report-status">
-                    ${data.status?.neutralized ? '✓ 已中和' : ''}
-                    ${data.status?.captured ? '✓ 已捕获' : ''}
-                    ${data.status?.escaped ? '✓ 已逃脱' : ''}
-                    ${data.status?.other ? `✓ 其他: ${escapeHtml(data.status.otherText || '')}` : ''}
-                </div>
-            </div>
-            <div class="report-section">
-                <h4>异常分析</h4>
-                <table class="report-table">
-                    <tr><td>代号</td><td>${escapeHtml(data.analysis?.codename || '-')}</td></tr>
-                    <tr><td>行为</td><td>${escapeHtml(data.analysis?.behavior || '-')}</td></tr>
-                    <tr><td>焦点</td><td>${escapeHtml(data.analysis?.focus || '-')}</td></tr>
-                    <tr><td>领域</td><td>${escapeHtml(data.analysis?.domain || '-')}</td></tr>
-                </table>
-            </div>
+            ${anomalyHtml}
             ${data.散逸端?.length > 0 ? `
             <div class="report-section">
                 <h4>散逸端</h4>
@@ -6020,42 +6031,53 @@
 
         let html = '';
 
-        // 异常状态 - 始终显示
-        const statusList = [];
-        if (data.status) {
-            if (data.status.neutralized) statusList.push('<span class="status-tag neutralized"><i class="fas fa-check-circle"></i> 已中和</span>');
-            if (data.status.captured) statusList.push('<span class="status-tag captured"><i class="fas fa-hand-rock"></i> 已捕获</span>');
-            if (data.status.escaped) statusList.push('<span class="status-tag escaped"><i class="fas fa-running"></i> 已逃脱</span>');
-            if (data.status.other) statusList.push(`<span class="status-tag other"><i class="fas fa-question-circle"></i> ${escapeHtml(data.status.other)}</span>`);
-        }
-        html += `<div class="report-block status-block">
-            <div class="block-header"><i class="fas fa-flag"></i> 异常状态</div>
-            <div class="status-tags">${statusList.length > 0 ? statusList.join('') : '<span class="empty-hint">未填写</span>'}</div>
-        </div>`;
+        // 异常状态与分析 - 支持多个异常
+        // 优先使用新格式的 anomalies 数组，如果没有则回退到旧格式
+        const anomalies = data.anomalies && data.anomalies.length > 0
+            ? data.anomalies
+            : [{ status: data.status || {}, analysis: data.analysis || {} }];
 
-        // 异常分析 - 始终显示
-        const analysis = data.analysis || {};
-        html += `<div class="report-block analysis-block">
-            <div class="block-header"><i class="fas fa-microscope"></i> 异常分析</div>
-            <div class="analysis-grid">
-                <div class="analysis-item">
-                    <label>代号</label>
-                    <span>${escapeHtml(analysis.codename) || '<span class="empty-hint">-</span>'}</span>
+        anomalies.forEach((anomaly, idx) => {
+            const statusList = [];
+            if (anomaly.status) {
+                if (anomaly.status.neutralized) statusList.push('<span class="status-tag neutralized"><i class="fas fa-check-circle"></i> 已中和</span>');
+                if (anomaly.status.captured) statusList.push('<span class="status-tag captured"><i class="fas fa-hand-rock"></i> 已捕获</span>');
+                if (anomaly.status.escaped) statusList.push('<span class="status-tag escaped"><i class="fas fa-running"></i> 已逃脱</span>');
+                if (anomaly.status.other) statusList.push(`<span class="status-tag other"><i class="fas fa-question-circle"></i> ${escapeHtml(anomaly.status.other)}</span>`);
+            }
+
+            const analysis = anomaly.analysis || {};
+            const anomalyTitle = anomalies.length > 1 ? ` #${idx + 1}` : '';
+
+            html += `<div class="report-block anomaly-block" style="margin-bottom:15px;${anomalies.length > 1 ? 'border:1px solid #e0e0e0;border-radius:8px;padding:15px;' : ''}">
+                ${anomalies.length > 1 ? `<div style="font-weight:bold;color:#e67e22;margin-bottom:10px;font-size:14px;">异常${anomalyTitle}</div>` : ''}
+                <div class="report-block status-block" style="margin-bottom:10px;">
+                    <div class="block-header"><i class="fas fa-flag"></i> 异常状态${anomalyTitle}</div>
+                    <div class="status-tags">${statusList.length > 0 ? statusList.join('') : '<span class="empty-hint">未填写</span>'}</div>
                 </div>
-                <div class="analysis-item">
-                    <label>行为模式</label>
-                    <span>${escapeHtml(analysis.behavior) || '<span class="empty-hint">-</span>'}</span>
+                <div class="report-block analysis-block">
+                    <div class="block-header"><i class="fas fa-microscope"></i> 异常分析${anomalyTitle}</div>
+                    <div class="analysis-grid">
+                        <div class="analysis-item">
+                            <label>代号</label>
+                            <span>${escapeHtml(analysis.codename) || '<span class="empty-hint">-</span>'}</span>
+                        </div>
+                        <div class="analysis-item">
+                            <label>行为模式</label>
+                            <span>${escapeHtml(analysis.behavior) || '<span class="empty-hint">-</span>'}</span>
+                        </div>
+                        <div class="analysis-item">
+                            <label>焦点</label>
+                            <span>${escapeHtml(analysis.focus) || '<span class="empty-hint">-</span>'}</span>
+                        </div>
+                        <div class="analysis-item">
+                            <label>领域</label>
+                            <span>${escapeHtml(analysis.domain) || '<span class="empty-hint">-</span>'}</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="analysis-item">
-                    <label>焦点</label>
-                    <span>${escapeHtml(analysis.focus) || '<span class="empty-hint">-</span>'}</span>
-                </div>
-                <div class="analysis-item">
-                    <label>领域</label>
-                    <span>${escapeHtml(analysis.domain) || '<span class="empty-hint">-</span>'}</span>
-                </div>
-            </div>
-        </div>`;
+            </div>`;
+        });
 
         // 散逸端收集 - 始终显示
         const scattering = data.scattering || [];
@@ -6492,12 +6514,36 @@
                 reportData = typeof report.report_data === 'string' ? JSON.parse(report.report_data) : report.report_data;
             } catch(e) {}
 
-            // 构建报告内容HTML
-            let statusText = [];
-            if (reportData.neutralized) statusText.push('已中和');
-            if (reportData.captured) statusText.push('已捕获');
-            if (reportData.escaped) statusText.push('已逃脱');
-            if (reportData.otherStatus) statusText.push(reportData.otherStatus);
+            // 支持多异常格式
+            const anomalies = reportData.anomalies && reportData.anomalies.length > 0
+                ? reportData.anomalies
+                : [{ status: reportData.status || {}, analysis: reportData.analysis || {} }];
+
+            // 构建异常信息HTML
+            let anomaliesHtml = '';
+            anomalies.forEach((anomaly, idx) => {
+                let statusText = [];
+                if (anomaly.status?.neutralized) statusText.push('已中和');
+                if (anomaly.status?.captured) statusText.push('已捕获');
+                if (anomaly.status?.escaped) statusText.push('已逃脱');
+                if (anomaly.status?.other) statusText.push(anomaly.status.other);
+
+                const titleSuffix = anomalies.length > 1 ? ` #${idx + 1}` : '';
+                anomaliesHtml += `
+                    <div style="${anomalies.length > 1 ? 'border:1px solid #e0e0e0;border-radius:6px;padding:12px;margin-bottom:12px;' : ''}">
+                        ${anomalies.length > 1 ? `<div style="font-weight:bold;color:#e67e22;margin-bottom:8px;">异常${titleSuffix}</div>` : ''}
+                        <div style="margin-bottom:10px;">
+                            <strong>异常状态${titleSuffix}:</strong> ${statusText.join(', ') || '未填写'}
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+                            <div><strong>代号:</strong> ${escapeHtml(anomaly.analysis?.codename || '-')}</div>
+                            <div><strong>行为:</strong> ${escapeHtml(anomaly.analysis?.behavior || '-')}</div>
+                            <div><strong>焦点:</strong> ${escapeHtml(anomaly.analysis?.focus || '-')}</div>
+                            <div><strong>领域:</strong> ${escapeHtml(anomaly.analysis?.domain || '-')}</div>
+                        </div>
+                    </div>
+                `;
+            });
 
             const reportHtml = `
                 <div style="background:#fff;padding:20px;border-radius:8px;max-height:70vh;overflow-y:auto;">
@@ -6509,19 +6555,10 @@
                         时间: ${new Date(report.created_at).toLocaleString('zh-CN')}
                     </p>
 
-                    <div style="margin-bottom:15px;">
-                        <strong>异常状态:</strong> ${statusText.join(', ') || '未填写'}
-                    </div>
-
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
-                        <div><strong>代号:</strong> ${escapeHtml(reportData.codename || '-')}</div>
-                        <div><strong>行为:</strong> ${escapeHtml(reportData.behavior || '-')}</div>
-                        <div><strong>焦点:</strong> ${escapeHtml(reportData.focus || '-')}</div>
-                        <div><strong>领域:</strong> ${escapeHtml(reportData.domain || '-')}</div>
-                    </div>
+                    ${anomaliesHtml}
 
                     <div style="margin-bottom:15px;">
-                        <strong>MVP推荐:</strong> ${escapeHtml(reportData.mvpName || '无')}
+                        <strong>MVP推荐:</strong> ${escapeHtml(reportData.evaluation?.mvp || reportData.mvpName || '无')}
                     </div>
 
                     <div style="margin-bottom:15px;">

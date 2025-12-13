@@ -3,6 +3,7 @@
 基于 Node.js + Express + SQLite 构建的 TRPG 角色卡管理系统，支持多用户、权限管理、角色卡分享等功能。
 
 - 作者：ska，残光
+- [API 开发文档](./API.md)
 
 ## 功能特性
 

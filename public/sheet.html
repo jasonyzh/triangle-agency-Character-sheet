@@ -1054,6 +1054,7 @@
     .report-table {
         width: 100%;
         border-collapse: collapse;
+        table-layout: fixed;
     }
     .report-table th {
         background: #f5f5f5;
@@ -1068,13 +1069,61 @@
     .report-table input {
         padding: 6px 8px;
         font-size: 13px;
+        width: 100%;
+        box-sizing: border-box;
     }
     .report-table th:last-child {
         width: 40px;
     }
+    /* 可选目标表格列宽分配 */
+    .report-table.objectives-table th:nth-child(1) { width: 35%; }
+    .report-table.objectives-table th:nth-child(2) { width: 25%; }
+    .report-table.objectives-table th:nth-child(3) { width: 25%; }
+    .report-table.objectives-table th:nth-child(4) { width: 15%; }
+
+    /* 异常组样式 */
+    .anomaly-group {
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        position: relative;
+    }
+    .anomaly-group-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px dashed #ddd;
+    }
+    .anomaly-group-title {
+        font-weight: bold;
+        color: #e67e22;
+        font-size: 13px;
+    }
+    .btn-remove-anomaly {
+        background: #e74c3c;
+        color: white;
+        border: none;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    .btn-remove-anomaly:hover {
+        background: #c0392b;
+    }
+    .anomaly-analysis {
+        margin-top: 12px;
+        padding-top: 10px;
+        border-top: 1px dashed #ddd;
+    }
     .btn-add-row {
         float: right;
-        background: #27ae60;
+        background: #333;
         color: white;
         border: none;
         padding: 4px 10px;
@@ -1084,7 +1133,7 @@
         transition: background 0.2s;
     }
     .btn-add-row:hover {
-        background: #219a52;
+        background: #555;
     }
     .btn-remove-row {
         background: #e74c3c;
@@ -2371,37 +2420,43 @@ function renderCompose(container) {
             <h4><i class="fas fa-file-alt" style="color:#e67e22;"></i> 任务报告</h4>
 
             <div class="report-section">
-                <h5>异常状态</h5>
-                <div class="report-status-grid">
-                    <label class="report-status-item">
-                        <input type="radio" name="rpt-status" value="neutralized" id="rpt-neutralized">
-                        <span class="status-icon">🔫</span>
-                        <div class="status-info"><h6>已中和</h6><small>无影响</small></div>
-                    </label>
-                    <label class="report-status-item">
-                        <input type="radio" name="rpt-status" value="captured" id="rpt-captured">
-                        <span class="status-icon">💼</span>
-                        <div class="status-info"><h6>已捕获</h6><small>+3 嘉奖</small></div>
-                    </label>
-                    <label class="report-status-item">
-                        <input type="radio" name="rpt-status" value="escaped" id="rpt-escaped">
-                        <span class="status-icon">🚪</span>
-                        <div class="status-info"><h6>已逃脱</h6><small>+3 申诫</small></div>
-                    </label>
-                    <label class="report-status-item">
-                        <input type="radio" name="rpt-status" value="other" id="rpt-other-check">
-                        <span class="status-icon">📝</span>
-                        <div class="status-info"><h6>其他</h6><input type="text" id="rpt-other-text" placeholder="..." style="width:80px;padding:2px 5px;font-size:11px;" onclick="event.stopPropagation()"></div>
-                    </label>
+                <h5>异常状态 & 分析 <button type="button" class="btn-add-row" onclick="addAnomalyGroup()"><i class="fas fa-plus"></i> 添加异常</button></h5>
+                <div id="anomalyGroupsContainer">
+                    <div class="anomaly-group" data-index="0">
+                        <div class="anomaly-group-header">
+                            <span class="anomaly-group-title">异常 #1</span>
+                            <button type="button" class="btn-remove-anomaly" onclick="removeAnomalyGroup(this)" style="display:none;"><i class="fas fa-trash"></i></button>
+                        </div>
+                        <div class="report-status-grid">
+                            <label class="report-status-item">
+                                <input type="radio" name="rpt-status-0" value="neutralized">
+                                <span class="status-icon">🔫</span>
+                                <div class="status-info"><h6>已中和</h6><small>无影响</small></div>
+                            </label>
+                            <label class="report-status-item">
+                                <input type="radio" name="rpt-status-0" value="captured">
+                                <span class="status-icon">💼</span>
+                                <div class="status-info"><h6>已捕获</h6><small>+3 嘉奖</small></div>
+                            </label>
+                            <label class="report-status-item">
+                                <input type="radio" name="rpt-status-0" value="escaped">
+                                <span class="status-icon">🚪</span>
+                                <div class="status-info"><h6>已逃脱</h6><small>+3 申诫</small></div>
+                            </label>
+                            <label class="report-status-item">
+                                <input type="radio" name="rpt-status-0" value="other">
+                                <span class="status-icon">📝</span>
+                                <div class="status-info"><h6>其他</h6><input type="text" class="rpt-other-text" placeholder="..." style="width:80px;padding:2px 5px;font-size:11px;" onclick="event.stopPropagation()"></div>
+                            </label>
+                        </div>
+                        <div class="anomaly-analysis">
+                            <div class="report-row"><label>代号</label><input type="text" class="rpt-codename" placeholder="异常代号"></div>
+                            <div class="report-row"><label>行为</label><input type="text" class="rpt-behavior" placeholder="行为模式"></div>
+                            <div class="report-row"><label>焦点</label><input type="text" class="rpt-focus" placeholder="焦点"></div>
+                            <div class="report-row"><label>领域</label><input type="text" class="rpt-domain" placeholder="领域"></div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-
-            <div class="report-section">
-                <h5>异常分析</h5>
-                <div class="report-row"><label>代号</label><input type="text" id="rpt-codename"></div>
-                <div class="report-row"><label>行为</label><input type="text" id="rpt-behavior"></div>
-                <div class="report-row"><label>焦点</label><input type="text" id="rpt-focus"></div>
-                <div class="report-row"><label>领域</label><input type="text" id="rpt-domain"></div>
             </div>
 
             <div class="report-section">
@@ -2430,13 +2485,13 @@ function renderCompose(container) {
             </div>
 
             <div class="report-section">
-                <h5>可选目标</h5>
-                <table class="report-table">
-                    <thead><tr><th>目标</th><th>奖励</th><th>按特工</th></tr></thead>
-                    <tbody>
-                        <tr><td><input type="text" id="rpt-obj1-target"></td><td><input type="text" id="rpt-obj1-reward"></td><td><input type="text" id="rpt-obj1-agent"></td></tr>
-                        <tr><td><input type="text" id="rpt-obj2-target"></td><td><input type="text" id="rpt-obj2-reward"></td><td><input type="text" id="rpt-obj2-agent"></td></tr>
-                        <tr><td><input type="text" id="rpt-obj3-target"></td><td><input type="text" id="rpt-obj3-reward"></td><td><input type="text" id="rpt-obj3-agent"></td></tr>
+                <h5>可选目标 <button type="button" class="btn-add-row" onclick="addObjectiveRow()"><i class="fas fa-plus"></i> 添加</button></h5>
+                <table class="report-table objectives-table">
+                    <thead><tr><th>目标</th><th>奖励</th><th>按特工</th><th></th></tr></thead>
+                    <tbody id="objectivesTableBody">
+                        <tr class="objective-row"><td><input type="text" class="obj-target" placeholder="目标"></td><td><input type="text" class="obj-reward" placeholder="奖励"></td><td><input type="text" class="obj-agent" placeholder="特工"></td><td><button type="button" class="btn-remove-row" onclick="removeObjectiveRow(this)"><i class="fas fa-times"></i></button></td></tr>
+                        <tr class="objective-row"><td><input type="text" class="obj-target" placeholder="目标"></td><td><input type="text" class="obj-reward" placeholder="奖励"></td><td><input type="text" class="obj-agent" placeholder="特工"></td><td><button type="button" class="btn-remove-row" onclick="removeObjectiveRow(this)"><i class="fas fa-times"></i></button></td></tr>
+                        <tr class="objective-row"><td><input type="text" class="obj-target" placeholder="目标"></td><td><input type="text" class="obj-reward" placeholder="奖励"></td><td><input type="text" class="obj-agent" placeholder="特工"></td><td><button type="button" class="btn-remove-row" onclick="removeObjectiveRow(this)"><i class="fas fa-times"></i></button></td></tr>
                     </tbody>
                 </table>
             </div>
@@ -2591,6 +2646,152 @@ function removeScatterRow(btn) {
     }
 }
 
+// 异常组管理
+let anomalyGroupCounter = 1;
+
+function addAnomalyGroup() {
+    const container = document.getElementById('anomalyGroupsContainer');
+    const newIndex = anomalyGroupCounter++;
+
+    const newGroup = document.createElement('div');
+    newGroup.className = 'anomaly-group';
+    newGroup.dataset.index = newIndex;
+    newGroup.innerHTML = `
+        <div class="anomaly-group-header">
+            <span class="anomaly-group-title">异常 #${container.children.length + 1}</span>
+            <button type="button" class="btn-remove-anomaly" onclick="removeAnomalyGroup(this)"><i class="fas fa-trash"></i> 删除</button>
+        </div>
+        <div class="report-status-grid">
+            <label class="report-status-item">
+                <input type="radio" name="rpt-status-${newIndex}" value="neutralized">
+                <span class="status-icon">🔫</span>
+                <div class="status-info"><h6>已中和</h6><small>无影响</small></div>
+            </label>
+            <label class="report-status-item">
+                <input type="radio" name="rpt-status-${newIndex}" value="captured">
+                <span class="status-icon">💼</span>
+                <div class="status-info"><h6>已捕获</h6><small>+3 嘉奖</small></div>
+            </label>
+            <label class="report-status-item">
+                <input type="radio" name="rpt-status-${newIndex}" value="escaped">
+                <span class="status-icon">🚪</span>
+                <div class="status-info"><h6>已逃脱</h6><small>+3 申诫</small></div>
+            </label>
+            <label class="report-status-item">
+                <input type="radio" name="rpt-status-${newIndex}" value="other">
+                <span class="status-icon">📝</span>
+                <div class="status-info"><h6>其他</h6><input type="text" class="rpt-other-text" placeholder="..." style="width:80px;padding:2px 5px;font-size:11px;" onclick="event.stopPropagation()"></div>
+            </label>
+        </div>
+        <div class="anomaly-analysis">
+            <div class="report-row"><label>代号</label><input type="text" class="rpt-codename" placeholder="异常代号"></div>
+            <div class="report-row"><label>行为</label><input type="text" class="rpt-behavior" placeholder="行为模式"></div>
+            <div class="report-row"><label>焦点</label><input type="text" class="rpt-focus" placeholder="焦点"></div>
+            <div class="report-row"><label>领域</label><input type="text" class="rpt-domain" placeholder="领域"></div>
+        </div>
+    `;
+    container.appendChild(newGroup);
+
+    // 更新删除按钮显示状态
+    updateAnomalyGroupButtons();
+}
+
+function removeAnomalyGroup(btn) {
+    const container = document.getElementById('anomalyGroupsContainer');
+    const groups = container.querySelectorAll('.anomaly-group');
+
+    if (groups.length > 1) {
+        btn.closest('.anomaly-group').remove();
+        updateAnomalyGroupNumbers();
+        updateAnomalyGroupButtons();
+    } else {
+        showToast('至少保留一个异常', 'error');
+    }
+}
+
+function updateAnomalyGroupNumbers() {
+    const groups = document.querySelectorAll('#anomalyGroupsContainer .anomaly-group');
+    groups.forEach((group, idx) => {
+        group.querySelector('.anomaly-group-title').textContent = `异常 #${idx + 1}`;
+    });
+}
+
+function updateAnomalyGroupButtons() {
+    const groups = document.querySelectorAll('#anomalyGroupsContainer .anomaly-group');
+    groups.forEach((group, idx) => {
+        const removeBtn = group.querySelector('.btn-remove-anomaly');
+        removeBtn.style.display = groups.length > 1 ? 'inline-block' : 'none';
+    });
+}
+
+function getAnomalyData() {
+    const groups = document.querySelectorAll('#anomalyGroupsContainer .anomaly-group');
+    const data = [];
+
+    groups.forEach(group => {
+        const index = group.dataset.index;
+        const selectedStatus = group.querySelector(`input[name="rpt-status-${index}"]:checked`);
+        const statusValue = selectedStatus ? selectedStatus.value : null;
+        const otherText = group.querySelector('.rpt-other-text').value;
+
+        data.push({
+            status: {
+                selected: statusValue,
+                neutralized: statusValue === 'neutralized',
+                captured: statusValue === 'captured',
+                escaped: statusValue === 'escaped',
+                other: statusValue === 'other' ? otherText : null
+            },
+            analysis: {
+                codename: group.querySelector('.rpt-codename').value,
+                behavior: group.querySelector('.rpt-behavior').value,
+                focus: group.querySelector('.rpt-focus').value,
+                domain: group.querySelector('.rpt-domain').value
+            }
+        });
+    });
+
+    return data;
+}
+
+// 可选目标行管理
+function addObjectiveRow() {
+    const tbody = document.getElementById('objectivesTableBody');
+    const newRow = document.createElement('tr');
+    newRow.className = 'objective-row';
+    newRow.innerHTML = `
+        <td><input type="text" class="obj-target" placeholder="目标"></td>
+        <td><input type="text" class="obj-reward" placeholder="奖励"></td>
+        <td><input type="text" class="obj-agent" placeholder="特工"></td>
+        <td><button type="button" class="btn-remove-row" onclick="removeObjectiveRow(this)"><i class="fas fa-times"></i></button></td>
+    `;
+    tbody.appendChild(newRow);
+}
+
+function removeObjectiveRow(btn) {
+    const tbody = document.getElementById('objectivesTableBody');
+    const rows = tbody.querySelectorAll('.objective-row');
+    if (rows.length > 1) {
+        btn.closest('tr').remove();
+    } else {
+        showToast('至少保留一行', 'error');
+    }
+}
+
+function getObjectivesData() {
+    const rows = document.querySelectorAll('#objectivesTableBody .objective-row');
+    const data = [];
+    rows.forEach(row => {
+        const target = row.querySelector('.obj-target').value.trim();
+        const reward = row.querySelector('.obj-reward').value.trim();
+        const agent = row.querySelector('.obj-agent').value.trim();
+        if (target) {
+            data.push({ target, reward, agent });
+        }
+    });
+    return data;
+}
+
 function getScatteringData() {
     const rows = document.querySelectorAll('#scatterTableBody .scatter-row');
     const data = [];
@@ -2606,24 +2807,19 @@ function getScatteringData() {
 }
 
 async function sendReport() {
-    // 获取选中的单选按钮值
-    const selectedStatus = document.querySelector('input[name="rpt-status"]:checked');
-    const statusValue = selectedStatus ? selectedStatus.value : null;
+    // 获取所有异常数据（支持多组）
+    const anomalies = getAnomalyData();
+
+    // 为保持向后兼容，如果只有一个异常，保留旧的 status/analysis 结构
+    // 同时添加新的 anomalies 数组
+    const firstAnomaly = anomalies[0] || { status: {}, analysis: {} };
 
     const reportData = {
-        status: {
-            selected: statusValue,
-            neutralized: statusValue === 'neutralized',
-            captured: statusValue === 'captured',
-            escaped: statusValue === 'escaped',
-            other: statusValue === 'other' ? document.getElementById('rpt-other-text').value : null
-        },
-        analysis: {
-            codename: document.getElementById('rpt-codename').value,
-            behavior: document.getElementById('rpt-behavior').value,
-            focus: document.getElementById('rpt-focus').value,
-            domain: document.getElementById('rpt-domain').value
-        },
+        // 向后兼容：保留第一个异常的旧格式
+        status: firstAnomaly.status,
+        analysis: firstAnomaly.analysis,
+        // 新格式：支持多个异常
+        anomalies: anomalies,
         scattering: getScatteringData(),
         evaluation: {
             rating: document.getElementById('rpt-rating').value,
@@ -2632,11 +2828,7 @@ async function sendReport() {
             probation: document.getElementById('rpt-probation').value,
             participants: document.getElementById('rpt-participants').value
         },
-        objectives: [
-            { target: document.getElementById('rpt-obj1-target').value, reward: document.getElementById('rpt-obj1-reward').value, agent: document.getElementById('rpt-obj1-agent').value },
-            { target: document.getElementById('rpt-obj2-target').value, reward: document.getElementById('rpt-obj2-reward').value, agent: document.getElementById('rpt-obj2-agent').value },
-            { target: document.getElementById('rpt-obj3-target').value, reward: document.getElementById('rpt-obj3-reward').value, agent: document.getElementById('rpt-obj3-agent').value }
-        ].filter(o => o.target)
+        objectives: getObjectivesData()
     };
 
     const btn = document.querySelector('#form-report .btn-send');
