@@ -238,6 +238,95 @@ db.serialize(() => {
         FOREIGN KEY(report_id) REFERENCES mission_reports(id) ON DELETE SET NULL
     )`);
 
+    // 报告特工响应表（跟踪每个特工对初评的响应）
+    db.run(`CREATE TABLE IF NOT EXISTS report_agent_responses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        report_id INTEGER NOT NULL,
+        character_id TEXT NOT NULL,
+        status TEXT DEFAULT 'pending',
+        pending_rewards TEXT,
+        appeal_reason TEXT,
+        responded_at INTEGER,
+        FOREIGN KEY(report_id) REFERENCES mission_reports(id) ON DELETE CASCADE,
+        FOREIGN KEY(character_id) REFERENCES characters(id) ON DELETE CASCADE,
+        UNIQUE(report_id, character_id)
+    )`);
+
+    // 奖惩发放记录表
+    db.run(`CREATE TABLE IF NOT EXISTS reward_records (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        character_id TEXT NOT NULL,
+        reward_type TEXT NOT NULL,
+        amount INTEGER DEFAULT 1,
+        reason TEXT,
+        mission_id TEXT,
+        report_id INTEGER,
+        issued_by INTEGER,
+        issued_at INTEGER,
+        FOREIGN KEY(character_id) REFERENCES characters(id) ON DELETE CASCADE,
+        FOREIGN KEY(mission_id) REFERENCES field_missions(id) ON DELETE SET NULL,
+        FOREIGN KEY(report_id) REFERENCES mission_reports(id) ON DELETE SET NULL,
+        FOREIGN KEY(issued_by) REFERENCES users(id) ON DELETE SET NULL
+    )`);
+
+    // 申领物商店表
+    db.run(`CREATE TABLE IF NOT EXISTS shop_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        description TEXT,
+        created_by INTEGER NOT NULL,
+        is_global INTEGER DEFAULT 0,
+        is_active INTEGER DEFAULT 1,
+        created_at INTEGER,
+        updated_at INTEGER,
+        FOREIGN KEY(created_by) REFERENCES users(id) ON DELETE CASCADE
+    )`);
+
+    // 申领物标价选项表
+    db.run(`CREATE TABLE IF NOT EXISTS shop_item_prices (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        item_id INTEGER NOT NULL,
+        price_name TEXT NOT NULL,
+        price_cost INTEGER NOT NULL,
+        currency_type TEXT DEFAULT 'commendation',
+        usage_type TEXT DEFAULT 'permanent',
+        usage_count INTEGER DEFAULT 0,
+        sort_order INTEGER DEFAULT 0,
+        FOREIGN KEY(item_id) REFERENCES shop_items(id) ON DELETE CASCADE
+    )`);
+
+    // 迁移: 为shop_item_prices添加字段
+    db.all("PRAGMA table_info(shop_item_prices)", [], (err, columns) => {
+        if (err) return;
+        const columnNames = columns.map(c => c.name);
+        if (!columnNames.includes('usage_type')) {
+            db.run("ALTER TABLE shop_item_prices ADD COLUMN usage_type TEXT DEFAULT 'permanent'");
+        }
+        if (!columnNames.includes('usage_count')) {
+            db.run("ALTER TABLE shop_item_prices ADD COLUMN usage_count INTEGER DEFAULT 0");
+        }
+        if (!columnNames.includes('currency_type')) {
+            db.run("ALTER TABLE shop_item_prices ADD COLUMN currency_type TEXT DEFAULT 'commendation'");
+        }
+    });
+
+    // 申领物购买记录表
+    db.run(`CREATE TABLE IF NOT EXISTS shop_purchases (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        item_id INTEGER NOT NULL,
+        price_id INTEGER NOT NULL,
+        character_id TEXT NOT NULL,
+        cost_paid INTEGER NOT NULL,
+        purchased_at INTEGER,
+        approved_by INTEGER,
+        approved_at INTEGER,
+        status TEXT DEFAULT 'pending',
+        FOREIGN KEY(item_id) REFERENCES shop_items(id) ON DELETE CASCADE,
+        FOREIGN KEY(price_id) REFERENCES shop_item_prices(id) ON DELETE CASCADE,
+        FOREIGN KEY(character_id) REFERENCES characters(id) ON DELETE CASCADE,
+        FOREIGN KEY(approved_by) REFERENCES users(id) ON DELETE SET NULL
+    )`);
+
     // 为 field_missions 添加新字段的迁移
     db.all("PRAGMA table_info(field_missions)", [], (err, columns) => {
         if (err) return;
@@ -276,6 +365,65 @@ db.serialize(() => {
         // 新增：收件人名称，用于已发邮件显示
         if (!columnNames.includes('recipient_name')) {
             db.run("ALTER TABLE character_messages ADD COLUMN recipient_name TEXT");
+        }
+        // 新增：关联的报告ID，用于评级通知
+        if (!columnNames.includes('report_id')) {
+            db.run("ALTER TABLE character_messages ADD COLUMN report_id INTEGER");
+        }
+    });
+
+    // 为 characters 添加发信权限字段的迁移
+    db.all("PRAGMA table_info(characters)", [], (err, columns) => {
+        if (err) return;
+        const columnNames = columns.map(c => c.name);
+        if (!columnNames.includes('can_send_messages')) {
+            db.run("ALTER TABLE characters ADD COLUMN can_send_messages INTEGER DEFAULT 1");
+        }
+    });
+
+    // 为 manager_inbox 添加 report_id 和 mission_id 字段的迁移
+    db.all("PRAGMA table_info(manager_inbox)", [], (err, columns) => {
+        if (err) return;
+        const columnNames = columns.map(c => c.name);
+        if (!columnNames.includes('report_id')) {
+            db.run("ALTER TABLE manager_inbox ADD COLUMN report_id INTEGER");
+        }
+        if (!columnNames.includes('mission_id')) {
+            db.run("ALTER TABLE manager_inbox ADD COLUMN mission_id TEXT");
+        }
+    });
+
+    // 为 mission_reports 添加申诉相关字段的迁移
+    db.all("PRAGMA table_info(mission_reports)", [], (err, columns) => {
+        if (err) return;
+        const columnNames = columns.map(c => c.name);
+        // 待结算奖惩（初评时存储）
+        if (!columnNames.includes('pending_rewards')) {
+            db.run("ALTER TABLE mission_reports ADD COLUMN pending_rewards TEXT");
+        }
+        // 申诉理由
+        if (!columnNames.includes('appeal_reason')) {
+            db.run("ALTER TABLE mission_reports ADD COLUMN appeal_reason TEXT");
+        }
+        // 申诉请求更改内容
+        if (!columnNames.includes('appeal_requested_changes')) {
+            db.run("ALTER TABLE mission_reports ADD COLUMN appeal_requested_changes TEXT");
+        }
+        // 申诉时间
+        if (!columnNames.includes('appeal_at')) {
+            db.run("ALTER TABLE mission_reports ADD COLUMN appeal_at INTEGER");
+        }
+        // 申诉回复
+        if (!columnNames.includes('appeal_response')) {
+            db.run("ALTER TABLE mission_reports ADD COLUMN appeal_response TEXT");
+        }
+        // 最终奖惩（结算时存储）
+        if (!columnNames.includes('final_rewards')) {
+            db.run("ALTER TABLE mission_reports ADD COLUMN final_rewards TEXT");
+        }
+        // 提交报告的角色ID
+        if (!columnNames.includes('character_id')) {
+            db.run("ALTER TABLE mission_reports ADD COLUMN character_id TEXT");
         }
     });
 
@@ -779,6 +927,34 @@ app.post('/api/admin/test-smtp', authenticateToken, requireRole(ROLE.SUPER_ADMIN
     }
 });
 
+// 切换全局私信开关
+app.post('/api/admin/toggle-messaging', authenticateToken, requireRole(ROLE.SUPER_ADMIN), async (req, res) => {
+    try {
+        const config = await getAllConfig();
+        const currentState = config.messaging_enabled !== 'false'; // 默认开启
+        const newState = !currentState;
+        await setConfig('messaging_enabled', newState ? 'true' : 'false');
+        res.json({
+            success: true,
+            enabled: newState,
+            message: newState ? '私信功能已开启' : '私信功能已关闭'
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+
+// 获取私信开关状态
+app.get('/api/admin/messaging-status', authenticateToken, requireRole(ROLE.SUPER_ADMIN), async (req, res) => {
+    try {
+        const config = await getAllConfig();
+        const enabled = config.messaging_enabled !== 'false';
+        res.json({ success: true, enabled });
+    } catch (e) {
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+
 // ==========================================
 // 用户管理 API
 // ==========================================
@@ -900,6 +1076,10 @@ app.get('/api/characters', (req, res) => {
 // ==========================================
 app.get('/api/character/:id', optionalAuth, (req, res) => {
     db.get('SELECT * FROM characters WHERE id = ?', [req.params.id], (err, row) => {
+        if (err) {
+            console.error('查询角色失败:', err);
+            return res.status(500).json({ error: '数据库查询失败' });
+        }
         if (!row) return res.status(404).json({});
 
         // 检查访问权限 (这部分逻辑保持不变)
@@ -923,13 +1103,30 @@ app.get('/api/character/:id', optionalAuth, (req, res) => {
                     const data = JSON.parse(row.data);
 
                     // ==================== 核心修正 START ====================
-                    // 无论数据库中存的是什么，总是在返回前重新计算总数，确保数据永远是准确的。
-                    
-                    const totalRewards = (data.rewards || []).reduce((sum, r) => sum + (r.count || 1), 0);
-                    const totalReprimands = (data.reprimands || []).reduce((sum, r) => sum + (r.count || 1), 0);
-                    
-                    data.mvpCount = totalRewards;
-                    data.watchCount = totalReprimands;
+                    // 处理 rewards 和 reprimands 可能是数组或数字的情况
+                    let totalRewards = 0;
+                    let totalReprimands = 0;
+
+                    if (Array.isArray(data.rewards)) {
+                        totalRewards = data.rewards.reduce((sum, r) => sum + (r.count || 1), 0);
+                    } else if (typeof data.rewards === 'number') {
+                        totalRewards = data.rewards;
+                    }
+
+                    if (Array.isArray(data.reprimands)) {
+                        totalReprimands = data.reprimands.reduce((sum, r) => sum + (r.count || 1), 0);
+                    } else if (typeof data.reprimands === 'number') {
+                        totalReprimands = data.reprimands;
+                    }
+
+                    // 累加任务结算的数值
+                    totalRewards += parseInt(data.commendations) || 0;
+                    totalReprimands += parseInt(data.reprimands) || 0;
+
+                    data.mvpCount = data.mvpCount || 0;
+                    data.watchCount = data.probationCount || 0;
+                    data.commendations = totalRewards;
+                    data.reprimandsCount = totalReprimands;
                     // ===================== 核心修正 END ======================
 
                     data._ownerId = row.user_id;
@@ -937,10 +1134,12 @@ app.get('/api/character/:id', optionalAuth, (req, res) => {
                     data.ownerName = owner ? (owner.name || owner.username) : '未知';
                     data.anomSlots = data.anomSlots || 3;
                     data.realSlots = data.realSlots || 3;
-                    
+                    data.canSendMessages = row.can_send_messages !== 0; // 默认允许发信
+
                     res.json(data);
                 } catch (e) {
-                    res.status(500).json({});
+                    console.error('处理角色数据失败:', e);
+                    res.status(500).json({ error: e.message });
                 }
             });
         });
@@ -1097,47 +1296,58 @@ app.post('/api/auth/claim', authenticateToken, requireRole(ROLE.MANAGER), (req, 
 // 经理获取已授权的角色列表
 // MODIFIED: 超级管理员可看到全部角色卡
 app.get('/api/manager/characters', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    // 解析角色数据的辅助函数
+    const parseCharData = (row, authId = null) => {
+        let d = {};
+        try { d = JSON.parse(row.data); } catch(e) {}
+
+        // 计算嘉奖总数（从rewards数组）
+        let totalCommendations = 0;
+        if (Array.isArray(d.rewards)) {
+            totalCommendations = d.rewards.reduce((sum, r) => sum + (r.count || 1), 0);
+        }
+        totalCommendations += parseInt(d.commendations) || 0;
+
+        // 计算申诫总数（从reprimands数组）
+        let totalReprimands = 0;
+        if (Array.isArray(d.reprimands)) {
+            totalReprimands = d.reprimands.reduce((sum, r) => sum + (r.count || 1), 0);
+        }
+
+        return {
+            id: row.id,
+            name: d.pName || "未命名干员",
+            func: d.pFunc || "---",
+            anom: d.pAnom || "---",
+            real: d.pReal || "---",
+            commendations: totalCommendations,
+            reprimands: totalReprimands,
+            mvpCount: parseInt(d.mvpCount) || 0,
+            probationCount: parseInt(d.probationCount) || 0,
+            ownerName: row.owner_name,
+            ownerId: row.user_id,
+            authId: authId,
+            canSendMessages: row.can_send_messages !== 0, // 默认允许发信
+            reprimandShopAccess: d.reprimandShopAccess === true // 申诫商店权限，默认关闭
+        };
+    };
+
     // 超级管理员可看到全部角色卡
     if (req.user.role >= ROLE.SUPER_ADMIN) {
-        db.all(`SELECT c.id, c.data, c.user_id, u.name as owner_name
+        db.all(`SELECT c.id, c.data, c.user_id, c.can_send_messages, u.name as owner_name
                 FROM characters c
                 JOIN users u ON c.user_id = u.id`, [], (err, rows) => {
-            const list = (rows || []).map(row => {
-                let d = {};
-                try { d = JSON.parse(row.data); } catch(e) {}
-                return {
-                    id: row.id,
-                    name: d.pName || "未命名干员",
-                    func: d.pFunc || "---",
-                    anom: d.pAnom || "---",
-                    real: d.pReal || "---",
-                    ownerName: row.owner_name,
-                    ownerId: row.user_id
-                };
-            });
+            const list = (rows || []).map(row => parseCharData(row));
             res.json(list);
         });
     } else {
         // 普通经理只能看到已授权的角色卡
-        db.all(`SELECT c.id, c.data, c.user_id, u.name as owner_name, ca.id as auth_id
+        db.all(`SELECT c.id, c.data, c.user_id, c.can_send_messages, u.name as owner_name, ca.id as auth_id
                 FROM characters c
                 JOIN character_authorizations ca ON c.id = ca.character_id
                 JOIN users u ON c.user_id = u.id
                 WHERE ca.manager_id = ?`, [req.user.userId], (err, rows) => {
-            const list = (rows || []).map(row => {
-                let d = {};
-                try { d = JSON.parse(row.data); } catch(e) {}
-                return {
-                    id: row.id,
-                    name: d.pName || "未命名干员",
-                    func: d.pFunc || "---",
-                    anom: d.pAnom || "---",
-                    real: d.pReal || "---",
-                    ownerName: row.owner_name,
-                    ownerId: row.user_id,
-                    authId: row.auth_id
-                };
-            });
+            const list = (rows || []).map(row => parseCharData(row, row.auth_id));
             res.json(list);
         });
     }
@@ -2144,6 +2354,7 @@ app.get('/api/character/:id/messages', authenticateToken, (req, res) => {
                     content: r.content,
                     messageType: r.message_type,
                     hwFilename: r.hw_filename,
+                    reportId: r.report_id,
                     read: r.read,
                     createdAt: r.created_at
                 }));
@@ -2234,6 +2445,215 @@ app.put('/api/character/:charId/message/:msgId/read', authenticateToken, (req, r
                 res.json({ success: true });
             });
     });
+});
+
+// 经理切换角色发信权限
+app.put('/api/manager/character/:charId/message-permission', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    try {
+        const managerId = req.user.userId;
+        const charId = req.params.charId;
+        const { canSendMessages } = req.body;
+
+        // 检查经理是否有该角色卡的授权
+        const isAuthorized = await checkManagerCharacterAuth(managerId, charId);
+        if (!isAuthorized && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权操作该角色卡' });
+        }
+
+        const value = canSendMessages ? 1 : 0;
+        db.run('UPDATE characters SET can_send_messages = ? WHERE id = ?', [value, charId], function(err) {
+            if (err) return res.status(500).json({ success: false, message: err.message });
+            res.json({ success: true, canSendMessages: !!value });
+        });
+    } catch (e) {
+        console.error('切换发信权限失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// 经理切换角色申诫商店权限
+app.put('/api/manager/character/:charId/reprimand-shop-access', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    try {
+        const managerId = req.user.userId;
+        const charId = req.params.charId;
+        const { reprimandShopAccess } = req.body;
+
+        // 检查经理是否有该角色卡的授权
+        const isAuthorized = await checkManagerCharacterAuth(managerId, charId);
+        if (!isAuthorized && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权操作该角色卡' });
+        }
+
+        // 获取角色当前数据
+        const char = await new Promise((resolve, reject) => {
+            db.get('SELECT data FROM characters WHERE id = ?', [charId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!char) {
+            return res.status(404).json({ success: false, message: '角色不存在' });
+        }
+
+        // 更新charData中的reprimandShopAccess字段
+        let charData = {};
+        try { charData = JSON.parse(char.data); } catch(e) {}
+        charData.reprimandShopAccess = !!reprimandShopAccess;
+
+        db.run('UPDATE characters SET data = ? WHERE id = ?', [JSON.stringify(charData), charId], function(err) {
+            if (err) return res.status(500).json({ success: false, message: err.message });
+            res.json({ success: true, reprimandShopAccess: charData.reprimandShopAccess });
+        });
+    } catch (e) {
+        console.error('切换申诫商店权限失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// 经理直接发放奖惩
+app.post('/api/manager/character/:charId/reward', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    try {
+        const managerId = req.user.userId;
+        const charId = req.params.charId;
+        const { rewardType, amount, reason } = req.body;
+
+        // 验证奖惩类型
+        const validTypes = ['commend', 'reprimand', 'mvp', 'probation'];
+        if (!validTypes.includes(rewardType)) {
+            return res.status(400).json({ success: false, message: '无效的奖惩类型' });
+        }
+
+        // 检查经理是否有该角色卡的授权
+        const isAuthorized = await checkManagerCharacterAuth(managerId, charId);
+        if (!isAuthorized && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权操作该角色卡' });
+        }
+
+        // 获取角色当前数据
+        const char = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM characters WHERE id = ?', [charId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!char) {
+            return res.status(404).json({ success: false, message: '角色不存在' });
+        }
+
+        let charData = {};
+        try { charData = JSON.parse(char.data || '{}'); } catch(e) {}
+
+        const now = Date.now();
+        const rewardAmount = parseInt(amount) || 1;
+
+        // 应用奖惩
+        switch (rewardType) {
+            case 'commend':
+                charData.commendations = (parseInt(charData.commendations) || 0) + rewardAmount;
+                break;
+            case 'reprimand':
+                charData.reprimands = (parseInt(charData.reprimands) || 0) + rewardAmount;
+                break;
+            case 'mvp':
+                charData.mvpCount = (parseInt(charData.mvpCount) || 0) + 1;
+                break;
+            case 'probation':
+                charData.probationCount = (parseInt(charData.probationCount) || 0) + 1;
+                break;
+        }
+
+        // 更新角色数据
+        await new Promise((resolve, reject) => {
+            db.run('UPDATE characters SET data = ? WHERE id = ?',
+                [JSON.stringify(charData), charId], (err) => {
+                    if (err) reject(err);
+                    else resolve();
+                });
+        });
+
+        // 记录到奖惩记录表
+        await new Promise((resolve, reject) => {
+            db.run(`INSERT INTO reward_records (character_id, reward_type, amount, reason, issued_by, issued_at)
+                VALUES (?, ?, ?, ?, ?, ?)`,
+                [charId, rewardType, rewardAmount, reason || null, managerId, now], (err) => {
+                    if (err) reject(err);
+                    else resolve();
+                });
+        });
+
+        // 获取经理名称
+        const manager = await new Promise((resolve) => {
+            db.get('SELECT name, username FROM users WHERE id = ?', [managerId], (err, row) => {
+                resolve(row ? (row.name || row.username) : '经理');
+            });
+        });
+
+        // 发送通知给角色
+        const typeNames = { commend: '嘉奖', reprimand: '申诫', mvp: 'MVP', probation: '观察期' };
+        const typeName = typeNames[rewardType];
+        const subject = `[奖惩通知] 您收到了${typeName}`;
+        let content = `${manager} 向您发放了 ${typeName}`;
+        if (rewardType === 'commend' || rewardType === 'reprimand') {
+            content += ` x${rewardAmount}`;
+        }
+        if (reason) {
+            content += `\n\n原因: ${reason}`;
+        }
+
+        db.run('INSERT INTO character_messages (character_id, sender_id, sender_name, subject, content, message_type, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [charId, managerId, manager, subject, content, 'reward', now]);
+
+        res.json({ success: true, message: `${typeName}已发放` });
+    } catch (e) {
+        console.error('发放奖惩失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// 获取角色的奖惩记录
+app.get('/api/manager/character/:charId/rewards', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    try {
+        const managerId = req.user.userId;
+        const charId = req.params.charId;
+
+        // 检查经理是否有该角色卡的授权
+        const isAuthorized = await checkManagerCharacterAuth(managerId, charId);
+        if (!isAuthorized && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权查看该角色卡' });
+        }
+
+        const records = await new Promise((resolve, reject) => {
+            db.all(`SELECT rr.*, u.name as issuer_name, u.username as issuer_username,
+                    fm.name as mission_name
+                FROM reward_records rr
+                LEFT JOIN users u ON rr.issued_by = u.id
+                LEFT JOIN field_missions fm ON rr.mission_id = fm.id
+                WHERE rr.character_id = ?
+                ORDER BY rr.issued_at DESC
+                LIMIT 50`, [charId], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
+            });
+        });
+
+        res.json({
+            success: true,
+            records: records.map(r => ({
+                id: r.id,
+                reward_type: r.reward_type,
+                amount: r.amount,
+                reason: r.reason,
+                mission_name: r.mission_name,
+                issuer: r.issuer_name || r.issuer_username || '系统',
+                issued_at: r.issued_at
+            }))
+        });
+    } catch (e) {
+        console.error('获取奖惩记录失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
 });
 
 // ==========================================
@@ -2331,26 +2751,76 @@ app.get('/api/manager/missions', authenticateToken, requireRole(ROLE.MANAGER), (
                 const memberList = (members || []).map(m => {
                     let d = {};
                     try { d = JSON.parse(m.data); } catch(e) {}
+
+                    // 计算嘉奖/申诫总数
+                    let commendations = 0;
+                    if (Array.isArray(d.rewards)) {
+                        commendations = d.rewards.reduce((sum, r) => sum + (r.count || 1), 0);
+                    }
+                    commendations += parseInt(d.commendations) || 0;
+
+                    let reprimands = 0;
+                    if (Array.isArray(d.reprimands)) {
+                        reprimands = d.reprimands.reduce((sum, r) => sum + (r.count || 1), 0);
+                    }
+
                     return {
                         character_id: m.character_id,
                         name: d.pName || '未命名',
                         member_status: m.member_status,
-                        joined_at: m.joined_at
+                        joined_at: m.joined_at,
+                        commendations: commendations,
+                        reprimands: reprimands,
+                        mvpCount: parseInt(d.mvpCount) || 0,
+                        probationCount: parseInt(d.probationCount) || 0
                     };
                 });
-                
-                const missionData = {
-                    ...mission,
-                    members: memberList,
-                    mission_type: mission.mission_type || 'containment'
-                };
 
-                result.push(missionData);
-                completed++;
-                if (completed === missions.length) {
-                    result.sort((a, b) => b.created_at - a.created_at);
-                    res.json(result);
-                }
+                // 获取任务的已完成报告（用于归档任务展示）
+                db.get(`SELECT id, rating, scatter_value, final_rewards, status, sent_at
+                        FROM mission_reports
+                        WHERE mission_id = ? AND status IN ('sent', 'finalized')
+                        ORDER BY sent_at DESC LIMIT 1`, [mission.id], (err, report) => {
+
+                    let reportInfo = null;
+                    if (report) {
+                        let rewards = {};
+                        try { rewards = JSON.parse(report.final_rewards || '{}'); } catch(e) {}
+
+                        // 统计奖惩
+                        let totalCommend = 0, totalReprimand = 0, mvpCount = 0, probationCount = 0;
+                        for (const [charId, r] of Object.entries(rewards)) {
+                            totalCommend += r.commend || 0;
+                            totalReprimand += r.reprimand || 0;
+                            if (r.mvp) mvpCount++;
+                            if (r.probation) probationCount++;
+                        }
+
+                        reportInfo = {
+                            rating: report.rating,
+                            scatterValue: report.scatter_value,
+                            totalCommend,
+                            totalReprimand,
+                            mvpCount,
+                            probationCount,
+                            sentAt: report.sent_at
+                        };
+                    }
+
+                    const missionData = {
+                        ...mission,
+                        members: memberList,
+                        mission_type: mission.mission_type || 'containment',
+                        reportInfo
+                    };
+
+                    result.push(missionData);
+                    completed++;
+                    if (completed === missions.length) {
+                        result.sort((a, b) => b.created_at - a.created_at);
+                        res.json(result);
+                    }
+                });
             });
         });
     });
@@ -2546,44 +3016,42 @@ app.get('/api/manager/mission/:id/agent/:charId', authenticateToken, requireRole
             let charData = {};
             try { charData = JSON.parse(char.data); } catch(e) {}
 
-            // 获取嘉奖记录
-            db.all('SELECT * FROM character_rewards WHERE character_id = ? ORDER BY created_at DESC', [charId], (err, rewards) => {
-                // 获取申诫记录
-                db.all('SELECT * FROM character_reprimands WHERE character_id = ? ORDER BY created_at DESC', [charId], (err, reprimands) => {
-                    res.json({
-                        success: true,
-                        agent: {
-                            id: char.id,
-                            name: charData.pName || '未命名',
-                            // 基础属性
-                            physical: charData.physical || 3,
-                            mental: charData.mental || 3,
-                            social: charData.social || 3,
-                            luck: charData.luck || 3,
-                            hp: charData.hp || 10,
-                            mp: charData.mp || 10,
-                            san: charData.san || 50,
-                            // 次级属性
-                            str: charData.str || 0,
-                            dex: charData.dex || 0,
-                            con: charData.con || 0,
-                            int: charData.intVal || 0,
-                            wis: charData.wis || 0,
-                            cha: charData.cha || 0,
-                            // 异常能力
-                            abilities: charData.anomAbilities || [],
-                            abilitySlots: charData.anomSlots || 3,
-                            // 关系网络
-                            relations: charData.relations || [],
-                            relationSlots: charData.realSlots || 3,
-                            // GM备注
-                            gmNotes: charData.gmNotes || '',
-                            // 嘉奖和申诫
-                            rewards: rewards || [],
-                            reprimands: reprimands || []
-                        }
-                    });
-                });
+            // 嘉奖和申诫数据从charData中获取（存储在JSON中）
+            const rewards = charData.rewards || [];
+            const reprimands = charData.reprimands || [];
+
+            res.json({
+                success: true,
+                agent: {
+                    id: char.id,
+                    name: charData.pName || '未命名',
+                    // 基础属性
+                    physical: charData.physical || 3,
+                    mental: charData.mental || 3,
+                    social: charData.social || 3,
+                    luck: charData.luck || 3,
+                    hp: charData.hp || 10,
+                    mp: charData.mp || 10,
+                    san: charData.san || 50,
+                    // 次级属性
+                    str: charData.str || 0,
+                    dex: charData.dex || 0,
+                    con: charData.con || 0,
+                    int: charData.intVal || 0,
+                    wis: charData.wis || 0,
+                    cha: charData.cha || 0,
+                    // 异常能力
+                    abilities: charData.anomAbilities || [],
+                    abilitySlots: charData.anomSlots || 3,
+                    // 关系网络
+                    relations: charData.relations || [],
+                    relationSlots: charData.realSlots || 3,
+                    // GM备注
+                    gmNotes: charData.gmNotes || '',
+                    // 嘉奖和申诫（从charData中读取）
+                    rewards: rewards,
+                    reprimands: reprimands
+                }
             });
         });
     });
@@ -2712,7 +3180,14 @@ app.get('/api/manager/mission/:id/reports', authenticateToken, requireRole(ROLE.
                     status: r.status,
                     submittedAt: r.submitted_at,
                     reviewedAt: r.reviewed_at,
-                    sentAt: r.sent_at
+                    sentAt: r.sent_at,
+                    // 申诉相关字段
+                    pending_rewards: r.pending_rewards ? JSON.parse(r.pending_rewards) : null,
+                    appeal_reason: r.appeal_reason,
+                    appeal_requested_changes: r.appeal_requested_changes,
+                    appeal_at: r.appeal_at,
+                    appeal_response: r.appeal_response,
+                    final_rewards: r.final_rewards ? JSON.parse(r.final_rewards) : null
                 };
             });
 
@@ -2808,6 +3283,647 @@ app.post('/api/manager/mission/:id/report/:reportId/send', authenticateToken, re
     });
 });
 
+// 发送初评（所有参与特工都收到通知，各自决定接受或申诉）
+app.post('/api/manager/mission/:id/report/:reportId/send-with-rewards', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    const missionId = req.params.id;
+    const reportId = req.params.reportId;
+    const { rating, agentRewards } = req.body;
+
+    try {
+        // 验证任务存在性和权限
+        const mission = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM field_missions WHERE id = ?', [missionId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!mission) return res.status(404).json({ success: false, message: '任务不存在' });
+        if (mission.created_by !== req.user.userId && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权操作' });
+        }
+
+        // 获取报告信息
+        const report = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM mission_reports WHERE id = ? AND mission_id = ?', [reportId, missionId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!report) return res.status(404).json({ success: false, message: '报告不存在' });
+        if (report.status === 'sent' || report.status === 'finalized') {
+            return res.status(400).json({ success: false, message: '报告已完成结算，无法重复操作' });
+        }
+
+        // 检查是否已有其他报告在初审或最终确认状态（一个任务只能有一个正式报告）
+        const existingProcessedReport = await new Promise((resolve, reject) => {
+            db.get(`SELECT id, status FROM mission_reports
+                    WHERE mission_id = ? AND id != ? AND status IN ('initial', 'appealing', 'finalized')`,
+                [missionId, reportId], (err, row) => {
+                    if (err) reject(err);
+                    else resolve(row);
+                });
+        });
+
+        if (existingProcessedReport) {
+            const statusText = existingProcessedReport.status === 'finalized' ? '已有最终确认的报告' :
+                existingProcessedReport.status === 'initial' ? '已有正在初审的报告' : '已有正在处理申诉的报告';
+            return res.status(400).json({ success: false, message: `该任务${statusText}，无法对其他报告进行初审` });
+        }
+
+        // 获取所有任务成员
+        const members = await new Promise((resolve, reject) => {
+            db.all(`SELECT fmm.character_id, c.data as char_data
+                    FROM field_mission_members fmm
+                    JOIN characters c ON fmm.character_id = c.id
+                    WHERE fmm.mission_id = ?`, [missionId], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
+            });
+        });
+
+        if (members.length === 0) {
+            return res.status(400).json({ success: false, message: '任务没有成员' });
+        }
+
+        const now = Date.now();
+
+        // 存储待结算奖惩
+        const pendingRewards = JSON.stringify(agentRewards || {});
+
+        // 更新报告状态为"初评"
+        await new Promise((resolve, reject) => {
+            db.run(`UPDATE mission_reports SET
+                status = 'initial',
+                rating = ?,
+                pending_rewards = ?,
+                reviewed_at = ?
+                WHERE id = ?`,
+                [rating, pendingRewards, now, reportId], (err) => {
+                    if (err) reject(err);
+                    else resolve();
+                });
+        });
+
+        // 解析报告详细数据
+        let reportData = {};
+        try { reportData = JSON.parse(report.original_data || '{}'); } catch(e) {}
+
+        // 构建详细报告内容
+        const buildDetailedReport = () => {
+            const lines = [];
+            lines.push(`【任务报告详情】\n`);
+            if (reportData.summary) lines.push(`📋 任务概要: ${reportData.summary}`);
+            if (reportData.chaos !== undefined) lines.push(`🌀 混沌池: ${reportData.chaos}`);
+            if (reportData.scatter !== undefined) lines.push(`💫 逸散端: ${reportData.scatter}`);
+            if (reportData.notes) lines.push(`📝 备注: ${reportData.notes}`);
+            if (reportData.containmentReports && reportData.containmentReports.length > 0) {
+                lines.push(`\n【收容报告】`);
+                reportData.containmentReports.forEach((cr, i) => {
+                    lines.push(`  ${i+1}. ${cr.targetName || '未知目标'}: ${cr.result || '无描述'}`);
+                });
+            }
+            return lines.join('\n');
+        };
+
+        const detailedReport = buildDetailedReport();
+
+        // 为每个成员创建响应记录并发送通知
+        for (const member of members) {
+            const charId = member.character_id;
+            const rewards = agentRewards?.[charId] || { commend: 0, reprimand: 0, mvp: false, probation: false };
+
+            // 创建响应记录
+            await new Promise((resolve, reject) => {
+                db.run(`INSERT OR REPLACE INTO report_agent_responses (report_id, character_id, status, pending_rewards)
+                        VALUES (?, ?, 'pending', ?)`,
+                    [reportId, charId, JSON.stringify(rewards)], (err) => {
+                        if (err) reject(err);
+                        else resolve();
+                    });
+            });
+
+            // 构建个人奖惩预览
+            let personalRewards = [];
+            if (rewards.commend > 0) personalRewards.push(`嘉奖 +${rewards.commend}`);
+            if (rewards.reprimand > 0) personalRewards.push(`申诫 +${rewards.reprimand}`);
+            if (rewards.mvp) personalRewards.push(`获得 MVP`);
+            if (rewards.probation) personalRewards.push(`进入查看期`);
+
+            let charData = {};
+            try { charData = JSON.parse(member.char_data || '{}'); } catch(e) {}
+            const charName = charData.pName || '特工';
+
+            const subject = '[任务初评] 请确认或申诉';
+            const content = `${charName}，您参与的任务已完成初评。\n\n【任务评级】${rating}\n\n【您的预计奖惩】\n${personalRewards.join('\n') || '无'}\n\n${detailedReport}\n\n请选择「接受」确认评级，或「申诉」提出异议。所有特工确认后将自动完成结算。`;
+
+            // 发送通知消息
+            db.run('INSERT INTO character_messages (character_id, sender_id, sender_name, subject, content, message_type, report_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                [charId, req.user.userId, '任务系统', subject, content, 'rating_notice', reportId, now]);
+        }
+
+        // 更新任务状态
+        db.run('UPDATE field_missions SET report_status = ?, updated_at = ? WHERE id = ?', ['initial', now, missionId]);
+
+        res.json({ success: true, message: `初评已发送给 ${members.length} 位特工，等待确认` });
+    } catch (e) {
+        console.error('发送初评失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// 玩家提交申诉
+app.post('/api/character/:charId/appeal-rating/:reportId', authenticateToken, async (req, res) => {
+    const { charId, reportId } = req.params;
+    const { reason } = req.body;
+
+    try {
+        // 验证角色所有权
+        const char = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM characters WHERE id = ? AND user_id = ?', [charId, req.user.userId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!char) return res.status(403).json({ success: false, message: '无权操作此角色' });
+
+        // 获取报告
+        const report = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM mission_reports WHERE id = ?', [reportId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!report) return res.status(404).json({ success: false, message: '报告不存在' });
+        if (report.status !== 'initial' && report.status !== 'appealing') {
+            return res.status(400).json({ success: false, message: '当前状态无法申诉' });
+        }
+
+        // 检查该特工是否有响应记录
+        const response = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM report_agent_responses WHERE report_id = ? AND character_id = ?', [reportId, charId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!response) return res.status(404).json({ success: false, message: '您不是此任务的参与者' });
+        if (response.status !== 'pending') {
+            return res.status(400).json({ success: false, message: '您已经提交过响应' });
+        }
+
+        const now = Date.now();
+
+        // 更新该特工的响应状态为申诉
+        await new Promise((resolve, reject) => {
+            db.run(`UPDATE report_agent_responses SET status = 'appealing', appeal_reason = ?, responded_at = ? WHERE report_id = ? AND character_id = ?`,
+                [reason, now, reportId, charId], (err) => {
+                    if (err) reject(err);
+                    else resolve();
+                });
+        });
+
+        // 更新报告状态为申诉中
+        await new Promise((resolve, reject) => {
+            db.run(`UPDATE mission_reports SET status = 'appealing' WHERE id = ?`, [reportId], (err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
+
+        // 获取任务信息
+        const mission = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM field_missions WHERE id = ?', [report.mission_id], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        let charData = {};
+        try { charData = JSON.parse(char.data || '{}'); } catch(e) {}
+        const charName = charData.pName || '特工';
+
+        // 通知经理有新申诉
+        if (mission) {
+            db.run('UPDATE field_missions SET report_status = ?, updated_at = ? WHERE id = ?', ['appealing', now, report.mission_id]);
+
+            // 获取该特工的待结算奖惩
+            const pendingRewards = JSON.parse(response.pending_rewards || '{}');
+            let rewardPreview = [];
+            if (pendingRewards.commend > 0) rewardPreview.push(`嘉奖 +${pendingRewards.commend}`);
+            if (pendingRewards.reprimand > 0) rewardPreview.push(`申诫 +${pendingRewards.reprimand}`);
+            if (pendingRewards.mvp) rewardPreview.push(`获得 MVP`);
+            if (pendingRewards.probation) rewardPreview.push(`进入查看期`);
+
+            // 发送消息给经理的收件箱
+            db.run(`INSERT INTO manager_inbox (manager_id, sender_character_id, sender_name, subject, content, message_type, report_id, mission_id, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [mission.created_by, charId, charName, '[申诉] 评级申诉请求',
+                    `特工 ${charName} 对初评提出申诉。\n\n当前待结算奖惩:\n${rewardPreview.join('\n') || '无'}\n\n申诉理由:\n${reason}`,
+                    'appeal', reportId, report.mission_id, now]);
+        }
+
+        res.json({ success: true, message: '申诉已提交，请等待经理处理' });
+    } catch (e) {
+        console.error('提交申诉失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// 玩家接受初评（记录接受状态，检查是否所有人都接受了）
+app.post('/api/character/:charId/accept-rating/:reportId', authenticateToken, async (req, res) => {
+    const { charId, reportId } = req.params;
+
+    try {
+        // 验证角色所有权
+        const char = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM characters WHERE id = ? AND user_id = ?', [charId, req.user.userId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!char) return res.status(403).json({ success: false, message: '无权操作此角色' });
+
+        // 获取报告
+        const report = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM mission_reports WHERE id = ?', [reportId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!report) return res.status(404).json({ success: false, message: '报告不存在' });
+        if (report.status !== 'initial' && report.status !== 'appealing') {
+            return res.status(400).json({ success: false, message: '当前状态无法接受评级' });
+        }
+
+        // 检查该特工是否有响应记录
+        const response = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM report_agent_responses WHERE report_id = ? AND character_id = ?', [reportId, charId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!response) return res.status(404).json({ success: false, message: '您不是此任务的参与者' });
+        if (response.status !== 'pending') {
+            return res.status(400).json({ success: false, message: '您已经提交过响应' });
+        }
+
+        const now = Date.now();
+
+        // 更新该特工的响应状态为接受
+        await new Promise((resolve, reject) => {
+            db.run(`UPDATE report_agent_responses SET status = 'accepted', responded_at = ? WHERE report_id = ? AND character_id = ?`,
+                [now, reportId, charId], (err) => {
+                    if (err) reject(err);
+                    else resolve();
+                });
+        });
+
+        // 检查是否所有特工都已响应
+        const allResponses = await new Promise((resolve, reject) => {
+            db.all('SELECT * FROM report_agent_responses WHERE report_id = ?', [reportId], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
+            });
+        });
+
+        const pendingCount = allResponses.filter(r => r.status === 'pending').length;
+        const appealingCount = allResponses.filter(r => r.status === 'appealing').length;
+        const allAccepted = pendingCount === 0 && appealingCount === 0;
+
+        // 获取任务信息
+        const mission = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM field_missions WHERE id = ?', [report.mission_id], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        let charData = {};
+        try { charData = JSON.parse(char.data || '{}'); } catch(e) {}
+        const charName = charData.pName || '特工';
+
+        if (allAccepted) {
+            // 所有人都接受了，自动进行最终结算
+            const pendingRewards = JSON.parse(report.pending_rewards || '{}');
+
+            // 应用奖惩到每个角色
+            for (const [rewardCharId, rewards] of Object.entries(pendingRewards)) {
+                const targetChar = await new Promise((resolve, reject) => {
+                    db.get('SELECT data FROM characters WHERE id = ?', [rewardCharId], (err, row) => {
+                        if (err) reject(err);
+                        else resolve(row);
+                    });
+                });
+
+                if (targetChar) {
+                    let targetCharData = {};
+                    try { targetCharData = JSON.parse(targetChar.data || '{}'); } catch(e) {}
+
+                    // 使用正确的字段名（与前端对应）
+                    // mvpCount = 嘉奖数量, watchCount = 申诫数量, pComm = MVP, pRep = 查看期
+                    const missionName = mission?.name || '任务';
+
+                    // 更新数字统计
+                    targetCharData.mvpCount = (parseInt(targetCharData.mvpCount) || 0) + (rewards.commend || 0);
+                    targetCharData.watchCount = (parseInt(targetCharData.watchCount) || 0) + (rewards.reprimand || 0);
+                    if (rewards.probation) {
+                        targetCharData.pRep = (parseInt(targetCharData.pRep) || 0) + 1;
+                    }
+                    if (rewards.mvp) {
+                        targetCharData.pComm = (parseInt(targetCharData.pComm) || 0) + 1;
+                    }
+
+                    // 同时添加记录到数组（用于查看历史）
+                    if (!Array.isArray(targetCharData.rewards)) targetCharData.rewards = [];
+                    if (!Array.isArray(targetCharData.reprimands)) targetCharData.reprimands = [];
+
+                    if (rewards.commend > 0) {
+                        targetCharData.rewards.push({
+                            reason: `来自「${missionName}」任务结算`,
+                            count: rewards.commend,
+                            date: now,
+                            addedByName: '任务系统'
+                        });
+                    }
+                    if (rewards.reprimand > 0) {
+                        targetCharData.reprimands.push({
+                            reason: `来自「${missionName}」任务结算`,
+                            count: rewards.reprimand,
+                            date: now,
+                            addedByName: '任务系统'
+                        });
+                    }
+
+                    await new Promise((resolve, reject) => {
+                        db.run('UPDATE characters SET data = ? WHERE id = ?',
+                            [JSON.stringify(targetCharData), rewardCharId], (err) => {
+                                if (err) reject(err);
+                                else resolve();
+                            });
+                    });
+
+                    // 发送最终结算通知
+                    let rewardMsg = [];
+                    if (rewards.commend > 0) rewardMsg.push(`嘉奖 +${rewards.commend}`);
+                    if (rewards.reprimand > 0) rewardMsg.push(`申诫 +${rewards.reprimand}`);
+                    if (rewards.mvp) rewardMsg.push(`获得MVP`);
+                    if (rewards.probation) rewardMsg.push(`进入查看期`);
+
+                    const subject = '[任务结算] 评级已确认';
+                    const content = `所有特工已确认初评，任务报告已完成结算。\n\n最终评级: ${report.rating}\n\n您的奖惩结算:\n${rewardMsg.join('\n') || '无'}`;
+                    db.run('INSERT INTO character_messages (character_id, sender_id, sender_name, subject, content, message_type, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                        [rewardCharId, req.user.userId, '任务系统', subject, content, 'system', now]);
+                }
+            }
+
+            // 更新报告状态为已结算
+            await new Promise((resolve, reject) => {
+                db.run(`UPDATE mission_reports SET
+                    status = 'finalized',
+                    final_rewards = pending_rewards,
+                    sent_at = ?
+                    WHERE id = ?`,
+                    [now, reportId], (err) => {
+                        if (err) reject(err);
+                        else resolve();
+                    });
+            });
+
+            // 更新任务状态
+            db.run('UPDATE field_missions SET report_status = ?, updated_at = ? WHERE id = ?', ['sent', now, report.mission_id]);
+
+            // 通知经理
+            if (mission) {
+                db.run(`INSERT INTO manager_inbox (manager_id, sender_character_id, sender_name, subject, content, message_type, report_id, mission_id, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [mission.created_by, null, '任务系统', '[任务结算] 所有特工已确认',
+                        `所有参与特工都已接受初评，任务报告已自动完成结算。`,
+                        'rating_finalized', reportId, report.mission_id, now]);
+            }
+
+            res.json({ success: true, message: '已接受评级，所有特工已确认，奖惩已自动结算', autoFinalized: true });
+        } else {
+            // 还有人未响应，只记录当前特工的接受状态
+            // 通知经理有人接受了
+            if (mission) {
+                const acceptedCount = allResponses.filter(r => r.status === 'accepted').length + 1; // +1 因为当前用户刚接受
+                const totalCount = allResponses.length;
+                db.run(`INSERT INTO manager_inbox (manager_id, sender_character_id, sender_name, subject, content, message_type, report_id, mission_id, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [mission.created_by, charId, charName, '[评级确认] 特工已接受初评',
+                        `${charName} 已接受初评评级。\n\n当前进度: ${acceptedCount}/${totalCount} 特工已响应\n${appealingCount > 0 ? `申诉中: ${appealingCount} 人` : ''}`,
+                        'rating_accepted', reportId, report.mission_id, now]);
+            }
+
+            res.json({ success: true, message: '已接受评级，等待其他特工响应', autoFinalized: false });
+        }
+    } catch (e) {
+        console.error('接受评级失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// 经理最终结算（只能在有申诉时使用，处理申诉后进行结算）
+app.post('/api/manager/mission/:id/report/:reportId/finalize', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    const missionId = req.params.id;
+    const reportId = req.params.reportId;
+    const { rating, agentRewards, appealResponse } = req.body;
+
+    try {
+        // 验证任务存在性和权限
+        const mission = await new Promise((resolve, reject) => {
+            db.get('SELECT created_by, name FROM field_missions WHERE id = ?', [missionId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!mission) return res.status(404).json({ success: false, message: '任务不存在' });
+        if (mission.created_by !== req.user.userId && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权操作' });
+        }
+
+        // 获取报告信息
+        const report = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM mission_reports WHERE id = ? AND mission_id = ?', [reportId, missionId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!report) return res.status(404).json({ success: false, message: '报告不存在' });
+        if (report.status === 'finalized') {
+            return res.status(400).json({ success: false, message: '报告已完成最终结算' });
+        }
+        // 只允许在有申诉时进行最终结算
+        if (report.status !== 'appealing') {
+            return res.status(400).json({ success: false, message: '只能在有申诉时进行最终结算。请等待所有特工响应，如果全部接受将自动结算。' });
+        }
+
+        const now = Date.now();
+        const finalRewards = agentRewards || JSON.parse(report.pending_rewards || '{}');
+        const finalRating = rating || report.rating;
+
+        // 应用奖惩
+        if (finalRewards && typeof finalRewards === 'object') {
+            for (const [charId, rewards] of Object.entries(finalRewards)) {
+                const char = await new Promise((resolve, reject) => {
+                    db.get('SELECT data FROM characters WHERE id = ?', [charId], (err, row) => {
+                        if (err) reject(err);
+                        else resolve(row);
+                    });
+                });
+
+                if (char) {
+                    let charData = {};
+                    try { charData = JSON.parse(char.data || '{}'); } catch(e) {}
+
+                    // 使用正确的字段名（与前端对应）
+                    // mvpCount = 嘉奖数量, watchCount = 申诫数量, pComm = MVP, pRep = 查看期
+                    const missionName = mission?.name || '任务';
+
+                    // 更新数字统计
+                    charData.mvpCount = (parseInt(charData.mvpCount) || 0) + (rewards.commend || 0);
+                    charData.watchCount = (parseInt(charData.watchCount) || 0) + (rewards.reprimand || 0);
+                    if (rewards.probation) {
+                        charData.pRep = (parseInt(charData.pRep) || 0) + 1;
+                    }
+                    if (rewards.mvp) {
+                        charData.pComm = (parseInt(charData.pComm) || 0) + 1;
+                    }
+
+                    // 同时添加记录到数组（用于查看历史）
+                    if (!Array.isArray(charData.rewards)) charData.rewards = [];
+                    if (!Array.isArray(charData.reprimands)) charData.reprimands = [];
+
+                    if (rewards.commend > 0) {
+                        charData.rewards.push({
+                            reason: `来自「${missionName}」任务结算`,
+                            count: rewards.commend,
+                            date: now,
+                            addedByName: '任务系统'
+                        });
+                    }
+                    if (rewards.reprimand > 0) {
+                        charData.reprimands.push({
+                            reason: `来自「${missionName}」任务结算`,
+                            count: rewards.reprimand,
+                            date: now,
+                            addedByName: '任务系统'
+                        });
+                    }
+
+                    // 保存更新后的角色数据
+                    await new Promise((resolve, reject) => {
+                        db.run('UPDATE characters SET data = ? WHERE id = ?',
+                            [JSON.stringify(charData), charId], (err) => {
+                                if (err) reject(err);
+                                else resolve();
+                            });
+                    });
+
+                    // 发送最终结算通知
+                    let rewardMsg = [];
+                    if (rewards.commend > 0) rewardMsg.push(`嘉奖 +${rewards.commend}`);
+                    if (rewards.reprimand > 0) rewardMsg.push(`申诫 +${rewards.reprimand}`);
+                    if (rewards.mvp) rewardMsg.push(`获得MVP`);
+                    if (rewards.probation) rewardMsg.push(`进入查看期`);
+
+                    const subject = '[任务结算] 最终评级通知';
+                    let content = `最终评级: ${finalRating}\n\n奖惩结算:\n${rewardMsg.join('\n') || '无'}`;
+                    if (appealResponse) {
+                        content += `\n\n申诉回复:\n${appealResponse}`;
+                    }
+                    db.run('INSERT INTO character_messages (character_id, sender_id, sender_name, subject, content, message_type, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                        [charId, req.user.userId, '任务系统', subject, content, 'system', now]);
+                }
+            }
+        }
+
+        // 更新报告状态
+        await new Promise((resolve, reject) => {
+            db.run(`UPDATE mission_reports SET
+                status = 'finalized',
+                rating = ?,
+                final_rewards = ?,
+                appeal_response = ?,
+                sent_at = ?
+                WHERE id = ?`,
+                [finalRating, JSON.stringify(finalRewards), appealResponse || null, now, reportId], (err) => {
+                    if (err) reject(err);
+                    else resolve();
+                });
+        });
+
+        // 更新任务状态
+        db.run('UPDATE field_missions SET report_status = ?, updated_at = ? WHERE id = ?', ['sent', now, missionId]);
+
+        res.json({ success: true, message: '已完成最终结算' });
+    } catch (e) {
+        console.error('最终结算失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// 获取报告的特工响应状态
+app.get('/api/manager/mission/:id/report/:reportId/agent-responses', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    const missionId = req.params.id;
+    const reportId = req.params.reportId;
+
+    try {
+        // 获取所有响应记录，包括角色信息
+        const responses = await new Promise((resolve, reject) => {
+            db.all(`SELECT
+                    rar.*,
+                    c.data as char_data
+                FROM report_agent_responses rar
+                JOIN characters c ON rar.character_id = c.id
+                WHERE rar.report_id = ?`, [reportId], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
+            });
+        });
+
+        // 格式化返回数据
+        const formattedResponses = responses.map(r => {
+            let charData = {};
+            try { charData = JSON.parse(r.char_data || '{}'); } catch(e) {}
+            let pendingRewards = {};
+            try { pendingRewards = JSON.parse(r.pending_rewards || '{}'); } catch(e) {}
+
+            return {
+                character_id: r.character_id,
+                character_name: charData.pName || '未知特工',
+                status: r.status,
+                pending_rewards: pendingRewards,
+                appeal_reason: r.appeal_reason,
+                responded_at: r.responded_at
+            };
+        });
+
+        res.json({
+            success: true,
+            responses: formattedResponses,
+            summary: {
+                total: responses.length,
+                pending: responses.filter(r => r.status === 'pending').length,
+                accepted: responses.filter(r => r.status === 'accepted').length,
+                appealing: responses.filter(r => r.status === 'appealing').length
+            }
+        });
+    } catch (e) {
+        console.error('获取特工响应状态失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
 // 归档任务（需报告已发送）
 app.post('/api/manager/mission/:id/archive', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
     const missionId = req.params.id;
@@ -2819,25 +3935,21 @@ app.post('/api/manager/mission/:id/archive', authenticateToken, requireRole(ROLE
             return res.status(403).json({ success: false, message: '无权操作' });
         }
 
-        // 检查是否有报告
-        db.get('SELECT COUNT(*) as count FROM mission_reports WHERE mission_id = ?', [missionId], (err, reportCount) => {
-            // 如果有报告，检查报告状态
-            if (reportCount && reportCount.count > 0) {
-                db.get('SELECT COUNT(*) as unsent FROM mission_reports WHERE mission_id = ? AND status != ?', [missionId, 'sent'], (err, unsent) => {
-                    if (unsent && unsent.unsent > 0) {
-                        return res.status(400).json({
-                            success: false,
-                            message: '存在未发送的报告评级，请先完成所有报告评审并发送给特工'
-                        });
-                    }
+        // 检查是否有已完成的报告（sent 或 finalized）
+        db.get('SELECT COUNT(*) as count FROM mission_reports WHERE mission_id = ? AND status IN (?, ?)', [missionId, 'sent', 'finalized'], (err, finishedCount) => {
+            // 检查是否有正在进行中的报告（initial 或 appealing，需要完成）
+            db.get('SELECT COUNT(*) as count FROM mission_reports WHERE mission_id = ? AND status IN (?, ?)', [missionId, 'initial', 'appealing'], (err, inProgressCount) => {
+                if (inProgressCount && inProgressCount.count > 0) {
+                    return res.status(400).json({
+                        success: false,
+                        message: '存在正在评审中的报告，请先完成评审'
+                    });
+                }
 
-                    // 可以归档
-                    doArchive();
-                });
-            } else {
-                // 无报告，直接归档
+                // 如果有已完成报告或者没有任何非草稿报告，可以归档
+                // (草稿报告可以忽略)
                 doArchive();
-            }
+            });
         });
 
         function doArchive() {
@@ -2850,7 +3962,7 @@ app.post('/api/manager/mission/:id/archive', authenticateToken, requireRole(ROLE
     });
 });
 
-// 角色卡查询所属任务和队友
+// 角色卡查询所属任务、队友和经理信息
 app.get('/api/character/:charId/mission', authenticateToken, (req, res) => {
     const charId = req.params.charId;
 
@@ -2862,43 +3974,83 @@ app.get('/api/character/:charId/mission', authenticateToken, (req, res) => {
             return res.status(403).json({ error: '无权访问' });
         }
 
-        // 查找该角色所属的活跃任务
-        db.get(`
-            SELECT fm.*, fmm.member_status
-            FROM field_mission_members fmm
-            JOIN field_missions fm ON fmm.mission_id = fm.id
-            WHERE fmm.character_id = ? AND fm.status = 'active'
-            ORDER BY fm.created_at DESC
-            LIMIT 1
-        `, [charId], (err, mission) => {
-            if (!mission) {
-                return res.json({ inMission: false });
-            }
+        // 先获取该角色卡的负责经理
+        db.all(`
+            SELECT DISTINCT u.id, u.name, u.username
+            FROM character_authorizations ca
+            JOIN users u ON ca.manager_id = u.id
+            WHERE ca.character_id = ?
+        `, [charId], (err, managers) => {
+            const managerList = (managers || []).map(m => ({
+                id: m.id,
+                name: m.name || m.username
+            }));
 
-            // 获取同任务的队友
+            // 查找该角色所属的所有活跃任务
             db.all(`
-                SELECT fmm.character_id, fmm.member_status, c.data
+                SELECT fm.*, fmm.member_status, u.name as creator_name, u.username as creator_username
                 FROM field_mission_members fmm
-                JOIN characters c ON fmm.character_id = c.id
-                WHERE fmm.mission_id = ?
-            `, [mission.id], (err, members) => {
-                const teammates = (members || []).map(m => {
-                    let d = {};
-                    try { d = JSON.parse(m.data); } catch(e) {}
-                    return {
-                        characterId: m.character_id,
-                        characterName: d.pName || '未命名',
-                        status: m.member_status,
-                        isMe: m.character_id === charId
-                    };
-                });
+                JOIN field_missions fm ON fmm.mission_id = fm.id
+                LEFT JOIN users u ON fm.created_by = u.id
+                WHERE fmm.character_id = ? AND fm.status = 'active'
+                ORDER BY fm.created_at DESC
+            `, [charId], (err, missions) => {
+                if (!missions || missions.length === 0) {
+                    return res.json({
+                        inMission: false,
+                        managers: managerList
+                    });
+                }
 
-                res.json({
-                    inMission: true,
-                    missionId: mission.id,
-                    missionName: mission.name,
-                    myStatus: mission.member_status,
-                    teammates
+                // 获取所有任务的队友信息
+                const missionIds = missions.map(m => m.id);
+                const placeholders = missionIds.map(() => '?').join(',');
+
+                db.all(`
+                    SELECT fmm.mission_id, fmm.character_id, fmm.member_status, c.data
+                    FROM field_mission_members fmm
+                    JOIN characters c ON fmm.character_id = c.id
+                    WHERE fmm.mission_id IN (${placeholders})
+                `, missionIds, (err, allMembers) => {
+                    // 按任务分组队友
+                    const membersByMission = {};
+                    (allMembers || []).forEach(m => {
+                        if (!membersByMission[m.mission_id]) {
+                            membersByMission[m.mission_id] = [];
+                        }
+                        let d = {};
+                        try { d = JSON.parse(m.data); } catch(e) {}
+                        membersByMission[m.mission_id].push({
+                            characterId: m.character_id,
+                            characterName: d.pName || '未命名',
+                            status: m.member_status,
+                            isMe: m.character_id === charId
+                        });
+                    });
+
+                    // 构建任务列表
+                    const missionList = missions.map(m => ({
+                        missionId: m.id,
+                        missionName: m.name,
+                        missionDescription: m.description,
+                        missionType: m.mission_type,
+                        missionStatus: m.status,
+                        myStatus: m.member_status,
+                        creatorName: m.creator_name || m.creator_username || '未知',
+                        creatorId: m.created_by,
+                        teammates: membersByMission[m.id] || []
+                    }));
+
+                    res.json({
+                        inMission: true,
+                        missions: missionList,
+                        // 兼容旧版本，返回第一个任务的信息
+                        missionId: missionList[0].missionId,
+                        missionName: missionList[0].missionName,
+                        myStatus: missionList[0].myStatus,
+                        teammates: missionList[0].teammates,
+                        managers: managerList
+                    });
                 });
             });
         });
@@ -2966,14 +4118,27 @@ app.post('/api/character/:charId/send-mail', authenticateToken, async (req, res)
     const charId = req.params.charId;
     const { recipientType, recipientId, subject, content } = req.body;
 
+    // 检查全局私信开关（管理员除外）
+    if (req.user.role < ROLE.SUPER_ADMIN) {
+        const config = await getAllConfig();
+        if (config.messaging_enabled === 'false') {
+            return res.status(403).json({ success: false, message: '私信功能已被管理员暂时关闭' });
+        }
+    }
+
     // 验证权限
     const char = await new Promise((resolve) => {
-        db.get('SELECT user_id, data FROM characters WHERE id = ?', [charId], (err, row) => resolve(row));
+        db.get('SELECT user_id, data, can_send_messages FROM characters WHERE id = ?', [charId], (err, row) => resolve(row));
     });
 
     if (!char) return res.status(404).json({ success: false, message: '角色不存在' });
     if (char.user_id !== req.user.userId && req.user.role < ROLE.SUPER_ADMIN) {
         return res.status(403).json({ success: false, message: '无权操作' });
+    }
+
+    // 检查发信权限
+    if (char.can_send_messages === 0) {
+        return res.status(403).json({ success: false, message: '您的发信权限已被禁用' });
     }
 
     if (!subject || !content) {
@@ -3097,6 +4262,9 @@ app.post('/api/character/:charId/send-containment', authenticateToken, async (re
             [activeMission.mission_id, charId, senderName, subject, content, 'containment', now],
             function(err) {
                 if (err) return res.status(500).json({ success: false, message: err.message });
+                // 记录到已发邮件
+                db.run('INSERT INTO character_messages (character_id, sender_id, sender_name, subject, content, message_type, from_character_id, recipient_name, read, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?)',
+                    [charId, req.user.userId, senderName, subject, content, 'sent', charId, '任务收件箱', now]);
                 res.json({ success: true, messageId: this.lastID, sentToMission: true });
             });
     } else {
@@ -3105,6 +4273,9 @@ app.post('/api/character/:charId/send-containment', authenticateToken, async (re
             [recipientId, charId, senderName, subject, content, 'containment', now],
             function(err) {
                 if (err) return res.status(500).json({ success: false, message: err.message });
+                // 记录到已发邮件
+                db.run('INSERT INTO character_messages (character_id, sender_id, sender_name, subject, content, message_type, from_character_id, recipient_name, read, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?)',
+                    [charId, req.user.userId, senderName, subject, content, 'sent', charId, '经理', now]);
                 res.json({ success: true, messageId: this.lastID, sentToMission: false });
             });
     }
@@ -3113,7 +4284,9 @@ app.post('/api/character/:charId/send-containment', authenticateToken, async (re
 // 提交任务报告
 app.post('/api/character/:charId/send-report', authenticateToken, async (req, res) => {
     const charId = req.params.charId;
-    const { recipientId, reportData } = req.body;
+    // 前端直接发送 reportData 作为 body，不是包装在对象中
+    const reportData = req.body;
+    const recipientId = req.body.recipientId; // 可能存在于旧版本请求中
 
     const char = await new Promise((resolve) => {
         db.get('SELECT user_id, data FROM characters WHERE id = ?', [charId], (err, row) => resolve(row));
@@ -3143,6 +4316,19 @@ app.post('/api/character/:charId/send-report', authenticateToken, async (req, re
     });
 
     if (activeMission) {
+        // 检查是否已提交过报告
+        const existingReport = await new Promise((resolve) => {
+            db.get('SELECT id FROM mission_reports WHERE mission_id = ? AND submitted_by = ?',
+                [activeMission.mission_id, charId], (err, row) => resolve(row));
+        });
+
+        if (existingReport) {
+            return res.status(409).json({
+                success: false,
+                message: '您已在此任务中提交过报告，无法重复提交'
+            });
+        }
+
         // 创建任务报告记录
         db.run(`INSERT INTO mission_reports (mission_id, submitted_by, original_data, status, submitted_at)
                 VALUES (?, ?, ?, 'submitted', ?)`,
@@ -3162,6 +4348,11 @@ app.post('/api/character/:charId/send-report', authenticateToken, async (req, re
                         // 更新任务报告状态
                         db.run('UPDATE field_missions SET report_status = ? WHERE id = ?', ['submitted', activeMission.mission_id]);
 
+                        // 记录到已发邮件 - 构建报告摘要
+                        const reportSummary = buildReportSummary(reportData);
+                        db.run('INSERT INTO character_messages (character_id, sender_id, sender_name, subject, content, message_type, from_character_id, recipient_name, read, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?)',
+                            [charId, req.user.userId, senderName, subject, reportSummary, 'sent', charId, '任务收件箱', now]);
+
                         res.json({ success: true, reportId, messageId: this.lastID, sentToMission: true });
                     });
             });
@@ -3171,10 +4362,51 @@ app.post('/api/character/:charId/send-report', authenticateToken, async (req, re
             [recipientId, charId, senderName, subject, content, 'report', JSON.stringify(reportData), now],
             function(err) {
                 if (err) return res.status(500).json({ success: false, message: err.message });
+
+                // 记录到已发邮件
+                const reportSummary = buildReportSummary(reportData);
+                db.run('INSERT INTO character_messages (character_id, sender_id, sender_name, subject, content, message_type, from_character_id, recipient_name, read, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?)',
+                    [charId, req.user.userId, senderName, subject, reportSummary, 'sent', charId, '经理', now]);
+
                 res.json({ success: true, messageId: this.lastID, sentToMission: false });
             });
     }
 });
+
+// 构建报告摘要用于已发邮件显示
+function buildReportSummary(reportData) {
+    if (!reportData) return '任务报告已提交';
+
+    let summary = [];
+
+    // 异常状态
+    if (reportData.status) {
+        const statusMap = {
+            neutralized: '已中和',
+            captured: '已捕获',
+            escaped: '已逃脱'
+        };
+        const selected = reportData.status.selected;
+        if (selected && statusMap[selected]) {
+            summary.push(`异常状态: ${statusMap[selected]}`);
+        } else if (reportData.status.other) {
+            summary.push(`异常状态: ${reportData.status.other}`);
+        }
+    }
+
+    // 异常分析
+    if (reportData.analysis) {
+        if (reportData.analysis.codename) summary.push(`代号: ${reportData.analysis.codename}`);
+        if (reportData.analysis.behavior) summary.push(`行为: ${reportData.analysis.behavior}`);
+    }
+
+    // 评优信息
+    if (reportData.evaluation) {
+        if (reportData.evaluation.participants) summary.push(`参与者: ${reportData.evaluation.participants}`);
+    }
+
+    return summary.length > 0 ? summary.join('\n') : '任务报告已提交';
+}
 
 // ==========================================
 // 经理收件箱 API
@@ -3408,6 +4640,432 @@ app.put('/api/manager/mission/:id/branch', authenticateToken, requireRole(ROLE.M
                 if (err) return res.status(500).json({ success: false });
                 res.json({ success: true });
             });
+    });
+});
+
+// ==================== 申领物商店API ====================
+
+// 获取申领物列表（经理端）
+app.get('/api/manager/shop/items', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    // 经理看到：自己创建的 + 全局的(admin创建的)
+    const query = req.user.role >= ROLE.SUPER_ADMIN
+        ? `SELECT si.*, u.name as creator_name FROM shop_items si
+           LEFT JOIN users u ON si.created_by = u.id
+           WHERE si.is_active = 1 ORDER BY si.created_at DESC`
+        : `SELECT si.*, u.name as creator_name FROM shop_items si
+           LEFT JOIN users u ON si.created_by = u.id
+           WHERE si.is_active = 1 AND (si.created_by = ? OR si.is_global = 1)
+           ORDER BY si.created_at DESC`;
+
+    const params = req.user.role >= ROLE.SUPER_ADMIN ? [] : [req.user.userId];
+
+    db.all(query, params, (err, items) => {
+        if (err) return res.status(500).json({ success: false, message: '获取失败' });
+
+        // 获取每个物品的标价选项
+        const itemIds = items.map(i => i.id);
+        if (itemIds.length === 0) {
+            return res.json({ success: true, items: [] });
+        }
+
+        const placeholders = itemIds.map(() => '?').join(',');
+        db.all(`SELECT * FROM shop_item_prices WHERE item_id IN (${placeholders}) ORDER BY sort_order`, itemIds, (err, prices) => {
+            const pricesByItem = {};
+            (prices || []).forEach(p => {
+                if (!pricesByItem[p.item_id]) pricesByItem[p.item_id] = [];
+                pricesByItem[p.item_id].push(p);
+            });
+
+            const result = items.map(item => ({
+                ...item,
+                prices: pricesByItem[item.id] || [],
+                canEdit: item.created_by === req.user.userId || req.user.role >= ROLE.SUPER_ADMIN
+            }));
+
+            res.json({ success: true, items: result });
+        });
+    });
+});
+
+// 创建申领物
+app.post('/api/manager/shop/items', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    const { title, description, prices, isGlobal } = req.body;
+
+    if (!title || !title.trim()) {
+        return res.status(400).json({ success: false, message: '请填写物品标题' });
+    }
+
+    if (!prices || !Array.isArray(prices) || prices.length === 0) {
+        return res.status(400).json({ success: false, message: '请至少添加一个标价选项' });
+    }
+
+    // 只有超管可以创建全局物品
+    const global = (isGlobal && req.user.role >= ROLE.SUPER_ADMIN) ? 1 : 0;
+    const now = Date.now();
+
+    db.run(`INSERT INTO shop_items (title, description, created_by, is_global, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)`,
+        [title.trim(), description || '', req.user.userId, global, now, now],
+        function(err) {
+            if (err) return res.status(500).json({ success: false, message: '创建失败' });
+
+            const itemId = this.lastID;
+
+            // 插入标价选项
+            // usage_type: 'permanent'=永久, 'consumable'=一次性消耗, 'per_mission'=每任务可用次数
+            // currency_type: 'commendation'=嘉奖, 'reprimand'=申诫
+            const stmt = db.prepare('INSERT INTO shop_item_prices (item_id, price_name, price_cost, currency_type, usage_type, usage_count, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)');
+            prices.forEach((p, idx) => {
+                if (p.name && p.cost >= 0) {
+                    const currencyType = p.currencyType || 'commendation';
+                    const usageType = p.usageType || 'permanent';
+                    const usageCount = parseInt(p.usageCount) || 0;
+                    stmt.run(itemId, p.name.trim(), parseInt(p.cost) || 0, currencyType, usageType, usageCount, idx);
+                }
+            });
+            stmt.finalize();
+
+            res.json({ success: true, itemId, message: '申领物创建成功' });
+        });
+});
+
+// 更新申领物
+app.put('/api/manager/shop/items/:id', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    const itemId = req.params.id;
+    const { title, description, prices, isGlobal } = req.body;
+
+    db.get('SELECT * FROM shop_items WHERE id = ?', [itemId], (err, item) => {
+        if (!item) return res.status(404).json({ success: false, message: '物品不存在' });
+
+        // 只有创建者或超管可以编辑
+        if (item.created_by !== req.user.userId && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权编辑此物品' });
+        }
+
+        const global = (isGlobal && req.user.role >= ROLE.SUPER_ADMIN) ? 1 : 0;
+        const now = Date.now();
+
+        db.run('UPDATE shop_items SET title = ?, description = ?, is_global = ?, updated_at = ? WHERE id = ?',
+            [title.trim(), description || '', global, now, itemId],
+            function(err) {
+                if (err) return res.status(500).json({ success: false });
+
+                // 删除旧标价，插入新标价
+                db.run('DELETE FROM shop_item_prices WHERE item_id = ?', [itemId], () => {
+                    if (prices && Array.isArray(prices)) {
+                        const stmt = db.prepare('INSERT INTO shop_item_prices (item_id, price_name, price_cost, currency_type, usage_type, usage_count, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)');
+                        prices.forEach((p, idx) => {
+                            if (p.name && p.cost >= 0) {
+                                const currencyType = p.currencyType || 'commendation';
+                                const usageType = p.usageType || 'permanent';
+                                const usageCount = parseInt(p.usageCount) || 0;
+                                stmt.run(itemId, p.name.trim(), parseInt(p.cost) || 0, currencyType, usageType, usageCount, idx);
+                            }
+                        });
+                        stmt.finalize();
+                    }
+                    res.json({ success: true, message: '更新成功' });
+                });
+            });
+    });
+});
+
+// 删除申领物
+app.delete('/api/manager/shop/items/:id', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    const itemId = req.params.id;
+
+    db.get('SELECT * FROM shop_items WHERE id = ?', [itemId], (err, item) => {
+        if (!item) return res.status(404).json({ success: false, message: '物品不存在' });
+
+        if (item.created_by !== req.user.userId && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权删除此物品' });
+        }
+
+        // 软删除
+        db.run('UPDATE shop_items SET is_active = 0 WHERE id = ?', [itemId], function(err) {
+            if (err) return res.status(500).json({ success: false });
+            res.json({ success: true, message: '删除成功' });
+        });
+    });
+});
+
+// 玩家获取可购买的申领物列表
+app.get('/api/character/:charId/shop', authenticateToken, (req, res) => {
+    const charId = req.params.charId;
+
+    // 验证角色归属
+    db.get('SELECT * FROM characters WHERE id = ?', [charId], (err, char) => {
+        if (!char) return res.status(404).json({ success: false, message: '角色不存在' });
+        if (char.user_id !== req.user.userId && req.user.role < ROLE.MANAGER) {
+            return res.status(403).json({ success: false, message: '无权访问' });
+        }
+
+        let charData = {};
+        try { charData = JSON.parse(char.data); } catch(e) {}
+
+        // 检查申诫商店权限
+        const hasReprimandAccess = charData.reprimandShopAccess === true;
+
+        // 计算可用嘉奖数
+        let availableCommendations = 0;
+        if (Array.isArray(charData.rewards)) {
+            availableCommendations = charData.rewards.reduce((sum, r) => sum + (r.count || 1), 0);
+        }
+        availableCommendations += parseInt(charData.commendations) || 0;
+
+        // 计算可用申诫数（仅在有权限时返回）
+        let availableReprimands = 0;
+        if (hasReprimandAccess && Array.isArray(charData.reprimands)) {
+            availableReprimands = charData.reprimands.reduce((sum, r) => sum + (r.count || 1), 0);
+        }
+
+        // 获取该角色被哪些经理管理
+        db.all(`SELECT DISTINCT manager_id FROM character_authorizations WHERE character_id = ?`, [charId], (err, auths) => {
+            const managerIds = (auths || []).map(a => a.manager_id);
+
+            // 获取全局物品 + 管理该角色的经理创建的物品
+            let query, params;
+            if (managerIds.length > 0) {
+                const placeholders = managerIds.map(() => '?').join(',');
+                query = `SELECT si.*, u.name as creator_name FROM shop_items si
+                         LEFT JOIN users u ON si.created_by = u.id
+                         WHERE si.is_active = 1 AND (si.is_global = 1 OR si.created_by IN (${placeholders}))
+                         ORDER BY si.is_global DESC, si.created_at DESC`;
+                params = managerIds;
+            } else {
+                query = `SELECT si.*, u.name as creator_name FROM shop_items si
+                         LEFT JOIN users u ON si.created_by = u.id
+                         WHERE si.is_active = 1 AND si.is_global = 1
+                         ORDER BY si.created_at DESC`;
+                params = [];
+            }
+
+            db.all(query, params, (err, items) => {
+                if (err) return res.status(500).json({ success: false });
+
+                const itemIds = items.map(i => i.id);
+                if (itemIds.length === 0) {
+                    const responseData = { success: true, items: [], availableCommendations };
+                    if (hasReprimandAccess) responseData.availableReprimands = availableReprimands;
+                    return res.json(responseData);
+                }
+
+                const placeholders = itemIds.map(() => '?').join(',');
+                db.all(`SELECT * FROM shop_item_prices WHERE item_id IN (${placeholders}) ORDER BY sort_order`, itemIds, (err, prices) => {
+                    const pricesByItem = {};
+                    (prices || []).forEach(p => {
+                        // 如果没有申诫商店权限，过滤掉申诫标价
+                        if (!hasReprimandAccess && p.currency_type === 'reprimand') {
+                            return;
+                        }
+                        if (!pricesByItem[p.item_id]) pricesByItem[p.item_id] = [];
+                        pricesByItem[p.item_id].push(p);
+                    });
+
+                    const result = items.map(item => ({
+                        ...item,
+                        prices: pricesByItem[item.id] || []
+                    })).filter(item => item.prices.length > 0); // 过滤掉没有可用标价的商品
+
+                    const responseData = { success: true, items: result, availableCommendations };
+                    if (hasReprimandAccess) responseData.availableReprimands = availableReprimands;
+                    res.json(responseData);
+                });
+            });
+        });
+    });
+});
+
+// 玩家购买申领物
+app.post('/api/character/:charId/shop/purchase', authenticateToken, (req, res) => {
+    const charId = req.params.charId;
+    const { itemId, priceId } = req.body;
+
+    db.get('SELECT * FROM characters WHERE id = ?', [charId], (err, char) => {
+        if (!char) return res.status(404).json({ success: false, message: '角色不存在' });
+        if (char.user_id !== req.user.userId) {
+            return res.status(403).json({ success: false, message: '只能为自己的角色购买' });
+        }
+
+        let charData = {};
+        try { charData = JSON.parse(char.data); } catch(e) {}
+
+        // 获取标价信息
+        db.get(`SELECT sip.*, si.title as item_title FROM shop_item_prices sip
+                JOIN shop_items si ON sip.item_id = si.id
+                WHERE sip.id = ? AND sip.item_id = ? AND si.is_active = 1`, [priceId, itemId], (err, price) => {
+            if (!price) {
+                return res.status(404).json({ success: false, message: '标价选项不存在' });
+            }
+
+            const currencyType = price.currency_type || 'commendation';
+            const currencyName = currencyType === 'reprimand' ? '申诫' : '嘉奖';
+
+            // 检查申诫商店权限
+            if (currencyType === 'reprimand' && charData.reprimandShopAccess !== true) {
+                return res.status(403).json({ success: false, message: '没有申诫商店权限' });
+            }
+            let available = 0;
+
+            if (currencyType === 'reprimand') {
+                // 计算可用申诫
+                if (Array.isArray(charData.reprimands)) {
+                    available = charData.reprimands.reduce((sum, r) => sum + (r.count || 1), 0);
+                }
+            } else {
+                // 计算可用嘉奖
+                if (Array.isArray(charData.rewards)) {
+                    available = charData.rewards.reduce((sum, r) => sum + (r.count || 1), 0);
+                }
+                available += parseInt(charData.commendations) || 0;
+            }
+
+            if (available < price.price_cost) {
+                return res.status(400).json({ success: false, message: `${currencyName}不足，需要 ${price.price_cost} ${currencyName}，当前只有 ${available} ${currencyName}` });
+            }
+
+            // 扣除货币
+            let remaining = price.price_cost;
+
+            if (currencyType === 'reprimand') {
+                // 从 reprimands 数组扣
+                if (Array.isArray(charData.reprimands)) {
+                    const newReprimands = [];
+                    for (const r of charData.reprimands) {
+                        if (remaining <= 0) {
+                            newReprimands.push(r);
+                            continue;
+                        }
+                        const count = r.count || 1;
+                        if (count <= remaining) {
+                            remaining -= count;
+                        } else {
+                            r.count = count - remaining;
+                            remaining = 0;
+                            newReprimands.push(r);
+                        }
+                    }
+                    charData.reprimands = newReprimands;
+                }
+            } else {
+                // 先从 commendations 数值扣
+                if (charData.commendations && charData.commendations > 0) {
+                    const deduct = Math.min(charData.commendations, remaining);
+                    charData.commendations -= deduct;
+                    remaining -= deduct;
+                }
+
+                // 再从 rewards 数组扣
+                if (remaining > 0 && Array.isArray(charData.rewards)) {
+                    const newRewards = [];
+                    for (const r of charData.rewards) {
+                        if (remaining <= 0) {
+                            newRewards.push(r);
+                            continue;
+                        }
+                        const count = r.count || 1;
+                        if (count <= remaining) {
+                            remaining -= count;
+                        } else {
+                            r.count = count - remaining;
+                            remaining = 0;
+                            newRewards.push(r);
+                        }
+                    }
+                    charData.rewards = newRewards;
+                }
+            }
+
+            // 获取物品详细信息用于添加到角色物品列表
+            db.get('SELECT title, description FROM shop_items WHERE id = ?', [itemId], (err, itemInfo) => {
+                if (err) return res.status(500).json({ success: false });
+
+                // 将物品添加到角色的物品列表
+                if (!Array.isArray(charData.items)) charData.items = [];
+
+                // 构建物品对象，包含可用次数信息
+                const newItem = {
+                    item: `${itemInfo.title} (${price.price_name})`,
+                    pd: `通过申领获得 - ${price.price_cost}${currencyName}`,
+                    eff: itemInfo.description || ''
+                };
+
+                // 根据使用类型设置可用次数
+                const usageType = price.usage_type || 'permanent';
+                if (usageType === 'consumable') {
+                    newItem.usageType = 'consumable';
+                    newItem.usageRemaining = 1;
+                    newItem.pd += ' [一次性]';
+                } else if (usageType === 'per_mission') {
+                    newItem.usageType = 'per_mission';
+                    newItem.usageCount = price.usage_count || 1;
+                    newItem.usageRemaining = price.usage_count || 1;
+                    newItem.pd += ` [每任务${price.usage_count || 1}次]`;
+                }
+                // permanent类型不需要额外标记
+
+                charData.items.push(newItem);
+
+                // 更新角色数据
+                db.run('UPDATE characters SET data = ? WHERE id = ?', [JSON.stringify(charData), charId], (err) => {
+                    if (err) return res.status(500).json({ success: false });
+
+                    // 记录购买
+                    const now = Date.now();
+                    db.run(`INSERT INTO shop_purchases (item_id, price_id, character_id, cost_paid, purchased_at, status) VALUES (?, ?, ?, ?, ?, 'completed')`,
+                        [itemId, priceId, charId, price.price_cost, now],
+                        function(err) {
+                            if (err) return res.status(500).json({ success: false });
+
+                            res.json({
+                                success: true,
+                                message: `成功购买「${price.item_title}」- ${price.price_name}，消耗 ${price.price_cost} ${currencyName}，物品已添加到您的物品列表`,
+                                newItem
+                            });
+                        });
+                });
+            });
+        });
+    });
+});
+
+// 获取购买记录（经理端）
+app.get('/api/manager/shop/purchases', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+    const query = req.user.role >= ROLE.SUPER_ADMIN
+        ? `SELECT sp.*, si.title as item_title, sip.price_name, c.data as char_data
+           FROM shop_purchases sp
+           JOIN shop_items si ON sp.item_id = si.id
+           JOIN shop_item_prices sip ON sp.price_id = sip.id
+           JOIN characters c ON sp.character_id = c.id
+           ORDER BY sp.purchased_at DESC LIMIT 100`
+        : `SELECT sp.*, si.title as item_title, sip.price_name, c.data as char_data
+           FROM shop_purchases sp
+           JOIN shop_items si ON sp.item_id = si.id
+           JOIN shop_item_prices sip ON sp.price_id = sip.id
+           JOIN characters c ON sp.character_id = c.id
+           WHERE si.created_by = ? OR si.is_global = 1
+           ORDER BY sp.purchased_at DESC LIMIT 100`;
+
+    const params = req.user.role >= ROLE.SUPER_ADMIN ? [] : [req.user.userId];
+
+    db.all(query, params, (err, purchases) => {
+        if (err) return res.status(500).json({ success: false });
+
+        const result = purchases.map(p => {
+            let charData = {};
+            try { charData = JSON.parse(p.char_data); } catch(e) {}
+            return {
+                id: p.id,
+                itemTitle: p.item_title,
+                priceName: p.price_name,
+                costPaid: p.cost_paid,
+                characterName: charData.pName || '未命名',
+                characterId: p.character_id,
+                purchasedAt: p.purchased_at,
+                status: p.status
+            };
+        });
+
+        res.json({ success: true, purchases: result });
     });
 });
 
