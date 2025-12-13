@@ -4864,7 +4864,7 @@ app.get('/api/character/:charId/shop', authenticateToken, (req, res) => {
                     const result = items.map(item => ({
                         ...item,
                         prices: pricesByItem[item.id] || []
-                    }));
+                    })).filter(item => item.prices.length > 0); // 过滤掉没有可用标价的商品
 
                     const responseData = { success: true, items: result, availableCommendations };
                     if (hasReprimandAccess) responseData.availableReprimands = availableReprimands;
@@ -5018,8 +5018,8 @@ app.post('/api/character/:charId/shop/purchase', authenticateToken, (req, res) =
 
                             res.json({
                                 success: true,
-                                message: `成功购买「${price.item_title}」- ${price.price_name}，消耗 ${price.price_cost} 嘉奖，物品已添加到您的物品列表`,
-                                remainingCommendations: availableCommendations - price.price_cost
+                                message: `成功购买「${price.item_title}」- ${price.price_name}，消耗 ${price.price_cost} ${currencyName}，物品已添加到您的物品列表`,
+                                newItem
                             });
                         });
                 });
