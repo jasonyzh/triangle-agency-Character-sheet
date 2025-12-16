@@ -972,23 +972,55 @@
             color: white;
         }
         /* 申诫商店权限按钮样式 */
-        .btn-rep-shop {
+        .btn-shop-access {
             background: rgba(155, 89, 182, 0.1);
             border: 1px solid #9b59b6;
             color: #9b59b6;
         }
-        .btn-rep-shop:hover {
+        .btn-shop-access:hover {
             background: #9b59b6;
             color: white;
         }
-        .btn-rep-shop.disabled {
-            background: rgba(149, 165, 166, 0.1);
-            border: 1px solid #95a5a6;
-            color: #95a5a6;
+
+        /* 隐藏物品复选框样式 */
+        .hidden-item-checkbox {
+            display: flex;
+            align-items: flex-start;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
         }
-        .btn-rep-shop.disabled:hover {
-            background: #95a5a6;
-            color: white;
+        .hidden-item-checkbox:hover {
+            background: rgba(0, 255, 255, 0.1);
+        }
+        .hidden-item-checkbox input {
+            margin-right: 10px;
+            margin-top: 3px;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        .hidden-item-checkbox .item-info {
+            flex: 1;
+        }
+        .hidden-item-checkbox .item-title {
+            font-weight: bold;
+            color: #00ffff;
+            margin-bottom: 4px;
+        }
+        .hidden-item-checkbox .item-desc {
+            font-size: 12px;
+            color: #888;
+            line-height: 1.4;
+        }
+        .no-hidden-items {
+            text-align: center;
+            color: #888;
+            padding: 20px;
+            font-style: italic;
         }
 
         .empty-state {
@@ -4598,10 +4630,59 @@
                     </label>
                 </div>
             </div>
+
+            <div class="shop-form-group">
+                <div class="global-checkbox-container">
+                    <input type="checkbox" id="shopItemShowToAgents" checked>
+                    <label for="shopItemShowToAgents" style="margin:0;font-weight:normal;">
+                        <i class="fas fa-eye"></i> 对特工展示（关闭后需单独授权特工才可见）
+                    </label>
+                </div>
+            </div>
         </div>
         <div class="shop-modal-footer">
             <button class="btn-cancel-shop" onclick="closeShopModal()">取消</button>
             <button class="btn-save-shop" onclick="saveShopItem()">
+                <i class="fas fa-save"></i> 保存
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 商店权限配置模态框 -->
+<div class="shop-modal-overlay" id="shopAccessModal">
+    <div class="shop-modal" style="max-width: 500px;">
+        <div class="shop-modal-header">
+            <h3><i class="fas fa-shopping-bag"></i> 商店权限配置 - <span id="shopAccessCharName"></span></h3>
+            <button class="shop-modal-close" onclick="closeShopAccessModal()">&times;</button>
+        </div>
+        <div class="shop-modal-body">
+            <input type="hidden" id="shopAccessCharId" value="">
+
+            <!-- 申诫商店开关 -->
+            <div class="shop-form-group">
+                <div class="global-checkbox-container" style="padding: 12px; background: rgba(156, 39, 176, 0.1); border-radius: 8px; border: 1px solid rgba(156, 39, 176, 0.3);">
+                    <input type="checkbox" id="shopAccessReprimand">
+                    <label for="shopAccessReprimand" style="margin:0;font-weight:normal;">
+                        <i class="fas fa-store" style="color: #9c27b0;"></i> 开放申诫商店（允许使用申诫购买物品）
+                    </label>
+                </div>
+            </div>
+
+            <!-- 特殊申领物授权 -->
+            <div class="shop-form-group">
+                <label><i class="fas fa-eye-slash"></i> 特殊申领物授权</label>
+                <p style="color: #888; font-size: 12px; margin: 5px 0 10px 0;">勾选后，该特工可看到以下未默认展示的申领物</p>
+                <div id="hiddenItemsList" style="max-height: 300px; overflow-y: auto; border: 1px solid rgba(0,255,255,0.2); border-radius: 8px; padding: 10px;">
+                    <div class="loading-items" style="text-align: center; color: #888;">
+                        <i class="fas fa-spinner fa-spin"></i> 加载中...
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="shop-modal-footer">
+            <button class="btn-cancel-shop" onclick="closeShopAccessModal()">取消</button>
+            <button class="btn-save-shop" onclick="saveShopAccess()">
                 <i class="fas fa-save"></i> 保存
             </button>
         </div>
@@ -4730,11 +4811,6 @@
             const msgPermIcon = c.canSendMessages ? 'fa-envelope' : 'fa-envelope-circle-xmark';
             const msgPermTitle = c.canSendMessages ? '禁止发信' : '允许发信';
 
-            // 申诫商店权限
-            const repShopClass = c.reprimandShopAccess ? '' : 'disabled';
-            const repShopIcon = c.reprimandShopAccess ? 'fa-store' : 'fa-store-slash';
-            const repShopTitle = c.reprimandShopAccess ? '关闭申诫商店' : '开放申诫商店';
-
             return `
             <div class="char-card" data-char-id="${c.id}">
                 <div class="card-header" onclick="openSheet('${c.id}')">
@@ -4776,8 +4852,8 @@
                     <button class="btn-card-action btn-msg-perm ${msgPermClass}" onclick="event.stopPropagation(); toggleMessagePermission('${c.id}', '${safeCharName}', ${c.canSendMessages})" title="${msgPermTitle}">
                         <i class="fas ${msgPermIcon}"></i>
                     </button>
-                    <button class="btn-card-action btn-rep-shop ${repShopClass}" onclick="event.stopPropagation(); toggleReprimandShopAccess('${c.id}', '${safeCharName}', ${c.reprimandShopAccess})" title="${repShopTitle}">
-                        <i class="fas ${repShopIcon}"></i>
+                    <button class="btn-card-action btn-shop-access" onclick="event.stopPropagation(); openShopAccessModal('${c.id}', '${safeCharName}')" title="商店权限配置">
+                        <i class="fas fa-shopping-bag"></i>
                     </button>
                     ${removeAuthBtn}
                     <button class="btn-card-action btn-view" onclick="openSheet('${c.id}')">
@@ -5000,6 +5076,92 @@
             }
         } catch (e) {
             showToast('操作失败');
+        }
+    }
+
+    // ==========================================
+    // 商店权限配置功能
+    // ==========================================
+    let shopAccessCharId = null;
+
+    async function openShopAccessModal(charId, charName) {
+        shopAccessCharId = charId;
+        document.getElementById('shopAccessCharName').textContent = charName;
+        document.getElementById('shopAccessCharId').value = charId;
+        document.getElementById('hiddenItemsList').innerHTML = '<div class="loading-items" style="text-align: center; color: #888;"><i class="fas fa-spinner fa-spin"></i> 加载中...</div>';
+        document.getElementById('shopAccessModal').classList.add('show');
+
+        try {
+            const res = await fetch(`/api/manager/character/${charId}/shop-access`, {
+                headers: getAuthHeaders()
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                // 设置申诫商店开关
+                document.getElementById('shopAccessReprimand').checked = data.reprimandShopAccess;
+
+                // 渲染隐藏物品列表
+                const container = document.getElementById('hiddenItemsList');
+                if (data.hiddenItems && data.hiddenItems.length > 0) {
+                    container.innerHTML = data.hiddenItems.map(item => {
+                        const isChecked = data.visibleItemIds.includes(item.id);
+                        return `
+                            <label class="hidden-item-checkbox">
+                                <input type="checkbox" value="${item.id}" ${isChecked ? 'checked' : ''}>
+                                <div class="item-info">
+                                    <div class="item-title">${escapeHtml(item.title)}</div>
+                                    <div class="item-desc">${escapeHtml(item.description || '无描述')}</div>
+                                </div>
+                            </label>
+                        `;
+                    }).join('');
+                } else {
+                    container.innerHTML = '<div class="no-hidden-items">暂无需要单独授权的申领物<br><small>在申领物编辑中关闭"对特工展示"后，物品会出现在这里</small></div>';
+                }
+            } else {
+                showToast(data.message || '加载失败');
+                closeShopAccessModal();
+            }
+        } catch (e) {
+            console.error('加载商店权限配置失败:', e);
+            showToast('加载失败');
+            closeShopAccessModal();
+        }
+    }
+
+    function closeShopAccessModal() {
+        document.getElementById('shopAccessModal').classList.remove('show');
+        shopAccessCharId = null;
+    }
+
+    async function saveShopAccess() {
+        const charId = document.getElementById('shopAccessCharId').value;
+        if (!charId) return;
+
+        const reprimandShopAccess = document.getElementById('shopAccessReprimand').checked;
+
+        // 收集选中的物品ID
+        const checkboxes = document.querySelectorAll('#hiddenItemsList input[type="checkbox"]:checked');
+        const visibleItemIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+        try {
+            const res = await fetch(`/api/manager/character/${charId}/shop-access`, {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ reprimandShopAccess, visibleItemIds })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                showToast('商店权限配置已保存', true);
+                closeShopAccessModal();
+            } else {
+                showToast(data.message || '保存失败');
+            }
+        } catch (e) {
+            console.error('保存商店权限配置失败:', e);
+            showToast('保存失败');
         }
     }
 
@@ -7499,6 +7661,7 @@
         document.getElementById('shopItemName').value = '';
         document.getElementById('shopItemDesc').value = '';
         document.getElementById('shopItemGlobal').checked = false;
+        document.getElementById('shopItemShowToAgents').checked = true; // 默认对特工展示
         document.getElementById('priceOptionsContainer').innerHTML = '';
 
         // 只有超管才能看到全局选项
@@ -7566,6 +7729,8 @@
         document.getElementById('shopItemName').value = item.title || '';
         document.getElementById('shopItemDesc').value = item.description || '';
         document.getElementById('shopItemGlobal').checked = !!item.is_global;
+        // show_to_agents 默认为1，如果字段不存在也认为是展示
+        document.getElementById('shopItemShowToAgents').checked = item.show_to_agents !== 0;
         document.getElementById('priceOptionsContainer').innerHTML = '';
 
         // 只有超管才能看到全局选项
@@ -7588,6 +7753,7 @@
         const title = document.getElementById('shopItemName').value.trim();
         const description = document.getElementById('shopItemDesc').value.trim();
         const isGlobal = document.getElementById('shopItemGlobal').checked;
+        const showToAgents = document.getElementById('shopItemShowToAgents').checked;
 
         if (!title) {
             showToast('请输入物品名称');
@@ -7623,7 +7789,7 @@
             const res = await fetch(url, {
                 method,
                 headers: getAuthHeaders(),
-                body: JSON.stringify({ title, description, prices, isGlobal })
+                body: JSON.stringify({ title, description, prices, isGlobal, showToAgents })
             });
 
             const data = await res.json();

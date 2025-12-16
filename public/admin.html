@@ -305,6 +305,74 @@
         .btn-del { background: #fceceb; color: var(--signal-red); }
         .btn-del:hover { background: var(--signal-red); color: white; }
 
+        /* 邀请码列表样式 */
+        .invitation-list { display: grid; gap: 12px; }
+        .invitation-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid var(--signal-red);
+        }
+        .invitation-card.inactive {
+            opacity: 0.6;
+            border-left-color: #95a5a6;
+        }
+        .invitation-card .inv-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .invitation-card .inv-code {
+            font-family: monospace;
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--signal-red);
+            letter-spacing: 2px;
+        }
+        .invitation-card .inv-meta {
+            font-size: 11px;
+            color: #7f8c8d;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .invitation-card .inv-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .invitation-card .inv-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .btn-inv {
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .btn-inv-copy { background: #3498db; color: white; }
+        .btn-inv-copy:hover { background: #2980b9; }
+        .btn-inv-uses { background: #9b59b6; color: white; }
+        .btn-inv-uses:hover { background: #8e44ad; }
+        .btn-inv-toggle { background: #f39c12; color: white; }
+        .btn-inv-toggle:hover { background: #d68910; }
+        .btn-inv-delete { background: #e74c3c; color: white; }
+        .btn-inv-delete:hover { background: #c0392b; }
+        .uses-item {
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+        .uses-item .uses-user { font-weight: bold; color: var(--text-dark); }
+        .uses-item .uses-time { color: #7f8c8d; font-size: 11px; }
+
         .role-tag {
             padding: 2px 8px;
             border-radius: 3px;
@@ -735,6 +803,7 @@
     <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('users')"><i class="fas fa-users"></i> 人员管理</button>
         <button class="tab-btn" onclick="switchTab('config')"><i class="fas fa-cog"></i> 系统设置</button>
+        <button class="tab-btn" onclick="switchTab('invitations')"><i class="fas fa-ticket-alt"></i> 邀请码</button>
     </div>
 
     <!-- 人员管理 -->
@@ -791,6 +860,16 @@
                         <span class="slider"></span>
                     </label>
                 </div>
+                <div class="config-row">
+                    <div>
+                        <label>邀请码注册</label>
+                        <div class="desc">开启后需要邀请码才能注册</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="cfg_invitation_required">
+                        <span class="slider"></span>
+                    </label>
+                </div>
             </div>
 
             <div class="config-section">
@@ -832,6 +911,62 @@
                     <button class="btn-save" onclick="saveConfig()"><i class="fas fa-save"></i> 保存配置</button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- 邀请码管理 -->
+    <div id="tab-invitations" class="tab-content">
+        <div class="config-panel">
+            <div class="config-section">
+                <h3><i class="fas fa-ticket-alt"></i> 邀请码管理</h3>
+                <div class="btn-row" style="margin-bottom:20px;">
+                    <button class="btn-save" onclick="openCreateInvitationModal()"><i class="fas fa-plus"></i> 生成邀请码</button>
+                    <button class="btn-test" onclick="loadInvitations()"><i class="fas fa-sync"></i> 刷新</button>
+                </div>
+                <div id="invitationList" class="invitation-list">
+                    <div style="text-align:center;color:#7f8c8d;padding:20px;">加载中...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 生成邀请码模态框 -->
+<div class="modal-overlay" id="invitationModal">
+    <div class="modal">
+        <h3><i class="fas fa-ticket-alt"></i> 生成邀请码</h3>
+        <div class="form-field" style="margin-bottom:15px;">
+            <label>邀请码类型</label>
+            <select id="invGrantRole" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px;">
+                <option value="0">普通邀请码（注册为特工）</option>
+                <option value="1">经理邀请码（注册后拥有经理权限）</option>
+            </select>
+        </div>
+        <div class="form-field" style="margin-bottom:15px;">
+            <label>可使用次数</label>
+            <input type="number" id="invMaxUses" value="1" min="1" placeholder="1=单次使用，0=无限">
+            <div style="font-size:11px;color:#7f8c8d;margin-top:5px;">设为0表示无限次使用</div>
+        </div>
+        <div class="form-field" style="margin-bottom:15px;">
+            <label>有效期（天）</label>
+            <input type="number" id="invExpiresDays" value="" min="1" placeholder="留空表示永不过期">
+        </div>
+        <div class="modal-btns">
+            <button class="btn-cancel" onclick="closeInvitationModal()">取消</button>
+            <button class="btn-confirm" onclick="createInvitation()">生成</button>
+        </div>
+    </div>
+</div>
+
+<!-- 邀请码使用记录模态框 -->
+<div class="modal-overlay" id="invitationUsesModal">
+    <div class="modal" style="max-width:500px;">
+        <h3><i class="fas fa-history"></i> 使用记录 - <span id="usesModalCode"></span></h3>
+        <div id="usesModalContent" style="max-height:300px;overflow-y:auto;">
+            <div style="text-align:center;color:#7f8c8d;padding:20px;">加载中...</div>
+        </div>
+        <div class="modal-btns">
+            <button class="btn-cancel" onclick="closeUsesModal()">关闭</button>
         </div>
     </div>
 </div>
@@ -936,6 +1071,7 @@
         document.getElementById(`tab-${tab}`).classList.add('active');
 
         if (tab === 'config') loadConfig();
+        if (tab === 'invitations') loadInvitations();
     }
 
     // 加载配置
@@ -946,6 +1082,7 @@
 
             document.getElementById('cfg_reg_enabled').checked = config.registration_enabled === 'true';
             document.getElementById('cfg_email_enabled').checked = config.email_registration_enabled === 'true';
+            document.getElementById('cfg_invitation_required').checked = config.invitation_required === 'true';
             document.getElementById('cfg_smtp_host').value = config.smtp_host || '';
             document.getElementById('cfg_smtp_port').value = config.smtp_port || '587';
             document.getElementById('cfg_smtp_user').value = config.smtp_user || '';
@@ -963,6 +1100,7 @@
             const config = {
                 registration_enabled: document.getElementById('cfg_reg_enabled').checked ? 'true' : 'false',
                 email_registration_enabled: document.getElementById('cfg_email_enabled').checked ? 'true' : 'false',
+                invitation_required: document.getElementById('cfg_invitation_required').checked ? 'true' : 'false',
                 smtp_host: document.getElementById('cfg_smtp_host').value,
                 smtp_port: document.getElementById('cfg_smtp_port').value,
                 smtp_user: document.getElementById('cfg_smtp_user').value,
@@ -1288,6 +1426,186 @@
 
     // 初始化
     loadUsers();
+
+    // ==========================================
+    // 邀请码管理
+    // ==========================================
+    let invitationsData = [];
+
+    async function loadInvitations() {
+        try {
+            const res = await fetch('/api/admin/invitation-codes', { headers: getAuthHeaders() });
+            const data = await res.json();
+            if (data.success) {
+                invitationsData = data.codes;
+                renderInvitations();
+            } else {
+                showToast('加载邀请码失败');
+            }
+        } catch (e) {
+            console.error(e);
+            showToast('加载邀请码失败');
+        }
+    }
+
+    function renderInvitations() {
+        const container = document.getElementById('invitationList');
+        if (invitationsData.length === 0) {
+            container.innerHTML = '<div style="text-align:center;color:#7f8c8d;padding:20px;">暂无邀请码，点击上方按钮生成</div>';
+            return;
+        }
+
+        container.innerHTML = invitationsData.map(inv => {
+            const isActive = inv.is_active === 1;
+            const isExpired = inv.expires_at && inv.expires_at < Date.now();
+            const isUsedUp = inv.max_uses > 0 && inv.used_count >= inv.max_uses;
+            const statusClass = (!isActive || isExpired || isUsedUp) ? 'inactive' : '';
+            const isManagerCode = inv.grant_role === 1;
+
+            const expiresText = inv.expires_at
+                ? (isExpired ? '已过期' : `${new Date(inv.expires_at).toLocaleDateString()} 到期`)
+                : '永不过期';
+
+            const usesText = inv.max_uses === 0
+                ? `已使用 ${inv.used_count} 次 (无限)`
+                : `已使用 ${inv.used_count}/${inv.max_uses} 次`;
+
+            const roleBadge = isManagerCode
+                ? '<span style="background:#9b59b6;color:#fff;padding:2px 8px;border-radius:10px;font-size:10px;margin-left:8px;"><i class="fas fa-user-tie"></i> 经理</span>'
+                : '<span style="background:#3498db;color:#fff;padding:2px 8px;border-radius:10px;font-size:10px;margin-left:8px;"><i class="fas fa-user"></i> 特工</span>';
+
+            return `
+                <div class="invitation-card ${statusClass}" style="${isManagerCode ? 'border-left:3px solid #9b59b6;' : ''}">
+                    <div class="inv-header">
+                        <span class="inv-code">${inv.code}</span>
+                        ${roleBadge}
+                        <span style="font-size:11px;color:${isActive && !isExpired && !isUsedUp ? '#27ae60' : '#e74c3c'};margin-left:auto;">
+                            ${isActive && !isExpired && !isUsedUp ? '有效' : (isExpired ? '已过期' : (isUsedUp ? '已用完' : '已禁用'))}
+                        </span>
+                    </div>
+                    <div class="inv-meta">
+                        <span><i class="fas fa-clock"></i> ${expiresText}</span>
+                        <span><i class="fas fa-users"></i> ${usesText}</span>
+                        <span><i class="fas fa-calendar"></i> ${new Date(inv.created_at).toLocaleDateString()} 创建</span>
+                    </div>
+                    <div class="inv-actions">
+                        <button class="btn-inv btn-inv-copy" onclick="copyInvCode('${inv.code}')"><i class="fas fa-copy"></i> 复制</button>
+                        <button class="btn-inv btn-inv-uses" onclick="showUses(${inv.id})"><i class="fas fa-history"></i> 记录 (${inv.used_count})</button>
+                        <button class="btn-inv btn-inv-toggle" onclick="toggleInvitation(${inv.id})">${isActive ? '禁用' : '启用'}</button>
+                        <button class="btn-inv btn-inv-delete" onclick="deleteInvitation(${inv.id})"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function copyInvCode(code) {
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(code).then(() => showToast('已复制', true));
+        }
+    }
+
+    function openCreateInvitationModal() {
+        document.getElementById('invGrantRole').value = '0';
+        document.getElementById('invMaxUses').value = '1';
+        document.getElementById('invExpiresDays').value = '';
+        document.getElementById('invitationModal').classList.add('show');
+    }
+
+    function closeInvitationModal() {
+        document.getElementById('invitationModal').classList.remove('show');
+    }
+
+    async function createInvitation() {
+        const maxUses = parseInt(document.getElementById('invMaxUses').value) || 1;
+        const expiresDays = document.getElementById('invExpiresDays').value;
+        const grantRole = parseInt(document.getElementById('invGrantRole').value) || 0;
+
+        try {
+            const res = await fetch('/api/admin/invitation-codes', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    maxUses: maxUses,
+                    expiresInDays: expiresDays ? parseInt(expiresDays) : null,
+                    grantRole: grantRole
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                const roleText = grantRole === 1 ? '（经理）' : '（特工）';
+                showToast('邀请码已生成: ' + data.invitation.code + ' ' + roleText, true);
+                closeInvitationModal();
+                loadInvitations();
+            } else {
+                showToast(data.message || '生成失败');
+            }
+        } catch (e) {
+            showToast('生成失败');
+        }
+    }
+
+    async function toggleInvitation(id) {
+        try {
+            const res = await fetch(`/api/admin/invitation-codes/${id}/toggle`, {
+                method: 'PUT',
+                headers: getAuthHeaders()
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast(data.is_active ? '已启用' : '已禁用', true);
+                loadInvitations();
+            } else {
+                showToast(data.message || '操作失败');
+            }
+        } catch (e) {
+            showToast('操作失败');
+        }
+    }
+
+    async function deleteInvitation(id) {
+        if (!confirm('确定删除此邀请码？')) return;
+        try {
+            const res = await fetch(`/api/admin/invitation-codes/${id}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast('已删除', true);
+                loadInvitations();
+            } else {
+                showToast(data.message || '删除失败');
+            }
+        } catch (e) {
+            showToast('删除失败');
+        }
+    }
+
+    function showUses(invId) {
+        const inv = invitationsData.find(i => i.id === invId);
+        if (!inv) return;
+
+        document.getElementById('usesModalCode').textContent = inv.code;
+        const container = document.getElementById('usesModalContent');
+
+        if (!inv.uses || inv.uses.length === 0) {
+            container.innerHTML = '<div style="text-align:center;color:#7f8c8d;padding:20px;">暂无使用记录</div>';
+        } else {
+            container.innerHTML = inv.uses.map(u => `
+                <div class="uses-item">
+                    <div class="uses-user">${u.name || u.username || '未知用户'}</div>
+                    <div class="uses-time">${new Date(u.used_at).toLocaleString()}</div>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('invitationUsesModal').classList.add('show');
+    }
+
+    function closeUsesModal() {
+        document.getElementById('invitationUsesModal').classList.remove('show');
+    }
 </script>
 </body>
 </html>

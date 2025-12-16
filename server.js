@@ -310,6 +310,15 @@ db.serialize(() => {
         }
     });
 
+    // 迁移: 为shop_items添加show_to_agents字段
+    db.all("PRAGMA table_info(shop_items)", [], (err, columns) => {
+        if (err) return;
+        const columnNames = columns.map(c => c.name);
+        if (!columnNames.includes('show_to_agents')) {
+            db.run("ALTER TABLE shop_items ADD COLUMN show_to_agents INTEGER DEFAULT 1");
+        }
+    });
+
     // 申领物购买记录表
     db.run(`CREATE TABLE IF NOT EXISTS shop_purchases (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -326,6 +335,51 @@ db.serialize(() => {
         FOREIGN KEY(character_id) REFERENCES characters(id) ON DELETE CASCADE,
         FOREIGN KEY(approved_by) REFERENCES users(id) ON DELETE SET NULL
     )`);
+
+    // 特工可见申领物授权表（用于非默认展示的物品）
+    db.run(`CREATE TABLE IF NOT EXISTS character_visible_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        character_id TEXT NOT NULL,
+        item_id INTEGER NOT NULL,
+        granted_by INTEGER,
+        granted_at INTEGER,
+        FOREIGN KEY(character_id) REFERENCES characters(id) ON DELETE CASCADE,
+        FOREIGN KEY(item_id) REFERENCES shop_items(id) ON DELETE CASCADE,
+        FOREIGN KEY(granted_by) REFERENCES users(id) ON DELETE SET NULL,
+        UNIQUE(character_id, item_id)
+    )`);
+
+    // 邀请码表
+    db.run(`CREATE TABLE IF NOT EXISTS invitation_codes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        code TEXT UNIQUE NOT NULL,
+        created_by INTEGER NOT NULL,
+        max_uses INTEGER DEFAULT 1,
+        used_count INTEGER DEFAULT 0,
+        is_active INTEGER DEFAULT 1,
+        expires_at INTEGER,
+        created_at INTEGER,
+        FOREIGN KEY(created_by) REFERENCES users(id) ON DELETE CASCADE
+    )`);
+
+    // 邀请码使用记录表
+    db.run(`CREATE TABLE IF NOT EXISTS invitation_uses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        code_id INTEGER NOT NULL,
+        used_by INTEGER NOT NULL,
+        used_at INTEGER,
+        FOREIGN KEY(code_id) REFERENCES invitation_codes(id) ON DELETE CASCADE,
+        FOREIGN KEY(used_by) REFERENCES users(id) ON DELETE CASCADE
+    )`);
+
+    // 迁移: 为invitation_codes添加grant_role字段（0=普通用户，1=经理）
+    db.all("PRAGMA table_info(invitation_codes)", [], (err, columns) => {
+        if (err) return;
+        const columnNames = columns.map(c => c.name);
+        if (!columnNames.includes('grant_role')) {
+            db.run("ALTER TABLE invitation_codes ADD COLUMN grant_role INTEGER DEFAULT 0");
+        }
+    });
 
     // 为 field_missions 添加新字段的迁移
     db.all("PRAGMA table_info(field_missions)", [], (err, columns) => {
@@ -431,6 +485,7 @@ db.serialize(() => {
     const defaultConfigs = [
         ['registration_enabled', 'true'],
         ['email_registration_enabled', 'false'],
+        ['invitation_required', 'false'],
         ['smtp_host', ''],
         ['smtp_port', '587'],
         ['smtp_user', ''],
@@ -705,12 +760,15 @@ app.get('/api/register/status', async (req, res) => {
     try {
         const regEnabled = await getConfig('registration_enabled');
         const emailEnabled = await getConfig('email_registration_enabled');
+        const invitationRequired = await getConfig('invitation_required');
         res.json({
             registrationEnabled: regEnabled === 'true',
-            emailRequired: emailEnabled === 'true'
+            emailRequired: true,  // 邮箱始终必填（用于登录）
+            emailVerificationRequired: emailEnabled === 'true',  // 验证码是否必须
+            invitationRequired: invitationRequired === 'true'
         });
     } catch (e) {
-        res.json({ registrationEnabled: false, emailRequired: false });
+        res.json({ registrationEnabled: false, emailRequired: true, emailVerificationRequired: false, invitationRequired: false });
     }
 });
 
@@ -764,7 +822,7 @@ app.post('/api/register/send-code', async (req, res) => {
 // ==========================================
 app.post('/api/register/verify', async (req, res) => {
     try {
-        const { username, password, name, email, code } = req.body;
+        const { username, password, name, email, code, invitationCode } = req.body;
 
         if (!username || !password) {
             return res.status(400).json({ success: false, message: '账号和密码必填' });
@@ -775,12 +833,52 @@ app.post('/api/register/verify', async (req, res) => {
             return res.status(400).json({ success: false, message: '注册功能已关闭' });
         }
 
+        // 检查邀请码
+        const invitationRequired = await getConfig('invitation_required');
+        let validInvitation = null;
+        if (invitationRequired === 'true') {
+            if (!invitationCode) {
+                return res.status(400).json({ success: false, message: '请输入邀请码' });
+            }
+
+            validInvitation = await new Promise((resolve, reject) => {
+                db.get(`SELECT * FROM invitation_codes
+                        WHERE code = ? AND is_active = 1
+                        AND (max_uses = 0 OR used_count < max_uses)
+                        AND (expires_at IS NULL OR expires_at > ?)`,
+                    [invitationCode, Date.now()], (err, row) => {
+                        if (err) reject(err);
+                        else resolve(row);
+                    });
+            });
+
+            if (!validInvitation) {
+                return res.status(400).json({ success: false, message: '邀请码无效或已用完' });
+            }
+        }
+
+        // 邮箱始终必填（用于登录）
+        if (!email) {
+            return res.status(400).json({ success: false, message: '邮箱必填' });
+        }
+
+        // 检查邮箱是否已被使用
+        const existingEmail = await new Promise((resolve, reject) => {
+            db.get('SELECT id FROM users WHERE email = ?', [email], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+        if (existingEmail) {
+            return res.status(400).json({ success: false, message: '该邮箱已被注册' });
+        }
+
         const emailEnabled = await getConfig('email_registration_enabled');
 
-        // 如果启用了邮箱注册，验证验证码
+        // 如果启用了邮箱验证，验证验证码
         if (emailEnabled === 'true') {
-            if (!email || !code) {
-                return res.status(400).json({ success: false, message: '邮箱和验证码必填' });
+            if (!code) {
+                return res.status(400).json({ success: false, message: '请输入验证码' });
             }
 
             const validCode = await new Promise((resolve, reject) => {
@@ -815,12 +913,23 @@ app.post('/api/register/verify', async (req, res) => {
         const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
         const userId = Date.now();
 
+        // 根据邀请码授予的角色设置用户角色（0=普通用户，1=经理）
+        const userRole = validInvitation && validInvitation.grant_role ? validInvitation.grant_role : ROLE.PLAYER;
+
         db.run('INSERT INTO users (id, username, password_hash, name, is_admin, role, email, email_verified, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [userId, username, passwordHash, name || '新职员', 0, ROLE.PLAYER, email || null, emailEnabled === 'true' ? 1 : 0, Date.now()],
+            [userId, username, passwordHash, name || '新职员', 0, userRole, email || null, emailEnabled === 'true' ? 1 : 0, Date.now()],
             function(err) {
                 if (err) {
                     return res.status(500).json({ success: false, message: '注册失败' });
                 }
+
+                // 更新邀请码使用记录
+                if (validInvitation) {
+                    db.run('UPDATE invitation_codes SET used_count = used_count + 1 WHERE id = ?', [validInvitation.id]);
+                    db.run('INSERT INTO invitation_uses (code_id, used_by, used_at) VALUES (?, ?, ?)',
+                        [validInvitation.id, userId, Date.now()]);
+                }
+
                 res.json({ success: true, message: '注册成功' });
             });
     } catch (e) {
@@ -836,8 +945,9 @@ app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
 
+        // 支持邮箱或用户名登录
         const user = await new Promise((resolve, reject) => {
-            db.get('SELECT * FROM users WHERE username = ?', [username], (err, row) => {
+            db.get('SELECT * FROM users WHERE username = ? OR email = ?', [username, username], (err, row) => {
                 if (err) reject(err);
                 else resolve(row);
             });
@@ -924,6 +1034,121 @@ app.post('/api/admin/test-smtp', authenticateToken, requireRole(ROLE.SUPER_ADMIN
         res.json({ success: true, message: 'SMTP连接成功' });
     } catch (e) {
         res.status(500).json({ success: false, message: 'SMTP连接失败: ' + e.message });
+    }
+});
+
+// ==========================================
+// 邀请码管理 API（超管）
+// ==========================================
+
+// 获取邀请码列表（含使用记录）
+app.get('/api/admin/invitation-codes', authenticateToken, requireRole(ROLE.SUPER_ADMIN), async (req, res) => {
+    try {
+        const codes = await new Promise((resolve, reject) => {
+            db.all(`SELECT ic.*, u.username as created_by_name
+                    FROM invitation_codes ic
+                    LEFT JOIN users u ON ic.created_by = u.id
+                    ORDER BY ic.created_at DESC`, [], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
+            });
+        });
+
+        // 获取每个邀请码的使用记录
+        for (const code of codes) {
+            const uses = await new Promise((resolve, reject) => {
+                db.all(`SELECT iu.*, u.username, u.name
+                        FROM invitation_uses iu
+                        LEFT JOIN users u ON iu.used_by = u.id
+                        WHERE iu.code_id = ?
+                        ORDER BY iu.used_at DESC`, [code.id], (err, rows) => {
+                    if (err) reject(err);
+                    else resolve(rows || []);
+                });
+            });
+            code.uses = uses;
+        }
+
+        res.json({ success: true, codes });
+    } catch (e) {
+        console.error('获取邀请码列表失败:', e);
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+
+// 生成邀请码
+app.post('/api/admin/invitation-codes', authenticateToken, requireRole(ROLE.SUPER_ADMIN), async (req, res) => {
+    try {
+        const { maxUses, expiresInDays, grantRole } = req.body;
+        const code = generateShortCode(8).toUpperCase();
+        const expiresAt = expiresInDays ? Date.now() + expiresInDays * 24 * 60 * 60 * 1000 : null;
+        // grantRole: 0=普通用户, 1=经理
+        const roleToGrant = grantRole === 1 ? 1 : 0;
+
+        db.run(`INSERT INTO invitation_codes (code, created_by, max_uses, expires_at, grant_role, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)`,
+            [code, req.user.userId, maxUses || 1, expiresAt, roleToGrant, Date.now()],
+            function(err) {
+                if (err) {
+                    return res.status(500).json({ success: false, message: '创建失败' });
+                }
+                res.json({
+                    success: true,
+                    invitation: {
+                        id: this.lastID,
+                        code,
+                        max_uses: maxUses || 1,
+                        expires_at: expiresAt,
+                        grant_role: roleToGrant,
+                        created_at: Date.now()
+                    }
+                });
+            });
+    } catch (e) {
+        console.error('生成邀请码失败:', e);
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+
+// 删除邀请码
+app.delete('/api/admin/invitation-codes/:id', authenticateToken, requireRole(ROLE.SUPER_ADMIN), async (req, res) => {
+    try {
+        const { id } = req.params;
+        db.run('DELETE FROM invitation_codes WHERE id = ?', [id], function(err) {
+            if (err) {
+                return res.status(500).json({ success: false, message: '删除失败' });
+            }
+            res.json({ success: true });
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+
+// 切换邀请码启用状态
+app.put('/api/admin/invitation-codes/:id/toggle', authenticateToken, requireRole(ROLE.SUPER_ADMIN), async (req, res) => {
+    try {
+        const { id } = req.params;
+        const code = await new Promise((resolve, reject) => {
+            db.get('SELECT is_active FROM invitation_codes WHERE id = ?', [id], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!code) {
+            return res.status(404).json({ success: false, message: '邀请码不存在' });
+        }
+
+        const newState = code.is_active ? 0 : 1;
+        db.run('UPDATE invitation_codes SET is_active = ? WHERE id = ?', [newState, id], function(err) {
+            if (err) {
+                return res.status(500).json({ success: false, message: '更新失败' });
+            }
+            res.json({ success: true, is_active: newState });
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, message: e.message });
     }
 });
 
@@ -2554,6 +2779,128 @@ app.put('/api/manager/character/:charId/reprimand-shop-access', authenticateToke
         });
     } catch (e) {
         console.error('切换申诫商店权限失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// 获取角色商店权限配置（申诫商店权限 + 可见申领物）
+app.get('/api/manager/character/:charId/shop-access', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    try {
+        const managerId = req.user.userId;
+        const charId = req.params.charId;
+
+        // 检查经理是否有该角色卡的授权
+        const isAuthorized = await checkManagerCharacterAuth(managerId, charId);
+        if (!isAuthorized && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权操作该角色卡' });
+        }
+
+        // 获取角色当前数据
+        const char = await new Promise((resolve, reject) => {
+            db.get('SELECT data FROM characters WHERE id = ?', [charId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!char) {
+            return res.status(404).json({ success: false, message: '角色不存在' });
+        }
+
+        let charData = {};
+        try { charData = JSON.parse(char.data); } catch(e) {}
+
+        // 获取该角色已授权的可见物品ID列表
+        const visibleItems = await new Promise((resolve, reject) => {
+            db.all('SELECT item_id FROM character_visible_items WHERE character_id = ?', [charId], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
+            });
+        });
+        const visibleItemIds = visibleItems.map(v => v.item_id);
+
+        // 获取所有非默认展示的申领物（show_to_agents=0）供经理选择
+        // 只获取该经理创建的或全局的物品
+        const hiddenItems = await new Promise((resolve, reject) => {
+            db.all(`SELECT id, title, description FROM shop_items
+                    WHERE is_active = 1 AND show_to_agents = 0
+                    AND (is_global = 1 OR created_by = ?)
+                    ORDER BY title`, [managerId], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
+            });
+        });
+
+        res.json({
+            success: true,
+            reprimandShopAccess: charData.reprimandShopAccess === true,
+            visibleItemIds,
+            hiddenItems // 可供配置的非默认展示物品列表
+        });
+    } catch (e) {
+        console.error('获取商店权限配置失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// 保存角色商店权限配置
+app.put('/api/manager/character/:charId/shop-access', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    try {
+        const managerId = req.user.userId;
+        const charId = req.params.charId;
+        const { reprimandShopAccess, visibleItemIds } = req.body;
+
+        // 检查经理是否有该角色卡的授权
+        const isAuthorized = await checkManagerCharacterAuth(managerId, charId);
+        if (!isAuthorized && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权操作该角色卡' });
+        }
+
+        // 获取角色当前数据
+        const char = await new Promise((resolve, reject) => {
+            db.get('SELECT data FROM characters WHERE id = ?', [charId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!char) {
+            return res.status(404).json({ success: false, message: '角色不存在' });
+        }
+
+        // 更新charData中的reprimandShopAccess字段
+        let charData = {};
+        try { charData = JSON.parse(char.data); } catch(e) {}
+        charData.reprimandShopAccess = !!reprimandShopAccess;
+
+        await new Promise((resolve, reject) => {
+            db.run('UPDATE characters SET data = ? WHERE id = ?', [JSON.stringify(charData), charId], function(err) {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
+
+        // 更新可见物品授权
+        // 先删除该角色的所有授权，再重新插入
+        await new Promise((resolve, reject) => {
+            db.run('DELETE FROM character_visible_items WHERE character_id = ?', [charId], (err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
+
+        if (visibleItemIds && Array.isArray(visibleItemIds) && visibleItemIds.length > 0) {
+            const now = Date.now();
+            const stmt = db.prepare('INSERT OR IGNORE INTO character_visible_items (character_id, item_id, granted_by, granted_at) VALUES (?, ?, ?, ?)');
+            for (const itemId of visibleItemIds) {
+                stmt.run(charId, itemId, managerId, now);
+            }
+            stmt.finalize();
+        }
+
+        res.json({ success: true, message: '商店权限配置已保存' });
+    } catch (e) {
+        console.error('保存商店权限配置失败:', e);
         res.status(500).json({ success: false, message: '服务器错误' });
     }
 });
@@ -4797,7 +5144,7 @@ app.get('/api/manager/shop/items', authenticateToken, requireRole(ROLE.MANAGER),
 
 // 创建申领物
 app.post('/api/manager/shop/items', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
-    const { title, description, prices, isGlobal } = req.body;
+    const { title, description, prices, isGlobal, showToAgents } = req.body;
 
     if (!title || !title.trim()) {
         return res.status(400).json({ success: false, message: '请填写物品标题' });
@@ -4809,10 +5156,12 @@ app.post('/api/manager/shop/items', authenticateToken, requireRole(ROLE.MANAGER)
 
     // 只有超管可以创建全局物品
     const global = (isGlobal && req.user.role >= ROLE.SUPER_ADMIN) ? 1 : 0;
+    // showToAgents默认为1（对特工展示）
+    const showAgents = showToAgents === false ? 0 : 1;
     const now = Date.now();
 
-    db.run(`INSERT INTO shop_items (title, description, created_by, is_global, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)`,
-        [title.trim(), description || '', req.user.userId, global, now, now],
+    db.run(`INSERT INTO shop_items (title, description, created_by, is_global, show_to_agents, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [title.trim(), description || '', req.user.userId, global, showAgents, now, now],
         function(err) {
             if (err) return res.status(500).json({ success: false, message: '创建失败' });
 
@@ -4839,7 +5188,7 @@ app.post('/api/manager/shop/items', authenticateToken, requireRole(ROLE.MANAGER)
 // 更新申领物
 app.put('/api/manager/shop/items/:id', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
     const itemId = req.params.id;
-    const { title, description, prices, isGlobal } = req.body;
+    const { title, description, prices, isGlobal, showToAgents } = req.body;
 
     db.get('SELECT * FROM shop_items WHERE id = ?', [itemId], (err, item) => {
         if (!item) return res.status(404).json({ success: false, message: '物品不存在' });
@@ -4850,10 +5199,11 @@ app.put('/api/manager/shop/items/:id', authenticateToken, requireRole(ROLE.MANAG
         }
 
         const global = (isGlobal && req.user.role >= ROLE.SUPER_ADMIN) ? 1 : 0;
+        const showAgents = showToAgents === false ? 0 : 1;
         const now = Date.now();
 
-        db.run('UPDATE shop_items SET title = ?, description = ?, is_global = ?, updated_at = ? WHERE id = ?',
-            [title.trim(), description || '', global, now, itemId],
+        db.run('UPDATE shop_items SET title = ?, description = ?, is_global = ?, show_to_agents = ?, updated_at = ? WHERE id = ?',
+            [title.trim(), description || '', global, showAgents, now, itemId],
             function(err) {
                 if (err) return res.status(500).json({ success: false });
 
@@ -4931,20 +5281,27 @@ app.get('/api/character/:charId/shop', authenticateToken, (req, res) => {
             const managerIds = (auths || []).map(a => a.manager_id);
 
             // 获取全局物品 + 管理该角色的经理创建的物品
+            // 显示条件：(show_to_agents=1) 或 (在character_visible_items中有授权记录)
             let query, params;
             if (managerIds.length > 0) {
                 const placeholders = managerIds.map(() => '?').join(',');
                 query = `SELECT si.*, u.name as creator_name FROM shop_items si
                          LEFT JOIN users u ON si.created_by = u.id
-                         WHERE si.is_active = 1 AND (si.is_global = 1 OR si.created_by IN (${placeholders}))
+                         LEFT JOIN character_visible_items cvi ON si.id = cvi.item_id AND cvi.character_id = ?
+                         WHERE si.is_active = 1
+                         AND (si.show_to_agents = 1 OR cvi.id IS NOT NULL)
+                         AND (si.is_global = 1 OR si.created_by IN (${placeholders}))
                          ORDER BY si.is_global DESC, si.created_at DESC`;
-                params = managerIds;
+                params = [charId, ...managerIds];
             } else {
                 query = `SELECT si.*, u.name as creator_name FROM shop_items si
                          LEFT JOIN users u ON si.created_by = u.id
-                         WHERE si.is_active = 1 AND si.is_global = 1
+                         LEFT JOIN character_visible_items cvi ON si.id = cvi.item_id AND cvi.character_id = ?
+                         WHERE si.is_active = 1
+                         AND (si.show_to_agents = 1 OR cvi.id IS NOT NULL)
+                         AND si.is_global = 1
                          ORDER BY si.created_at DESC`;
-                params = [];
+                params = [charId];
             }
 
             db.all(query, params, (err, items) => {
