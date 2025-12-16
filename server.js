@@ -1589,7 +1589,8 @@ app.get('/api/character/:id/records', authenticateToken, (req, res) => {
 app.post('/api/character/:id/reward', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
     const charId = req.params.id;
     const { reason, count } = req.body;
-    const recordCount = Math.max(1, Math.min(99, parseInt(count) || 1));
+    const parsedCount = parseInt(count) || 1;
+    const recordCount = parsedCount === 0 ? 1 : Math.max(-99, Math.min(99, parsedCount));
 
     if (!reason || !reason.trim()) {
         return res.status(400).json({ success: false, message: '请填写嘉奖原因' });
@@ -1646,7 +1647,8 @@ app.post('/api/character/:id/reward', authenticateToken, requireRole(ROLE.MANAGE
 app.post('/api/character/:id/reprimand', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
     const charId = req.params.id;
     const { reason, count } = req.body;
-    const recordCount = Math.max(1, Math.min(99, parseInt(count) || 1));
+    const parsedCount = parseInt(count) || 1;
+    const recordCount = parsedCount === 0 ? 1 : Math.max(-99, Math.min(99, parsedCount));
 
     if (!reason || !reason.trim()) {
         return res.status(400).json({ success: false, message: '请填写申诫原因' });
@@ -3464,8 +3466,8 @@ app.post('/api/manager/mission/:id/report/:reportId/send-with-rewards', authenti
 
             // 构建个人奖惩预览
             let personalRewards = [];
-            if (rewards.commend > 0) personalRewards.push(`嘉奖 +${rewards.commend}`);
-            if (rewards.reprimand > 0) personalRewards.push(`申诫 +${rewards.reprimand}`);
+            if (rewards.commend !== 0) personalRewards.push(`嘉奖 ${rewards.commend > 0 ? '+' : ''}${rewards.commend}`);
+            if (rewards.reprimand !== 0) personalRewards.push(`申诫 ${rewards.reprimand > 0 ? '+' : ''}${rewards.reprimand}`);
             if (rewards.mvp) personalRewards.push(`获得 MVP`);
             if (rewards.probation) personalRewards.push(`进入查看期`);
 
@@ -3571,8 +3573,8 @@ app.post('/api/character/:charId/appeal-rating/:reportId', authenticateToken, as
             // 获取该特工的待结算奖惩
             const pendingRewards = JSON.parse(response.pending_rewards || '{}');
             let rewardPreview = [];
-            if (pendingRewards.commend > 0) rewardPreview.push(`嘉奖 +${pendingRewards.commend}`);
-            if (pendingRewards.reprimand > 0) rewardPreview.push(`申诫 +${pendingRewards.reprimand}`);
+            if (pendingRewards.commend !== 0) rewardPreview.push(`嘉奖 ${pendingRewards.commend > 0 ? '+' : ''}${pendingRewards.commend}`);
+            if (pendingRewards.reprimand !== 0) rewardPreview.push(`申诫 ${pendingRewards.reprimand > 0 ? '+' : ''}${pendingRewards.reprimand}`);
             if (pendingRewards.mvp) rewardPreview.push(`获得 MVP`);
             if (pendingRewards.probation) rewardPreview.push(`进入查看期`);
 
@@ -3753,8 +3755,8 @@ app.post('/api/character/:charId/accept-rating/:reportId', authenticateToken, as
 
                     // 发送最终结算通知
                     let rewardMsg = [];
-                    if (rewards.commend > 0) rewardMsg.push(`嘉奖 +${rewards.commend}`);
-                    if (rewards.reprimand > 0) rewardMsg.push(`申诫 +${rewards.reprimand}`);
+                    if (rewards.commend !== 0) rewardMsg.push(`嘉奖 ${rewards.commend > 0 ? '+' : ''}${rewards.commend}`);
+                    if (rewards.reprimand !== 0) rewardMsg.push(`申诫 ${rewards.reprimand > 0 ? '+' : ''}${rewards.reprimand}`);
                     if (rewards.mvp) rewardMsg.push(`获得MVP`);
                     if (rewards.probation) rewardMsg.push(`进入查看期`);
 
@@ -3937,8 +3939,8 @@ app.post('/api/manager/mission/:id/report/:reportId/finalize', authenticateToken
 
                     // 发送最终结算通知
                     let rewardMsg = [];
-                    if (rewards.commend > 0) rewardMsg.push(`嘉奖 +${rewards.commend}`);
-                    if (rewards.reprimand > 0) rewardMsg.push(`申诫 +${rewards.reprimand}`);
+                    if (rewards.commend !== 0) rewardMsg.push(`嘉奖 ${rewards.commend > 0 ? '+' : ''}${rewards.commend}`);
+                    if (rewards.reprimand !== 0) rewardMsg.push(`申诫 ${rewards.reprimand > 0 ? '+' : ''}${rewards.reprimand}`);
                     if (rewards.mvp) rewardMsg.push(`获得MVP`);
                     if (rewards.probation) rewardMsg.push(`进入查看期`);
 
@@ -5029,56 +5031,27 @@ app.post('/api/character/:charId/shop/purchase', authenticateToken, (req, res) =
                 return res.status(400).json({ success: false, message: `${currencyName}不足，需要 ${price.price_cost} ${currencyName}，当前只有 ${available} ${currencyName}` });
             }
 
-            // 扣除货币
-            let remaining = price.price_cost;
+            // 扣除货币 - 通过添加负数记录的方式
+            const purchaseRecord = {
+                id: Date.now().toString(),
+                reason: `商店购买「${price.item_title}」- ${price.price_name}`,
+                count: -price.price_cost, // 负数表示扣除
+                date: Date.now(),
+                addedByName: '商店系统'
+            };
 
             if (currencyType === 'reprimand') {
-                // 从 reprimands 数组扣
-                if (Array.isArray(charData.reprimands)) {
-                    const newReprimands = [];
-                    for (const r of charData.reprimands) {
-                        if (remaining <= 0) {
-                            newReprimands.push(r);
-                            continue;
-                        }
-                        const count = r.count || 1;
-                        if (count <= remaining) {
-                            remaining -= count;
-                        } else {
-                            r.count = count - remaining;
-                            remaining = 0;
-                            newReprimands.push(r);
-                        }
-                    }
-                    charData.reprimands = newReprimands;
-                }
+                // 添加负数申诫记录
+                if (!Array.isArray(charData.reprimands)) charData.reprimands = [];
+                charData.reprimands.push(purchaseRecord);
+                // 更新申诫总计
+                charData.watchCount = charData.reprimands.reduce((sum, r) => sum + (r.count || 1), 0);
             } else {
-                // 先从 commendations 数值扣
-                if (charData.commendations && charData.commendations > 0) {
-                    const deduct = Math.min(charData.commendations, remaining);
-                    charData.commendations -= deduct;
-                    remaining -= deduct;
-                }
-
-                // 再从 rewards 数组扣
-                if (remaining > 0 && Array.isArray(charData.rewards)) {
-                    const newRewards = [];
-                    for (const r of charData.rewards) {
-                        if (remaining <= 0) {
-                            newRewards.push(r);
-                            continue;
-                        }
-                        const count = r.count || 1;
-                        if (count <= remaining) {
-                            remaining -= count;
-                        } else {
-                            r.count = count - remaining;
-                            remaining = 0;
-                            newRewards.push(r);
-                        }
-                    }
-                    charData.rewards = newRewards;
-                }
+                // 添加负数嘉奖记录
+                if (!Array.isArray(charData.rewards)) charData.rewards = [];
+                charData.rewards.push(purchaseRecord);
+                // 更新嘉奖总计
+                charData.mvpCount = charData.rewards.reduce((sum, r) => sum + (r.count || 1), 0);
             }
 
             // 获取物品详细信息用于添加到角色物品列表

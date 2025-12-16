@@ -4622,7 +4622,7 @@ async function showRecordHistory(type) {
                 year: 'numeric', month: '2-digit', day: '2-digit',
                 hour: '2-digit', minute: '2-digit'
             }) : '未知时间';
-            const countBadge = (r.count && r.count > 1)
+            const countBadge = (r.count && (r.count > 1 || r.count < 0))
                 ? `<span class="record-count-badge ${type === 'reprimand' ? 'reprimand' : ''}">x${r.count}</span>`
                 : '';
             return `
