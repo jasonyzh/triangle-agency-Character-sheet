@@ -3031,10 +3031,11 @@ async function recordWrenchModeChanges(changes) {
 // 自动保存相关
 let autoSaveTimer = null;
 let isPopulating = false; // 数据加载中标志，防止加载时触发保存
+let dataLoaded = false; // 数据是否已成功加载，防止在数据加载前保存空数据
 const AUTO_SAVE_DELAY = 500; // 500ms 延迟，更实时的保存体验
 
 function triggerAutoSave() {
-    if (isReadOnly || isPopulating || isTrackCustomMode) return; // 扳手模式下不自动保存
+    if (isReadOnly || isPopulating || isTrackCustomMode || !dataLoaded) return; // 数据未加载完成不保存
     if (autoSaveTimer) clearTimeout(autoSaveTimer);
     autoSaveTimer = setTimeout(() => {
         saveData(true); // silent save
@@ -3043,7 +3044,7 @@ function triggerAutoSave() {
 
 // 立即保存（不延迟）
 function saveImmediately() {
-    if (isReadOnly || isPopulating || isTrackCustomMode) return; // 扳手模式下不立即保存
+    if (isReadOnly || isPopulating || isTrackCustomMode || !dataLoaded) return; // 数据未加载完成不保存
     if (autoSaveTimer) clearTimeout(autoSaveTimer);
     saveData(true);
 }
@@ -5121,6 +5122,7 @@ function populateData(d){
     }
 
     isPopulating = false; // 数据加载完成，允许自动保存
+    dataLoaded = true; // 标记数据已成功加载
 }
 function gatherData(){
     const d={
@@ -5182,6 +5184,10 @@ function showToast(msg, type='success') {
 }
 async function saveData(silent=false){
     if(isReadOnly) return;
+    if(!dataLoaded) {
+        console.warn('数据尚未加载完成，跳过保存');
+        return;
+    }
     const d = gatherData();
     const res = await fetch(`/api/character/${charId}`, {
         method: 'PUT',
