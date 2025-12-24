@@ -272,6 +272,15 @@
         background: #f39c12;
         color: white;
     }
+    .optional-tasks-list {
+        margin: 6px 0 0 20px;
+        padding: 0;
+        font-size: 12px;
+        color: rgba(255,255,255,0.8);
+    }
+    .optional-tasks-list li {
+        margin-bottom: 4px;
+    }
     .manager-tag {
         background: rgba(243, 156, 18, 0.2);
         color: #f39c12;
@@ -366,7 +375,7 @@
     .offline-mode .offline-tag { display: inline-block; }
     .offline-mode .btn-back, .offline-mode .btn-save-server { display: none; }
     body.readonly-mode .readonly-tag { display: inline-block; background: var(--signal-red); color: white; }
-    body.readonly-mode .btn-save, body.readonly-mode .btn-add, body.readonly-mode .btn-del, body.readonly-mode .save-area { display: none !important; }
+    body.readonly-mode .btn-save, body.readonly-mode .btn-add, body.readonly-mode .btn-add-note, body.readonly-mode .btn-remove-note, body.readonly-mode .btn-del, body.readonly-mode .save-area, body.readonly-mode .perm-counter button { display: none !important; }
     body.readonly-mode input, body.readonly-mode textarea, body.readonly-mode .rich-editor, body.readonly-mode select { pointer-events: none; background: transparent; border-color: transparent; color: #555; -webkit-appearance: none; appearance: none; }
     body.readonly-mode .attr-btn { display: none !important; }
     
@@ -394,9 +403,34 @@
     .rich-editor:empty:before { content: attr(placeholder); color: #bdc3c7; font-style: italic; }
     .small-input { width: 45px !important; padding: 5px !important; text-align: center; flex-shrink: 0; margin: 0 5px; }
     .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-    .perm-group input { margin-bottom: 8px; }
+    .perm-group input { margin-bottom: 8px; flex: 1; }
+    .perm-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .perm-counter { display: flex; align-items: center; gap: 0; flex-shrink: 0; }
+    .perm-counter button { width: 22px; height: 22px; border: 1px solid #333; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #333; font-size: 14px; font-weight: bold; transition: all 0.2s; }
+    .perm-counter button:hover { background: #333; color: #fff; }
+    .perm-counter button.perm-minus { border-radius: 4px 0 0 4px; border-right: none; }
+    .perm-counter button.perm-plus { border-radius: 0 4px 4px 0; border-left: none; }
+    .perm-counter .perm-value { width: 28px; height: 22px; border: 1px solid #333; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; color: #333; cursor: pointer; }
+    .perm-counter .perm-value:hover { background: #f0f0f0; }
     .perm-note { background: #f0f2f5; padding: 10px; border-radius: 4px; font-size: 12px; color: #666; margin-top: 10px; border-left: 3px solid #ccc; }
-    
+    /* 崩溃进度槽位 */
+    .collapse-slots { display: flex; gap: 6px; margin: 8px 0; }
+    .collapse-slot { width: 20px; height: 20px; border: 2px solid #999; border-radius: 3px; cursor: pointer; transition: all 0.2s; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; color: transparent; }
+    .collapse-slot:hover { border-color: #E06B56; }
+    .collapse-slot.filled { color: #E06B56; }
+    .collapse-slot.filled::after { content: '✕'; }
+
+    /* 多条笔记样式 */
+    .btn-add-note { background: none; border: none; color: var(--signal-red); cursor: pointer; font-size: 14px; margin-left: 8px; padding: 2px 6px; transition: all 0.2s; }
+    .btn-add-note:hover { transform: scale(1.2); }
+    #notesContainer { display: flex; flex-direction: column; gap: 16px; }
+    .note-item { border: 1px solid #ddd; border-radius: 6px; padding: 12px; background: #fafafa; }
+    .note-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .note-header .note-title { flex: 1; font-weight: bold; border: 1px solid #ccc; border-radius: 4px; padding: 6px 10px; }
+    .btn-remove-note { background: none; border: none; color: #999; cursor: pointer; font-size: 14px; padding: 4px; transition: all 0.2s; }
+    .btn-remove-note:hover { color: var(--signal-red); }
+    .note-item .note-body { min-height: 60px; }
+
     /* 混合输入框（下拉/文本切换）样式修正 */
     .hybrid-input-wrapper { position: relative; display: flex; align-items: center; }
     .hybrid-input-wrapper input[type="text"] { display: none; }
@@ -413,16 +447,56 @@
     
     @media(min-width: 768px) { .char-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; margin-bottom: 20px; } .char-layout .panel { height: 100%; margin-bottom: 0; } }
     .attr-row { display: flex; align-items: center; margin-bottom: 12px; border-bottom: 1px dashed var(--border-color); padding-bottom: 8px; gap: 8px; }
+    .attr-row.tooltip-active { z-index: 9999 !important; }
+    .attr-row.tooltip-active .attr-help { z-index: 10 !important; }
+    .panel.tooltip-panel-active { overflow: visible !important; z-index: 100 !important; }
     .attr-label { flex: 0 0 50px; background: #333; color: white; text-align: center; border-radius: 3px; font-size: 10px; padding: 4px 0; font-weight: bold; }
+    .attr-help {
+        width: 16px; height: 16px; border-radius: 50%; background: #95a5a6; color: white;
+        font-size: 10px; display: flex; align-items: center; justify-content: center;
+        cursor: pointer; flex-shrink: 0; position: relative; font-weight: bold;
+        transition: background 0.2s; z-index: 1;
+    }
+    .attr-help:hover, .attr-help:focus { background: var(--accent); z-index: 9999; }
+    .attr-tooltip {
+        position: absolute; left: 24px; top: 50%; transform: translateY(-50%);
+        background: #2c3e50; color: white; padding: 10px 12px; border-radius: 6px;
+        font-size: 11px; line-height: 1.5; white-space: nowrap; z-index: 9999;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3); opacity: 0; visibility: hidden;
+        transition: opacity 0.2s, visibility 0.2s; pointer-events: none;
+    }
+    .attr-tooltip::before {
+        content: ''; position: absolute; left: -6px; top: 50%; transform: translateY(-50%);
+        border: 6px solid transparent; border-right-color: #2c3e50; border-left: none;
+    }
+    .attr-help:hover .attr-tooltip, .attr-tooltip.show { opacity: 1; visibility: visible; }
+    .attr-tooltip .tooltip-title { font-weight: bold; margin-bottom: 6px; font-size: 12px; color: #f39c12; }
+    .attr-tooltip .tooltip-en { font-size: 10px; color: #95a5a6; margin-bottom: 8px; }
+    .attr-tooltip ul { margin: 0; padding-left: 14px; }
+    .attr-tooltip li { margin-bottom: 3px; }
+    @media (max-width: 600px) {
+        .attr-tooltip {
+            position: absolute; left: 0 !important; right: auto !important; top: 100% !important;
+            transform: none; white-space: normal; margin-top: 4px;
+            width: calc(100vw - 60px); max-width: 320px; min-width: 200px; text-align: left;
+        }
+        .attr-tooltip::before { display: none; }
+        .attr-row { position: relative; }
+    }
     .attr-input { flex: 0 0 50px; text-align: center; font-weight: bold; padding: 4px; background: white; border: 1px solid #ccc; color: var(--signal-red); font-size: 12px; }
     .attr-btn { width: 18px; height: 18px; border: 1px solid #bdc3c7; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0; background: #f8f9fa; color: #555; }
     .attr-btn:hover { background: #e9ecef; border-color: #adb5bd; color: #333; }
     .attr-btn:active { transform: scale(0.95); background: #dee2e6; }
     .attr-dots-container { flex: 1; display: flex; justify-content: center; }
-    .attr-dots { display: flex; gap: 4px; }
-    .dot { width: 16px; height: 16px; border: 1px solid #bdc3c7; border-radius: 50%; cursor: pointer; flex-shrink: 0; transition: all 0.2s; background: #fff; }
-    .dot.active { background: #333; border-color: #333; }
-    .dot.marked { background: var(--signal-red); border-color: var(--signal-red); }
+    .attr-dots { display: flex; gap: 0; align-items: center; }
+    .attr-dots .dot { width: 0; height: 0; cursor: pointer; flex-shrink: 0; transition: all 0.2s; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 14px solid #ddd; margin: 0 2px; }
+    .attr-dots .dot.up { border-top: none; border-bottom: 14px solid #ddd; }
+    .attr-dots .dot.active { border-top-color: var(--signal-red); }
+    .attr-dots .dot.up.active { border-top-color: transparent; border-bottom-color: var(--signal-red); }
+    .attr-dots .dot.marked { border-top-color: #333; }
+    .attr-dots .dot.up.marked { border-top-color: transparent; border-bottom-color: #333; }
+    .r-dots .dot { width: 16px; height: 16px; border: 1px solid #bdc3c7; border-radius: 50%; cursor: pointer; flex-shrink: 0; transition: all 0.2s; background: #fff; }
+    .r-dots .dot.active { background: #333; border-color: #333; }
     .track-header { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; align-items: end; }
     .track-stat { display: flex; flex-direction: column; align-items: center; width: 100%; }
     .track-stat label { margin: 0 0 6px; font-size: 10px; text-align: center; color: var(--text-dim); white-space: nowrap; }
@@ -608,6 +682,224 @@
     .mail-time { font-size: 10px; color: #bdc3c7; margin-top: 8px; }
     .mail-empty { text-align: center; padding: 40px; color: #95a5a6; }
     .mail-empty i { font-size: 48px; margin-bottom: 15px; opacity: 0.5; }
+
+    /* === Siphon商店按钮（类似收件箱展开效果） === */
+    .siphon-expandable-btn {
+        position: relative;
+        font-size: 16px;
+        color: #9b59b6;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        gap: 0;
+        padding: 6px 10px;
+        border-radius: 20px;
+        background: rgba(155, 89, 182, 0.1);
+        overflow: hidden;
+        max-width: 38px;
+        margin-right: 8px;
+    }
+    .siphon-expandable-btn .btn-icon {
+        flex-shrink: 0;
+        width: 18px;
+        text-align: center;
+    }
+    .siphon-expandable-btn .btn-content {
+        max-width: 0;
+        opacity: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        font-size: 12px;
+        font-weight: bold;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        color: #9b59b6;
+    }
+    .siphon-expandable-btn:hover {
+        color: white;
+        background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        max-width: 150px;
+        box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4);
+    }
+    .siphon-expandable-btn:hover .btn-content {
+        max-width: 100px;
+        opacity: 1;
+        margin-left: 6px;
+        color: white;
+    }
+
+    /* === Siphon商店全屏模态框 === */
+    .zephyr-modal-header, .zephyr-modal-body {
+        opacity: 0;
+        transform: translateY(30px) scale(0.98);
+        transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    .full-page-modal.active .zephyr-modal-header,
+    .full-page-modal.active .zephyr-modal-body {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        transition:
+            opacity 0.4s ease 0.3s,
+            transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s;
+    }
+    .zephyr-modal-header {
+        background: linear-gradient(135deg, #2c2042 0%, #1a1030 100%);
+        padding: 15px 20px;
+        display: flex; justify-content: space-between; align-items: center;
+        border-bottom: 3px solid #9b59b6;
+        color: white;
+        flex-shrink: 0;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .zephyr-modal-header h2 {
+        margin: 0; border: none; padding: 0; color: white;
+        font-family: "Roboto Mono", monospace;
+        letter-spacing: 1px;
+    }
+    .zephyr-currency-display {
+        display: flex; gap: 15px; margin-left: auto; margin-right: 20px;
+    }
+    .zephyr-currency-display .currency-badge {
+        display: flex; align-items: center; gap: 5px;
+        background: rgba(155, 89, 182, 0.2);
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        color: #bb8fce;
+    }
+    .btn-close-zephyr {
+        background: none; border: none; color: rgba(255,255,255,0.5);
+        font-size: 24px; cursor: pointer; transition: 0.3s;
+    }
+    .btn-close-zephyr:hover {
+        color: #9b59b6;
+        text-shadow: 0 0 10px #9b59b6;
+        transform: rotate(90deg) scale(1.1);
+    }
+    .zephyr-modal-body {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        background: linear-gradient(180deg, #1a1030 0%, #0f172a 100%);
+    }
+    .zephyr-items-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 15px;
+        max-width: 1200px;
+        margin: 0 auto;
+        width: 100%;
+    }
+    .zephyr-item-card {
+        background: linear-gradient(135deg, #2c2042, #1a1030);
+        border: 1px solid rgba(155, 89, 182, 0.3);
+        border-radius: 10px;
+        padding: 15px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .zephyr-item-card:hover {
+        transform: translateY(-3px);
+        border-color: #9b59b6;
+        box-shadow: 0 8px 25px rgba(155, 89, 182, 0.3);
+    }
+    .zephyr-item-title {
+        font-weight: bold;
+        color: #bb8fce;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+    .zephyr-item-desc {
+        font-size: 12px;
+        color: rgba(255,255,255,0.6);
+        margin-bottom: 10px;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .zephyr-price-options { display: flex; flex-wrap: wrap; gap: 8px; }
+    .zephyr-price-btn {
+        background: rgba(155, 89, 182, 0.2);
+        border: 1px solid rgba(155, 89, 182, 0.5);
+        border-radius: 6px;
+        padding: 6px 10px;
+        font-size: 11px;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: #bb8fce;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+    }
+    .zephyr-price-btn:hover:not(.disabled) {
+        background: rgba(155, 89, 182, 0.4);
+        border-color: #9b59b6;
+    }
+    .zephyr-price-btn.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    .zephyr-price-btn .price-name { font-weight: bold; }
+    .zephyr-price-btn .price-cost { color: #f39c12; }
+    .zephyr-price-btn .price-usage { font-size: 10px; color: rgba(255,255,255,0.5); }
+    .zephyr-empty {
+        text-align: center;
+        padding: 60px;
+        color: rgba(155, 89, 182, 0.6);
+        grid-column: 1 / -1;
+    }
+    .zephyr-empty i { font-size: 48px; margin-bottom: 15px; opacity: 0.5; }
+
+    /* Siphon商店详情弹窗紫色主题 */
+    .zephyr-detail .shop-detail-header.zephyr-header {
+        background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    }
+    .zephyr-detail .shop-detail-price-btn {
+        background: rgba(155, 89, 182, 0.1);
+        border-color: rgba(155, 89, 182, 0.3);
+    }
+    .zephyr-detail .shop-detail-price-btn:hover:not(.disabled) {
+        background: rgba(155, 89, 182, 0.2);
+        border-color: #9b59b6;
+    }
+    .zephyr-detail .shop-detail-price-cost {
+        color: #9b59b6;
+    }
+
+    /* === 进度追踪自定义编辑模式按钮 === */
+    .btn-track-custom {
+        background: rgba(52, 152, 219, 0.1);
+        border: 1px solid rgba(52, 152, 219, 0.3);
+        color: #3498db;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-left: 10px;
+        vertical-align: middle;
+    }
+    .btn-track-custom:hover {
+        background: rgba(52, 152, 219, 0.2);
+        border-color: #3498db;
+        transform: scale(1.05);
+    }
+    .btn-track-custom.active {
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: white;
+        border-color: transparent;
+        box-shadow: 0 2px 10px rgba(52, 152, 219, 0.4);
+    }
+    .btn-track-custom.active:hover {
+        background: linear-gradient(135deg, #2980b9, #1f6dad);
+        box-shadow: 0 4px 15px rgba(52, 152, 219, 0.5);
+    }
+
     /* 高墙文件夹样式 */
     .hw-folder { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
     .hw-file { background: linear-gradient(135deg, #2c3e50, #34495e); border-radius: 8px; padding: 20px 15px; text-align: center; cursor: pointer; transition: all 0.3s; color: white; }
@@ -1561,6 +1853,181 @@
     margin-bottom: 20px;
     font-size: 13px;
 }
+
+/* 申领物详情弹窗 */
+.shop-detail-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(3px);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+.shop-detail-modal.show {
+    display: flex;
+}
+.shop-detail-box {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 450px;
+    max-height: 80vh;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: shopDetailSlideIn 0.3s ease;
+}
+@keyframes shopDetailSlideIn {
+    from { opacity: 0; transform: scale(0.9) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.shop-detail-header {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    color: white;
+    padding: 18px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.shop-detail-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+}
+.shop-detail-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 22px;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: all 0.2s;
+}
+.shop-detail-close:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+.shop-detail-body {
+    padding: 20px;
+    overflow-y: auto;
+    max-height: calc(80vh - 130px);
+}
+.shop-detail-section {
+    margin-bottom: 20px;
+}
+.shop-detail-section:last-child {
+    margin-bottom: 0;
+}
+.shop-detail-section h4 {
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+.shop-detail-desc {
+    font-size: 14px;
+    color: #444;
+    line-height: 1.7;
+    white-space: pre-wrap;
+}
+.shop-detail-prices {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.shop-detail-price-btn {
+    background: white;
+    border: 2px solid #f39c12;
+    color: #e67e22;
+    padding: 12px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.shop-detail-price-btn:hover {
+    background: #fff3cd;
+    transform: translateX(5px);
+}
+.shop-detail-price-btn.disabled {
+    border-color: #ccc;
+    color: #999;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+.shop-detail-price-btn.disabled:hover {
+    background: white;
+    transform: none;
+}
+.shop-detail-price-info {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+.shop-detail-price-name {
+    font-weight: bold;
+}
+.shop-detail-price-usage {
+    font-size: 10px;
+    color: #888;
+    margin-top: 2px;
+}
+.shop-detail-price-cost {
+    font-weight: bold;
+    font-size: 14px;
+}
+.shop-detail-footer {
+    padding: 15px 20px;
+    background: #f8f9fa;
+    border-top: 1px solid #eee;
+    text-align: center;
+}
+.shop-detail-footer button {
+    padding: 10px 30px;
+    background: #ecf0f1;
+    border: none;
+    border-radius: 6px;
+    color: #555;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.shop-detail-footer button:hover {
+    background: #dfe6e9;
+}
+
+/* 使商店卡片可点击 */
+.shop-item-card {
+    cursor: pointer;
+    position: relative;
+}
+.shop-item-card::after {
+    content: '';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    content: '\f06e';
+    font-size: 12px;
+    color: #bbb;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+.shop-item-card:hover::after {
+    opacity: 1;
+}
+.shop-item-card:hover {
+    border-color: #f39c12;
+}
 </style>
 </head>
 <body>
@@ -1598,25 +2065,45 @@
 <label>机构职能</label><div class="hybrid-input-wrapper" id="grp-pFunc"><select id="sel-pFunc" onchange="handlePresetChange('pFunc', this.value)"></select><input type="text" id="pFunc" placeholder="输入机构职能"><button class="btn-reset-list" onclick="resetToDropdown('pFunc')"><i class="fas fa-list"></i></button></div>
 <label>现实触发器</label><div class="rich-editor" id="pTrig1" contenteditable="true" placeholder="GM可随时触发此项"></div>
 <label>过载解除</label><div class="rich-editor" id="pTrig2" contenteditable="true" placeholder="如何解除过载"></div>
+<div class="collapse-slots">
+    <span class="collapse-slot" data-idx="1" onclick="toggleCollapseSlot(this)"></span>
+    <span class="collapse-slot" data-idx="2" onclick="toggleCollapseSlot(this)"></span>
+    <span class="collapse-slot" data-idx="3" onclick="toggleCollapseSlot(this)"></span>
+    <span class="collapse-slot" data-idx="4" onclick="toggleCollapseSlot(this)"></span>
+</div>
 <label>首要指令</label><div class="rich-editor" id="pTrig3" contenteditable="true" placeholder="如果你……，则获得1点申诫"></div>
-<label>许可行为</label><div class="perm-group"><input type="text" id="perm1" placeholder="许可行为 1"><input type="text" id="perm2" placeholder="许可行为 2"><input type="text" id="perm3" placeholder="许可行为 3"></div>
+<label>许可行为</label><div class="perm-group">
+    <div class="perm-item"><input type="text" id="perm1" placeholder="许可行为 1"><div class="perm-counter" data-idx="1"><button class="perm-minus" onclick="adjustPermCount(this, -1)">−</button><span class="perm-value" onclick="adjustPermCount(this, 1)">0</span><button class="perm-plus" onclick="adjustPermCount(this, 1)">+</button></div></div>
+    <div class="perm-item"><input type="text" id="perm2" placeholder="许可行为 2"><div class="perm-counter" data-idx="2"><button class="perm-minus" onclick="adjustPermCount(this, -1)">−</button><span class="perm-value" onclick="adjustPermCount(this, 1)">0</span><button class="perm-plus" onclick="adjustPermCount(this, 1)">+</button></div></div>
+    <div class="perm-item"><input type="text" id="perm3" placeholder="许可行为 3"><div class="perm-counter" data-idx="3"><button class="perm-minus" onclick="adjustPermCount(this, -1)">−</button><span class="perm-value" onclick="adjustPermCount(this, 1)">0</span><button class="perm-plus" onclick="adjustPermCount(this, 1)">+</button></div></div>
+</div>
 <div class="perm-note">如果你在单次任务中完成全部 3 项，将获得 3 点额外嘉奖。</div>
 </div>
 </div>
-<div class="panel">
-<h2><i class="fas fa-chart-bar"></i> 进度追踪</h2>
+<div class="panel" id="track-panel">
+<h2><i class="fas fa-chart-bar"></i> 进度追踪 <button id="trackCustomEditBtn" class="btn-track-custom" onclick="toggleTrackCustomMode()" title="自定义编辑模式"><i class="fas fa-wrench"></i></button></h2>
 <div class="track-header">
-<div class="track-stat"><label>MVP</label><input type="text" id="pComm" placeholder="0" readonly></div>
+<div class="track-stat clickable-stat" onclick="showRecordHistory('mvp')"><label>MVP</label><input type="text" id="pComm" placeholder="0" readonly></div>
 <div class="track-stat clickable-stat" onclick="showRecordHistory('reward')"><label>嘉奖</label><input type="text" id="mvpCount" placeholder="0" readonly></div>
 <div class="track-stat clickable-stat" onclick="showRecordHistory('reprimand')"><label>申诫</label><input type="text" id="watchCount" placeholder="0" readonly></div>
-<div class="track-stat"><label>察看期</label><input type="text" id="pRep" placeholder="0" readonly></div>
+<div class="track-stat clickable-stat" onclick="showRecordHistory('probation')"><label>察看期</label><input type="text" id="pRep" placeholder="0" readonly></div>
 </div>
 <div class="track-sec"><h3 class="c-func" style="font-size:12px; margin:5px 0;">职能</h3><div class="track-row"><div class="p-grid"><div class="p-cell f-cell" data-idx="1"></div><div class="p-cell f-cell" data-idx="2"></div><div class="p-cell f-cell" data-idx="3"><span>A3</span></div><div class="p-cell f-cell" data-idx="4"></div><div class="p-cell f-cell" data-idx="5"></div><div class="p-cell f-cell" data-idx="6"><span>D4</span></div><div class="p-cell f-cell" data-idx="7"></div><div class="p-cell f-cell" data-idx="8"></div><div class="p-cell f-cell" data-idx="9"><span>G3</span></div><div class="p-cell f-cell" data-idx="10"></div></div><div class="p-grid"><div class="p-cell f-cell" data-idx="11"></div><div class="p-cell f-cell" data-idx="12"><span>J3</span></div><div class="p-cell f-cell" data-idx="13"></div><div class="p-cell f-cell" data-idx="14"></div><div class="p-cell f-cell" data-idx="15"><span>N3</span></div><div class="p-cell f-cell" data-idx="16"></div><div class="p-cell f-cell" data-idx="17"></div><div class="p-cell f-cell" data-idx="18"><span>Q3</span></div><div class="p-cell f-cell" data-idx="19"></div><div class="p-cell f-cell" data-idx="20"></div></div><div class="p-grid"><div class="p-cell f-cell" data-idx="21"><span>T3</span></div><div class="p-cell f-cell" data-idx="22"></div><div class="p-cell f-cell" data-idx="23"></div><div class="p-cell f-cell" data-idx="24"><span>W8</span></div><div class="p-cell f-cell" data-idx="25"></div><div class="p-cell f-cell" data-idx="26"></div><div class="p-cell f-cell" data-idx="27"><span>Y2</span></div><div class="p-cell f-cell" data-idx="28"></div><div class="p-cell f-cell" data-idx="29"></div><div class="p-cell f-cell" data-idx="30"></div></div></div><div class="track-rule">当你获得任务MVP时，在你的职能记录条上标记1格，且无需从其他记录条上移除一格。</div><div class="track-rule">每当你在职能记录条上标记一格时，将任意一项资质的"资质保证上限"提升1点，最高不超过9点。</div></div>
 <div class="track-sec"><h3 class="c-real" style="font-size:12px; margin:5px 0;">现实</h3><div class="track-row"><div class="p-grid"><div class="p-cell r-cell" data-idx="1"><span>C4</span></div><div class="p-cell r-cell" data-idx="2"></div><div class="p-cell r-cell" data-idx="3"></div><div class="p-cell r-cell" data-idx="4"><span>L11</span></div><div class="p-cell r-cell" data-idx="5"></div><div class="p-cell r-cell" data-idx="6"></div><div class="p-cell r-cell" data-idx="7"></div><div class="p-cell r-cell" data-idx="8"><span>E2</span></div><div class="p-cell r-cell" data-idx="9"></div><div class="p-cell r-cell" data-idx="10"><span>O4</span></div></div><div class="p-grid"><div class="p-cell r-cell" data-idx="11"></div><div class="p-cell r-cell" data-idx="12"><span>J3</span></div><div class="p-cell r-cell" data-idx="13"></div><div class="p-cell r-cell" data-idx="14"><span>T6</span></div><div class="p-cell r-cell" data-idx="15"></div><div class="p-cell r-cell" data-idx="16"><span>V2</span></div><div class="p-cell r-cell" data-idx="17"></div><div class="p-cell r-cell" data-idx="18"></div><div class="p-cell r-cell" data-idx="19"></div><div class="p-cell r-cell" data-idx="20"><span>X3</span></div></div><div class="p-grid"><div class="p-cell r-cell" data-idx="21"></div><div class="p-cell r-cell" data-idx="22"><span>H5</span></div><div class="p-cell r-cell" data-idx="23"></div><div class="p-cell r-cell" data-idx="24"></div><div class="p-cell r-cell" data-idx="25"></div><div class="p-cell r-cell" data-idx="26"></div><div class="p-cell r-cell" data-idx="27"><span>E3</span></div><div class="p-cell r-cell" data-idx="28"></div><div class="p-cell r-cell" data-idx="29"></div><div class="p-cell r-cell" data-idx="30"></div></div></div><div class="track-rule">当你既未获得任务MVP也未进入察看期时，你可以将你与任意一段关系的连结提升1点。</div><div class="track-rule">每当你在现实记录条上标记一格时，将你与任意一段"关系"的"连结"提升1点，然后对关系网内的每段关系重复此操作。</div></div>
 <div class="track-sec"><h3 class="c-anom" style="font-size:12px; margin:5px 0;">异常</h3><div class="track-row"><div class="p-grid"><div class="p-cell a-cell" data-idx="1"><span>H4</span></div><div class="p-cell a-cell" data-idx="2"><span>H3</span></div><div class="p-cell a-cell" data-idx="3"></div><div class="p-cell a-cell" data-idx="4"></div><div class="p-cell a-cell" data-idx="5"><span>U2</span></div><div class="p-cell a-cell" data-idx="6"></div><div class="p-cell a-cell" data-idx="7"><span>X2</span></div><div class="p-cell a-cell" data-idx="8"></div><div class="p-cell a-cell" data-idx="9"></div><div class="p-cell a-cell" data-idx="10"></div></div><div class="p-grid"><div class="p-cell a-cell" data-idx="11"><span>N1</span></div><div class="p-cell a-cell" data-idx="12"></div><div class="p-cell a-cell" data-idx="13"><span>Q2</span></div><div class="p-cell a-cell" data-idx="14"></div><div class="p-cell a-cell" data-idx="15"></div><div class="p-cell a-cell" data-idx="16"></div><div class="p-cell a-cell" data-idx="17"><span>L10</span></div><div class="p-cell a-cell" data-idx="18"></div><div class="p-cell a-cell" data-idx="19"><span>G8</span></div><div class="p-cell a-cell" data-idx="20"></div></div><div class="p-grid"><div class="p-cell a-cell" data-idx="21"></div><div class="p-cell a-cell" data-idx="22"></div><div class="p-cell a-cell" data-idx="23"><span>A7</span></div><div class="p-cell a-cell" data-idx="24"></div><div class="p-cell a-cell" data-idx="25"></div><div class="p-cell a-cell" data-idx="26"></div><div class="p-cell a-cell" data-idx="27"></div><div class="p-cell a-cell" data-idx="28"></div><div class="p-cell a-cell" data-idx="29"></div><div class="p-cell a-cell" data-idx="30"></div></div></div><div class="track-rule">当你进入察看期时，在你的异常记录条上标记1格，且无需从其他记录条上移除一格。</div><div class="track-rule">每当你在异常记录条上标记一格时，选择一项：<br>➤练习：在任意一项异常能力上标记"熟练"。 <br>➤广为人知：从一项异常能力中移除"熟练"标记，并向你的团队提出该能力的问题。在获得最多票数的答案轨道上做标记，然后获得所有已解锁的能力。</div></div>
 </div>
 <div class="panel"><h2><i class="fas fa-file-contract"></i> 欢迎你，特工！</h2><div style="margin-bottom:12px;"><label>1. 你是如何与异常接触的？</label><div class="rich-editor" id="q1" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>2. 公司是如何找到你的？</label><div class="rich-editor" id="q2" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>3. 你的期望年薪是多少？</label><div class="rich-editor" id="q3" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>4. 你的外貌特征是什么？</label><div class="rich-editor" id="q4" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>5. 你的异常能力是否有独特的视觉表现？</label><div class="rich-editor" id="q5" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>6. 你喜欢什么样的咖啡？</label><div class="rich-editor" id="q6" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>7. 在你的人际关系中，谁是你的主要联络人，为什么？</label><div class="rich-editor" id="q7" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>8. 在协作工作环境里，你能为团队带来什么？</label><div class="rich-editor" id="q8" contenteditable="true"></div></div></div>
-<div class="panel"><h2><i class="fas fa-sticky-note"></i> 备注/笔记</h2><label>标题</label><input type="text" id="noteTitle" style="margin-bottom: 12px; font-weight: bold;"><label>内容</label><div class="rich-editor" id="noteBody" contenteditable="true" placeholder="摘要..."></div></div>
+<div class="panel"><h2><i class="fas fa-sticky-note"></i> 备注/笔记 <button class="btn-add-note" onclick="addNoteItem()"><i class="fas fa-plus"></i></button></h2>
+<div id="notesContainer">
+    <div class="note-item" data-idx="0">
+        <div class="note-header">
+            <input type="text" class="note-title" placeholder="标题">
+            <button class="btn-remove-note" onclick="removeNoteItem(this)" style="display:none;"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="rich-editor note-body" contenteditable="true" placeholder="内容..."></div>
+    </div>
+</div>
+</div>
 <div class="save-area">
 <button class="btn-save btn-save-server" onclick="saveData()"><i class="fas fa-cloud-upload-alt"></i> 上传终端</button>
 <button class="btn-save btn-export" onclick="exportOffline()"><i class="fas fa-download"></i> 离线另存</button>
@@ -1633,8 +2120,11 @@
     <div class="shop-view-header">
         <h2><i class="fas fa-store"></i> 申领物商店</h2>
         <div class="shop-currency-display">
+            <div id="siphonShopBtn" class="siphon-expandable-btn" onclick="toggleZephyrShop()" style="display:none;">
+                <span class="btn-icon"><i class="fas fa-wind"></i></span>
+                <span class="btn-content">Siphon商店</span>
+            </div>
             <div class="currency-badge commend"><i class="fas fa-award"></i> <span id="shopViewCommend">0</span> 嘉奖</div>
-            <div class="currency-badge reprimand"><i class="fas fa-exclamation-triangle"></i> <span id="shopViewReprimand">0</span> 申诫</div>
         </div>
     </div>
     <div id="shopItemsList" class="shop-items-list">
@@ -1752,6 +2242,47 @@
                 <div class="mail-empty">
                     <i class="fas fa-envelope-open"></i>
                     <p>加载中...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Siphon商店全屏模态框 -->
+<div id="zephyr-shop-modal" class="full-page-modal zephyr-modal">
+    <div class="zephyr-modal-header">
+        <h2><i class="fas fa-wind"></i> Siphon商店</h2>
+        <div class="zephyr-currency-display">
+            <div class="currency-badge reprimand"><i class="fas fa-exclamation-triangle"></i> <span id="zephyrReprimandCount">0</span> 申诫</div>
+        </div>
+        <button class="btn-close-zephyr" onclick="closeZephyrShop()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="zephyr-modal-body">
+        <div id="zephyrItemsList" class="zephyr-items-list">
+            <div class="zephyr-empty">
+                <i class="fas fa-wind"></i>
+                <p>加载中...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Siphon商店物品详情弹窗 -->
+<div id="zephyrDetailModal" class="shop-detail-modal zephyr-detail" onclick="if(event.target===this)closeZephyrDetail()">
+    <div class="shop-detail-box">
+        <div class="shop-detail-header zephyr-header">
+            <h3 id="zephyrDetailTitle">物品详情</h3>
+            <button class="shop-detail-close" onclick="closeZephyrDetail()">&times;</button>
+        </div>
+        <div class="shop-detail-body">
+            <div class="shop-detail-section">
+                <h4>物品描述</h4>
+                <div class="shop-detail-desc" id="zephyrDetailDesc">暂无描述</div>
+            </div>
+            <div class="shop-detail-section">
+                <h4>购买选项</h4>
+                <div class="shop-detail-prices" id="zephyrDetailPrices">
+                    <!-- 动态填充 -->
                 </div>
             </div>
         </div>
@@ -2265,13 +2796,246 @@ let missionInfo = { inMission: false, missions: [], managers: [] };
 // 职能进度嘉奖跟踪（本地记录，保存时合并到rewards数组）
 let funcProgressRewards = [];
 
+// 许可行为计数
+let permCounts = [0, 0, 0];
+
+function adjustPermCount(btn, delta) {
+    if (isReadOnly) return;
+    const counter = btn.closest('.perm-counter');
+    const idx = parseInt(counter.dataset.idx) - 1;
+    permCounts[idx] = Math.max(0, permCounts[idx] + delta);
+    counter.querySelector('.perm-value').textContent = permCounts[idx];
+    triggerAutoSave();
+}
+
+function loadPermCounts(counts) {
+    // 兼容旧数据：布尔值转换为数字
+    if (counts && typeof counts[0] === 'boolean') {
+        permCounts = counts.map(c => c ? 1 : 0);
+    } else {
+        permCounts = counts || [0, 0, 0];
+    }
+    document.querySelectorAll('.perm-counter').forEach(counter => {
+        const idx = parseInt(counter.dataset.idx) - 1;
+        counter.querySelector('.perm-value').textContent = permCounts[idx] || 0;
+    });
+}
+
+// 崩溃进度槽位
+let collapseProgress = 0;
+
+function toggleCollapseSlot(slot) {
+    const idx = parseInt(slot.dataset.idx);
+    // 依次勾选逻辑：点击当前最高位取消，点击下一位填充
+    if (idx === collapseProgress + 1) {
+        // 填充下一个
+        collapseProgress = idx;
+        slot.classList.add('filled');
+    } else if (idx === collapseProgress) {
+        // 取消当前最高位
+        collapseProgress = idx - 1;
+        slot.classList.remove('filled');
+    }
+    triggerAutoSave();
+}
+
+function loadCollapseProgress(progress) {
+    collapseProgress = progress || 0;
+    document.querySelectorAll('.collapse-slot').forEach(slot => {
+        const idx = parseInt(slot.dataset.idx);
+        if (idx <= collapseProgress) {
+            slot.classList.add('filled');
+        } else {
+            slot.classList.remove('filled');
+        }
+    });
+}
+
+// 多条笔记功能
+let noteIdCounter = 1;
+
+function addNoteItem() {
+    if (isReadOnly) return;
+    const container = document.getElementById('notesContainer');
+    const noteItem = document.createElement('div');
+    noteItem.className = 'note-item';
+    noteItem.dataset.idx = noteIdCounter++;
+    noteItem.innerHTML = `
+        <div class="note-header">
+            <input type="text" class="note-title" placeholder="标题">
+            <button class="btn-remove-note" onclick="removeNoteItem(this)"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="rich-editor note-body" contenteditable="true" placeholder="内容..."></div>
+    `;
+    container.appendChild(noteItem);
+    updateNoteRemoveButtons();
+    triggerAutoSave();
+}
+
+function removeNoteItem(btn) {
+    if (isReadOnly) return;
+    const noteItem = btn.closest('.note-item');
+    const container = document.getElementById('notesContainer');
+    if (container.children.length > 1) {
+        noteItem.remove();
+        updateNoteRemoveButtons();
+        triggerAutoSave();
+    }
+}
+
+function updateNoteRemoveButtons() {
+    const container = document.getElementById('notesContainer');
+    const notes = container.querySelectorAll('.note-item');
+    notes.forEach(note => {
+        const removeBtn = note.querySelector('.btn-remove-note');
+        if (removeBtn) {
+            removeBtn.style.display = notes.length > 1 ? 'block' : 'none';
+        }
+    });
+}
+
+function getNotesData() {
+    const notes = [];
+    document.querySelectorAll('#notesContainer .note-item').forEach(item => {
+        const title = item.querySelector('.note-title').value || '';
+        const body = item.querySelector('.note-body').innerHTML || '';
+        if (title || body) {
+            notes.push({ title, body });
+        }
+    });
+    return notes;
+}
+
+function loadNotesData(notes) {
+    const container = document.getElementById('notesContainer');
+    container.innerHTML = '';
+
+    if (!notes || notes.length === 0) {
+        // 如果没有笔记，创建一个空的
+        notes = [{ title: '', body: '' }];
+    }
+
+    notes.forEach((note, idx) => {
+        const noteItem = document.createElement('div');
+        noteItem.className = 'note-item';
+        noteItem.dataset.idx = idx;
+        noteItem.innerHTML = `
+            <div class="note-header">
+                <input type="text" class="note-title" placeholder="标题" value="${(note.title || '').replace(/"/g, '&quot;')}">
+                <button class="btn-remove-note" onclick="removeNoteItem(this)"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="rich-editor note-body" contenteditable="${isReadOnly ? 'false' : 'true'}" placeholder="内容...">${note.body || ''}</div>
+        `;
+        container.appendChild(noteItem);
+        // 只读模式下禁用输入
+        if (isReadOnly) {
+            noteItem.querySelector('.note-title').disabled = true;
+        }
+    });
+
+    noteIdCounter = notes.length;
+    updateNoteRemoveButtons();
+}
+
+// 进度追踪自定义编辑模式（不触发自动嘉奖和轨道变灰）
+let isTrackCustomMode = false;
+let wrenchModeBeforeValues = {}; // 记录进入扳手模式前的值
+
+async function toggleTrackCustomMode() {
+    const btn = document.getElementById('trackCustomEditBtn');
+    const fields = ['pComm', 'mvpCount', 'watchCount', 'pRep'];
+
+    if (!isTrackCustomMode) {
+        // 进入扳手模式：记录当前值并启用编辑
+        isTrackCustomMode = true;
+        btn.classList.add('active');
+        btn.title = '退出自定义编辑模式';
+
+        // 记录修改前的值
+        wrenchModeBeforeValues = {};
+        fields.forEach(id => {
+            const input = document.getElementById(id);
+            wrenchModeBeforeValues[id] = parseInt(input.value) || 0;
+            input.removeAttribute('readonly');
+            input.style.background = '#fff3cd';
+        });
+
+        showToast('自定义编辑模式：可直接编辑数值，退出时自动记录变更', 'info');
+    } else {
+        // 退出扳手模式：比对并记录变更
+        btn.classList.remove('active');
+        btn.title = '自定义编辑模式';
+
+        // 检查每个字段的变化并记录
+        const changes = [];
+        fields.forEach(id => {
+            const input = document.getElementById(id);
+            const newValue = parseInt(input.value) || 0;
+            const oldValue = wrenchModeBeforeValues[id] || 0;
+            const diff = newValue - oldValue;
+
+            input.setAttribute('readonly', true);
+            input.style.background = '';
+
+            if (diff !== 0) {
+                changes.push({ field: id, diff, oldValue, newValue });
+            }
+        });
+
+        // 等待记录变更完成
+        if (changes.length > 0 && charId) {
+            await recordWrenchModeChanges(changes);
+        }
+
+        // 记录完成后才退出扳手模式，并触发保存
+        isTrackCustomMode = false;
+        triggerAutoSave();
+
+        showToast('已退出自定义编辑模式', 'info');
+    }
+}
+
+// 记录扳手模式的变更
+async function recordWrenchModeChanges(changes) {
+    const fieldMap = {
+        pComm: { endpoint: 'mvp', name: 'MVP' },
+        mvpCount: { endpoint: 'reward', name: '嘉奖' },
+        watchCount: { endpoint: 'reprimand', name: '申诫' },
+        pRep: { endpoint: 'probation', name: '观察期' }
+    };
+
+    for (const change of changes) {
+        const config = fieldMap[change.field];
+        if (!config) continue;
+
+        try {
+            await fetch(`/api/character/${charId}/${config.endpoint}`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    reason: `玩家自行调整 (${change.oldValue}→${change.newValue})`,
+                    newValue: change.newValue,
+                    isSelfEdit: true
+                })
+            });
+        } catch (e) {
+            console.error(`记录${config.name}变更失败:`, e);
+        }
+    }
+
+    // 清除缓存使记录实时更新
+    cachedRecords = null;
+    showToast('变更已记录', 'success');
+}
+
 // 自动保存相关
 let autoSaveTimer = null;
 let isPopulating = false; // 数据加载中标志，防止加载时触发保存
-const AUTO_SAVE_DELAY = 800; // 800ms 延迟，避免频繁保存
+let dataLoaded = false; // 数据是否已成功加载，防止在数据加载前保存空数据
+const AUTO_SAVE_DELAY = 500; // 500ms 延迟，更实时的保存体验
 
 function triggerAutoSave() {
-    if (isReadOnly || isPopulating) return;
+    if (isReadOnly || isPopulating || isTrackCustomMode || !dataLoaded) return; // 数据未加载完成不保存
     if (autoSaveTimer) clearTimeout(autoSaveTimer);
     autoSaveTimer = setTimeout(() => {
         saveData(true); // silent save
@@ -2280,7 +3044,7 @@ function triggerAutoSave() {
 
 // 立即保存（不延迟）
 function saveImmediately() {
-    if (isReadOnly || isPopulating) return;
+    if (isReadOnly || isPopulating || isTrackCustomMode || !dataLoaded) return; // 数据未加载完成不保存
     if (autoSaveTimer) clearTimeout(autoSaveTimer);
     saveData(true);
 }
@@ -2355,6 +3119,15 @@ function renderMissionModalContent() {
                     html += `<span class="teammate-tag ${isMe ? 'is-me' : ''}">${escapeHtml(t.characterName)}${isMe ? ' (我)' : ''}</span>`;
                 });
                 html += '</div>';
+            }
+            // 可选任务
+            if (mission.optionalTasks && mission.optionalTasks.length > 0) {
+                html += '<div class="mission-card-info" style="margin-top:8px;">可选任务:</div>';
+                html += '<ol class="optional-tasks-list">';
+                mission.optionalTasks.forEach(task => {
+                    html += `<li>${escapeHtml(task)}</li>`;
+                });
+                html += '</ol>';
             }
             html += '</div>';
         });
@@ -2768,6 +3541,14 @@ function renderCompose(container) {
                 <p>填写并提交任务报告</p>
             </div>` : '';
 
+    // 发信选项 - 只有允许发信时才显示
+    const mailOption = canSendMessages ? `
+            <div class="outbox-option opt-mail" onclick="selectOutboxOption('mail')">
+                <i class="fas fa-envelope"></i>
+                <h4>发信</h4>
+                <p>给经理或队友发送消息</p>
+            </div>` : '';
+
     container.innerHTML = `
         <div class="outbox-options">
             <div class="outbox-option opt-containment" onclick="selectOutboxOption('containment')">
@@ -2776,11 +3557,7 @@ function renderCompose(container) {
                 <p>向经理发送收容物品</p>
             </div>
             ${reportOption}
-            <div class="outbox-option opt-mail" onclick="selectOutboxOption('mail')">
-                <i class="fas fa-envelope"></i>
-                <h4>发信</h4>
-                <p>给经理或队友发送消息</p>
-            </div>
+            ${mailOption}
         </div>
 
         <!-- 寄送收容物表单 -->
@@ -2881,7 +3658,8 @@ function renderCompose(container) {
             </button>
         </div>
 
-        <!-- 发信表单 -->
+        <!-- 发信表单 - 只有允许发信时才渲染 -->
+        ${canSendMessages ? `
         <div id="form-mail" class="outbox-form">
             <h4><i class="fas fa-envelope" style="color:#8e44ad;"></i> 发送消息</h4>
             <label>收件人 *</label>
@@ -2896,12 +3674,15 @@ function renderCompose(container) {
                 <i class="fas fa-paper-plane"></i> 发送
             </button>
         </div>
+        ` : ''}
     `;
 
-    // 加载发送目标（经理和队友）
-    loadSendTargets().then(() => {
-        populateRecipients();
-    });
+    // 加载发送目标（经理和队友）- 只有允许发信时才加载
+    if (canSendMessages) {
+        loadSendTargets().then(() => {
+            populateRecipients();
+        });
+    }
 }
 
 function selectOutboxOption(type) {
@@ -3682,6 +4463,117 @@ async function submitAppeal(reportId) {
 }
 
 const ATTRS=['专注','欺瞒','活力','共情','主动','坚毅','气场','专业','诡秘'];
+// 资质详情描述
+const ATTR_DETAILS = {
+    '专注': { en: 'Attentiveness', desc: ['关注细节', '理解复杂信息', '发现他人试图隐藏的真相'] },
+    '欺瞒': { en: 'Duplicity', desc: ['说谎而不被察觉', '在自己不信服的情况下仍能说服他人', '表面支持，实则另有考量'] },
+    '活力': { en: 'Dynamism', desc: ['采取进攻性行动', '施加主导压力', '通过武力或强硬手段达成目的'] },
+    '共情': { en: 'Empathy', desc: ['与他人建立联系', '表达关切', '发现对方的弱点'] },
+    '主动': { en: 'Initiative', desc: ['前瞻性思考', '迅速行动', '在问题发生前就加以处理'] },
+    '坚毅': { en: 'Persistence', desc: ['拒绝让步', '施加持续压力', '通过不懈纠缠迫使对方作出回应'] },
+    '气场': { en: 'Presence', desc: ['在人群中吸引注意', '控制局势并指挥团队', '以激励或威慑的方式影响他人'] },
+    '专业': { en: 'Professionalism', desc: ['在高压环境下保持冷静', '抵御干扰和分心因素', '免受精神影响或操控'] },
+    '诡秘': { en: 'Subtlety', desc: ['行动低调，避免不必要的关注', '以精准、谨慎的方式执行任务', '在不被察觉的情况下完成目标'] }
+};
+
+// 点击切换资质tooltip（移动端支持）
+function toggleAttrTooltip(e) {
+    e.stopPropagation();
+    const tooltip = e.currentTarget.querySelector('.attr-tooltip');
+    const attrRow = e.currentTarget.closest('.attr-row');
+    if (!tooltip) return;
+
+    // 关闭其他已打开的tooltip
+    document.querySelectorAll('.attr-tooltip.show').forEach(t => {
+        if (t !== tooltip) {
+            t.classList.remove('show');
+            const row = t.closest('.attr-row');
+            if (row) deactivateTooltipRow(row);
+        }
+    });
+
+    const isShowing = tooltip.classList.toggle('show');
+    if (attrRow) {
+        if (isShowing) {
+            activateTooltipRow(attrRow);
+        } else {
+            deactivateTooltipRow(attrRow);
+        }
+    }
+}
+
+// 激活tooltip行
+function activateTooltipRow(row) {
+    row.classList.add('tooltip-active');
+    row.style.zIndex = '9999';
+    const helpEl = row.querySelector('.attr-help');
+    if (helpEl) helpEl.style.zIndex = '10';
+    const panel = row.closest('.panel');
+    if (panel) {
+        panel.classList.add('tooltip-panel-active');
+        panel.style.overflow = 'visible';
+        panel.style.zIndex = '100';
+    }
+}
+
+// 延迟移除tooltip-active类
+function deactivateTooltipRow(row) {
+    setTimeout(() => {
+        if (!row.querySelector('.attr-tooltip.show') && !row.querySelector('.attr-help:hover')) {
+            row.classList.remove('tooltip-active');
+            row.style.zIndex = '';
+            const helpEl = row.querySelector('.attr-help');
+            if (helpEl) helpEl.style.zIndex = '';
+            // 恢复panel状态
+            const panel = row.closest('.panel');
+            if (panel && !panel.querySelector('.tooltip-active') && !panel.querySelector('.attr-help:hover')) {
+                panel.classList.remove('tooltip-panel-active');
+                panel.style.overflow = '';
+                panel.style.zIndex = '';
+            }
+        }
+    }, 250);
+}
+
+// 点击其他地方关闭tooltip
+document.addEventListener('click', () => {
+    document.querySelectorAll('.attr-tooltip.show').forEach(t => {
+        t.classList.remove('show');
+        const row = t.closest('.attr-row');
+        if (row) deactivateTooltipRow(row);
+    });
+});
+
+// 为问号添加hover事件（桌面端）
+function setupAttrHelpHover(helpEl) {
+    const row = helpEl.closest('.attr-row');
+    const panel = row?.closest('.panel');
+    if (!row) return;
+
+    // 用mouseover确保和CSS :hover同步
+    helpEl.addEventListener('mouseover', () => {
+        row.style.zIndex = '9999';
+        helpEl.style.zIndex = '10';
+        if (panel) {
+            panel.style.overflow = 'visible';
+            panel.style.zIndex = '100';
+        }
+    });
+
+    helpEl.addEventListener('mouseout', () => {
+        setTimeout(() => {
+            if (!helpEl.matches(':hover') && !row.querySelector('.attr-tooltip.show')) {
+                row.style.zIndex = '';
+                helpEl.style.zIndex = '';
+                if (panel && !panel.querySelector('.attr-help:hover') && !panel.querySelector('.tooltip-active')) {
+                    panel.style.overflow = '';
+                    panel.style.zIndex = '';
+                }
+            }
+        }, 250);
+    });
+}
+
 // 存储每个属性的marked点位置
 let attrMarkedDots = {};
 
@@ -3690,11 +4582,22 @@ function initAttrs(){
     c.innerHTML='';
     ATTRS.forEach(a=>{
         attrMarkedDots[a] = new Set(); // 初始化marked点集合
+        const detail = ATTR_DETAILS[a] || { en: '', desc: [] };
+        const tooltipHtml = `
+            <div class="attr-tooltip">
+                <div class="tooltip-title">${a}</div>
+                <div class="tooltip-en">${detail.en}</div>
+                <ul>${detail.desc.map(d => `<li>${d}</li>`).join('')}</ul>
+            </div>`;
         const d=document.createElement('div');
         d.className='attr-row';
-        d.innerHTML=`<div class="attr-label">${a}</div><button class="attr-btn attr-btn-minus" data-attr="${a}" title="减少上限">−</button><input type="text" class="attr-input" data-attr="${a}" value="0/0" placeholder="当前/最大"><button class="attr-btn attr-btn-plus" data-attr="${a}" title="增加上限">+</button><div class="attr-dots-container"><div class="attr-dots" data-attr="${a}">${Array(9).fill(0).map((_,i)=>`<div class="dot" data-i="${i+1}"></div>`).join('')}</div></div>`;
+        d.innerHTML=`<div class="attr-label">${a}</div><div class="attr-help" onclick="toggleAttrTooltip(event)">?${tooltipHtml}</div><button class="attr-btn attr-btn-minus" data-attr="${a}" title="减少上限">−</button><input type="text" class="attr-input" data-attr="${a}" value="0/0" placeholder="当前/最大"><button class="attr-btn attr-btn-plus" data-attr="${a}" title="增加上限">+</button><div class="attr-dots-container"><div class="attr-dots" data-attr="${a}">${Array(9).fill(0).map((_,i)=>`<div class="dot${i%2===1?' up':''}" data-i="${i+1}"></div>`).join('')}</div></div>`;
         c.appendChild(d);
         const i=d.querySelector('input');
+
+        // 绑定问号hover事件
+        const helpEl = d.querySelector('.attr-help');
+        if (helpEl) setupAttrHelpHover(helpEl);
 
         // +/- 按钮逻辑
         d.querySelector('.attr-btn-minus').onclick = () => {
@@ -3766,12 +4669,12 @@ function initAttrs(){
                 const {current, max} = getAttrValues(a);
 
                 if(dot.classList.contains('active')) {
-                    // 点击黑色点 - 该点变红
+                    // 点击红色点(可用) - 该点变黑(已使用)
                     attrMarkedDots[a].add(idx);
                     updateAttrInput(a);
                     renderDotsNew(a, max);
                 } else if(dot.classList.contains('marked')) {
-                    // 点击红色点 - 该点变回黑色
+                    // 点击黑色点(已使用) - 该点变回红色(可用)
                     attrMarkedDots[a].delete(idx);
                     updateAttrInput(a);
                     renderDotsNew(a, max);
@@ -3824,9 +4727,9 @@ function renderDotsNew(a, max) {
         d.classList.remove('active', 'marked');
         if(idx <= max) {
             if(marked.has(idx)) {
-                d.classList.add('marked'); // 红色 - 已消耗的点
+                d.classList.add('marked'); // 黑色 - 已使用的点
             } else {
-                d.classList.add('active'); // 黑色 - 当前可用的点
+                d.classList.add('active'); // 红色 - 当前可用的点
             }
         }
     });
@@ -3902,7 +4805,7 @@ function addAnom(d=null, prepend=false, skipCheck=false){
             return;
         }
     }
-    const div=document.createElement('div');div.className='card bd-anom';div.innerHTML=`${createDelBtn('anom')}<div class="row-2" style="margin-bottom:10px"><input type="text" class="f-name" placeholder="能力名称"><input type="text" class="f-trig" placeholder="触发器"></div><input type="text" class="f-qual" placeholder="资质" style="margin-bottom:10px"><label class="c-anom">成功时</label><div class="rich-editor f-succ" contenteditable="true"></div><label style="color:#c0392b;margin-top:8px">失败时</label><div class="rich-editor f-fail" contenteditable="true"></div><div style="background:#f9f9f9;padding:10px;border-radius:6px;margin-top:10px;border:1px solid #eee"><div style="display:flex;align-items:center;margin-bottom:6px;gap:10px"><input type="text" class="f-tdesc" placeholder="问题" style="flex:1;margin-bottom:0"><label class="chk-btn chk-trained"><input type="checkbox" class="f-chk"><span></span></label></div><div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><input type="text" class="f-t1" placeholder="答案1" style="flex:1"><input type="text" class="small-input f-t1-val"><div class="sq-dots d1">${get3Sq()}</div></div><div style="display:flex;gap:8px;align-items:center"><input type="text" class="f-t2" placeholder="答案2" style="flex:1"><input type="text" class="small-input f-t2-val"><div class="sq-dots d2">${get3Sq()}</div></div></div>`; setupSq(div);if(d)fillAnom(div,d);setRandomVars(div); const container = document.getElementById('list-anom'); if(prepend) { container.prepend(div); } else { container.appendChild(div); } if(isReadOnly){div.querySelectorAll('[contenteditable]').forEach(e=>e.setAttribute('contenteditable','false'));}
+    const div=document.createElement('div');div.className='card bd-anom';div.innerHTML=`${createDelBtn('anom')}<div class="row-2" style="margin-bottom:10px"><input type="text" class="f-name" placeholder="能力名称"><input type="text" class="f-trig" placeholder="资质"></div><input type="text" class="f-qual" placeholder="触发器" style="margin-bottom:10px"><label class="c-anom">成功时</label><div class="rich-editor f-succ" contenteditable="true"></div><label style="color:#c0392b;margin-top:8px">失败时</label><div class="rich-editor f-fail" contenteditable="true"></div><div style="background:#f9f9f9;padding:10px;border-radius:6px;margin-top:10px;border:1px solid #eee"><div style="display:flex;align-items:center;margin-bottom:6px;gap:10px"><input type="text" class="f-tdesc" placeholder="问题" style="flex:1;margin-bottom:0"><label class="chk-btn chk-trained"><input type="checkbox" class="f-chk"><span></span></label></div><div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><input type="text" class="f-t1" placeholder="答案1" style="flex:1"><input type="text" class="small-input f-t1-val"><div class="sq-dots d1">${get3Sq()}</div></div><div style="display:flex;gap:8px;align-items:center"><input type="text" class="f-t2" placeholder="答案2" style="flex:1"><input type="text" class="small-input f-t2-val"><div class="sq-dots d2">${get3Sq()}</div></div></div>`; setupSq(div);if(d)fillAnom(div,d);setRandomVars(div); const container = document.getElementById('list-anom'); if(prepend) { container.prepend(div); } else { container.appendChild(div); } if(isReadOnly){div.querySelectorAll('[contenteditable]').forEach(e=>e.setAttribute('contenteditable','false'));}
     updateSlotButtons();
 }
 
@@ -4004,6 +4907,20 @@ document.querySelectorAll('.p-cell').forEach(c=>{
         const isACell = c.classList.contains('a-cell');
         const hasManager = missionInfo.managers && missionInfo.managers.length > 0;
 
+        // 自定义编辑模式：仅切换状态，不触发自动嘉奖和轨道变灰
+        if(isTrackCustomMode) {
+            if(c.classList.contains('active')){
+                c.classList.remove('active');
+                c.classList.add('ignored');
+            }else if(c.classList.contains('ignored')){
+                c.classList.remove('ignored');
+            }else{
+                c.classList.add('active');
+            }
+            triggerAutoSave();
+            return;
+        }
+
         if(c.classList.contains('active')){
             c.classList.remove('active');
             c.classList.add('ignored');
@@ -4034,6 +4951,15 @@ document.querySelectorAll('.p-cell').forEach(c=>{
     c.addEventListener('contextmenu',(e)=>{
         e.preventDefault();
         if(isReadOnly)return;
+
+        // 自定义编辑模式：仅设为灰色，不触发嘉奖扣减
+        if(isTrackCustomMode) {
+            c.classList.remove('active');
+            c.classList.add('ignored');
+            triggerAutoSave();
+            return;
+        }
+
         const isFCell = c.classList.contains('f-cell');
         const hasManager = missionInfo.managers && missionInfo.managers.length > 0;
         const wasActive = c.classList.contains('active');
@@ -4107,9 +5033,21 @@ function populateData(d){
     isPopulating = true; // 防止加载数据时触发自动保存
     SLOT_LIMITS.anomSlots = d.anomSlots || 3;
     SLOT_LIMITS.realSlots = d.realSlots || 3;
-    ['pName','pTrig1','pTrig2','pTrig3','perm1','perm2','perm3','pComm','pRep','mvpCount','watchCount','noteTitle','noteBody'].forEach(id=>{const e=document.getElementById(id);if(d[id]&&e){if(e.tagName==='DIV')e.innerHTML=d[id];else e.value=d[id];}});
-	    document.getElementById('mvpCount').value = d.mvpCount || (d.rewards || []).reduce((sum, r) => sum + (r.count || 1), 0);
-    document.getElementById('watchCount').value = d.watchCount || (d.reprimands || []).reduce((sum, r) => sum + (r.count || 1), 0);
+    ['pName','pTrig1','pTrig2','pTrig3','perm1','perm2','perm3','pComm','pRep'].forEach(id=>{const e=document.getElementById(id);if(d[id]&&e){if(e.tagName==='DIV')e.innerHTML=d[id];else e.value=d[id];}});
+    // 加载笔记（兼容旧数据格式）
+    if (d.notes && d.notes.length > 0) {
+        loadNotesData(d.notes);
+    } else if (d.noteTitle || d.noteBody) {
+        // 兼容旧数据：将单条笔记转换为数组格式
+        loadNotesData([{ title: d.noteTitle || '', body: d.noteBody || '' }]);
+    } else {
+        loadNotesData([]);
+    }
+    // 嘉奖/申诫：优先从数组计算，确保数据准确
+    const rewardsTotal = (d.rewards || []).reduce((sum, r) => sum + (r.count || 1), 0);
+    const reprimandsTotal = (d.reprimands || []).reduce((sum, r) => sum + (r.count || 1), 0);
+    document.getElementById('mvpCount').value = rewardsTotal || d.mvpCount || 0;
+    document.getElementById('watchCount').value = reprimandsTotal || d.watchCount || 0;
 	setHybridInputState('pAnom',d.pAnom);setHybridInputState('pReal',d.pReal);setHybridInputState('pFunc',d.pFunc);if(d.qs)d.qs.forEach((h,i)=>{const q=document.getElementById(`q${i+1}`);if(q)q.innerHTML=h;});
     // 处理属性数据 - 兼容旧格式和新格式
     if(d.attrs){
@@ -4148,6 +5086,10 @@ function populateData(d){
             }
         }
     }
+    // 加载崩溃进度
+    loadCollapseProgress(d.collapseProgress || 0);
+    // 加载许可行为计数
+    loadPermCounts(d.permChecks || d.permCounts);
     document.getElementById('list-anom').innerHTML='';document.getElementById('list-real').innerHTML='';document.getElementById('list-item').innerHTML='';
     (d.anoms||[]).forEach(x=>addAnom(x, false, true));
     (d.reals||[]).forEach(x=>{const card = addReal(x, true); if(card) document.getElementById('list-real').appendChild(card);});
@@ -4166,14 +5108,21 @@ function populateData(d){
 
     updateSlotButtons();
 
-    // 处理发信权限
-    canSendMessages = d.canSendMessages !== false; // 默认允许发信
-    const composeTab = document.getElementById('tab-compose');
-    if (composeTab) {
-        composeTab.style.display = canSendMessages ? '' : 'none';
+    // 处理发信权限（个人权限 AND 全局开关）
+    const globalMessagingEnabled = d.globalMessagingEnabled !== false; // 默认开启
+    const personalMessagingEnabled = d.canSendMessages !== false; // 默认允许发信
+    canSendMessages = globalMessagingEnabled && personalMessagingEnabled;
+
+    // 处理扳手权限（经理可关闭）
+    const wrenchBtn = document.getElementById('trackCustomEditBtn');
+    if (wrenchBtn) {
+        // 默认允许，除非明确设置为false
+        const canUseWrench = d.canUseWrenchMode !== false;
+        wrenchBtn.style.display = canUseWrench ? '' : 'none';
     }
 
     isPopulating = false; // 数据加载完成，允许自动保存
+    dataLoaded = true; // 标记数据已成功加载
 }
 function gatherData(){
     const d={
@@ -4191,14 +5140,17 @@ function gatherData(){
         pRep:document.getElementById('pRep').value,
         mvpCount:document.getElementById('mvpCount').value,
         watchCount:document.getElementById('watchCount').value,
-        noteTitle:document.getElementById('noteTitle').value,
-        noteBody:document.getElementById('noteBody').innerHTML,
+        notes: getNotesData(),
         qs:[],attrs:{},anoms:[],reals:[],items:[],pf:[],pr:[],pa:[],pf_ign:[],pr_ign:[],pa_ign:[],
         // 无经理时（槽位999）不保存槽位限制，保持默认值
         anomSlots: SLOT_LIMITS.anomSlots >= 999 ? 3 : SLOT_LIMITS.anomSlots,
         realSlots: SLOT_LIMITS.realSlots >= 999 ? 3 : SLOT_LIMITS.realSlots,
         // 职能进度嘉奖（需要服务器合并到rewards数组）
-        funcProgressRewards: funcProgressRewards
+        funcProgressRewards: funcProgressRewards,
+        // 崩溃进度
+        collapseProgress: collapseProgress,
+        // 许可行为计数
+        permCounts: permCounts
     };
     for(let i=1;i<=8;i++)d.qs.push(document.getElementById(`q${i}`).innerHTML);
     // 保存属性数据 - 新格式，同时兼容旧格式v字段
@@ -4230,7 +5182,48 @@ function showToast(msg, type='success') {
     m.style.display = 'block';
     setTimeout(() => m.style.display = 'none', 2500);
 }
-async function saveData(silent=false){if(isReadOnly)return;const d=gatherData();const res=await fetch(`/api/character/${charId}`,{method:'PUT',headers:getAuthHeaders(),body:JSON.stringify(d)});if(res.ok){cachedRecords=null;if(!silent){showToast('DATA_SAVED', 'success');}}else if(res.status===401||res.status===403){window.location.href='login.html';}else{showToast('保存失败', 'error');}}
+async function saveData(silent=false){
+    if(isReadOnly) return;
+    if(!dataLoaded) {
+        console.warn('数据尚未加载完成，跳过保存');
+        return;
+    }
+    const d = gatherData();
+    const res = await fetch(`/api/character/${charId}`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(d)
+    });
+    if(res.ok) {
+        cachedRecords = null;
+        if(!silent) { showToast('DATA_SAVED', 'success'); }
+        // 保存后重新获取最新数据，同步经理设置的字段
+        try {
+            const refreshRes = await fetch(`/api/character/${charId}`, { headers: getAuthHeaders() });
+            if(refreshRes.ok) {
+                const latestData = await refreshRes.json();
+                // 只更新经理控制的字段，不重置用户正在编辑的内容
+                SLOT_LIMITS.anomSlots = latestData.anomSlots || 3;
+                SLOT_LIMITS.realSlots = latestData.realSlots || 3;
+                // 有经理时从数组计算，无经理时保留服务器返回的值
+                const hasManager = missionInfo.managers && missionInfo.managers.length > 0;
+                if (hasManager) {
+                    document.getElementById('mvpCount').value = (latestData.rewards || []).reduce((sum, r) => sum + (r.count || 1), 0);
+                    document.getElementById('watchCount').value = (latestData.reprimands || []).reduce((sum, r) => sum + (r.count || 1), 0);
+                } else {
+                    // 无经理：使用服务器返回的mvpCount/watchCount（玩家输入的值）
+                    document.getElementById('mvpCount').value = latestData.mvpCount || 0;
+                    document.getElementById('watchCount').value = latestData.watchCount || 0;
+                }
+                updateAnomalyGroupButtons();
+            }
+        } catch(e) { console.error('刷新数据失败:', e); }
+    } else if(res.status===401 || res.status===403) {
+        window.location.href = 'login.html';
+    } else {
+        showToast('保存失败', 'error');
+    }
+}
 function exportOffline(){const d=gatherData();let h=document.documentElement.outerHTML;h=h.replace(/<script id="__SAVED_DATA__" type="application\/json">.*?<\/script>/s,`<script id="__SAVED_DATA__" type="application/json">${JSON.stringify(d)}<\/script>`);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([h],{type:'text/html'}));a.download=`${d.pName||'角色'}_离线备份.html`;a.click();}
 
 function exportJson() {
@@ -4390,19 +5383,28 @@ function renderShopView() {
 
     document.getElementById('shopViewCommend').textContent = availableCommend;
 
-    // 根据权限显示/隐藏申诫余额
+    // 隐藏申诫余额（Siphon商店独立显示）
     const reprimandBadge = document.querySelector('.shop-currency-display .currency-badge.reprimand');
     if (reprimandBadge) {
-        reprimandBadge.style.display = hasReprimandAccess ? '' : 'none';
+        reprimandBadge.style.display = 'none';
     }
-    if (hasReprimandAccess) {
-        document.getElementById('shopViewReprimand').textContent = availableReprimand;
+
+    // 根据权限显示/隐藏Siphon商店按钮
+    const siphonBtn = document.getElementById('siphonShopBtn');
+    if (siphonBtn) {
+        siphonBtn.style.display = hasReprimandAccess ? '' : 'none';
     }
 
     // 检查是否为只读或分享模式
     const canPurchase = !isReadOnly && !isShareMode;
 
-    if (!shopViewData.items || shopViewData.items.length === 0) {
+    // 只显示有嘉奖价格的物品（过滤掉只有申诫价格的物品）
+    const commendationItems = (shopViewData.items || []).filter(item => {
+        const prices = item.prices || [];
+        return prices.some(p => (p.currency_type || 'commendation') === 'commendation');
+    });
+
+    if (commendationItems.length === 0) {
         container.innerHTML = `
             <div class="shop-empty">
                 <i class="fas fa-store-slash"></i>
@@ -4411,12 +5413,11 @@ function renderShopView() {
         return;
     }
 
-    container.innerHTML = shopViewData.items.map(item => {
-        const pricesHtml = (item.prices || []).map(p => {
-            const currencyType = p.currency_type || 'commendation';
-            const currencyName = currencyType === 'reprimand' ? '申诫' : '嘉奖';
-            const available = currencyType === 'reprimand' ? availableReprimand : availableCommend;
-            const canAfford = available >= p.price_cost;
+    container.innerHTML = commendationItems.map(item => {
+        // 只显示嘉奖价格选项
+        const commendPrices = (item.prices || []).filter(p => (p.currency_type || 'commendation') === 'commendation');
+        const pricesHtml = commendPrices.map(p => {
+            const canAfford = availableCommend >= p.price_cost;
             const isDisabled = !canPurchase || !canAfford;
             let usageLabel = '';
             if (p.usage_type === 'consumable') {
@@ -4429,20 +5430,20 @@ function renderShopView() {
             if (!canPurchase) {
                 disabledReason = '只读模式';
             } else if (!canAfford) {
-                disabledReason = `${currencyName}不足`;
+                disabledReason = '嘉奖不足';
             }
 
             return `<button class="shop-price-btn ${isDisabled ? 'disabled' : ''}"
-                ${!isDisabled ? `onclick="purchaseItem(${item.id}, ${p.id})"` : 'disabled'}
+                ${!isDisabled ? `onclick="event.stopPropagation(); purchaseItem(${item.id}, ${p.id})"` : 'disabled'}
                 ${disabledReason ? `title="${disabledReason}"` : ''}>
                 <span class="price-name">${escapeHtml(p.price_name)}</span>
-                <span class="price-cost">${p.price_cost} ${currencyName}</span>
+                <span class="price-cost">${p.price_cost} 嘉奖</span>
                 ${usageLabel ? `<span class="price-usage">${usageLabel}</span>` : ''}
             </button>`;
         }).join('');
 
         return `
-            <div class="shop-item-card ${item.is_global ? 'global' : ''}">
+            <div class="shop-item-card ${item.is_global ? 'global' : ''}" onclick="openShopDetail(${item.id})">
                 <div class="shop-item-title">${escapeHtml(item.title)}</div>
                 <div class="shop-item-desc">${escapeHtml(item.description || '暂无描述')}</div>
                 <div class="shop-price-options">${pricesHtml || '<span style="color:#999;font-size:11px;">未设置标价</span>'}</div>
@@ -4469,7 +5470,15 @@ async function purchaseItem(itemId, priceId) {
             // 重新加载商店视图以更新余额
             loadShopView();
             // 重新加载角色数据以更新物品列表
-            loadData();
+            try {
+                const charRes = await fetch(`/api/character/${charId}`, { headers: getAuthHeaders() });
+                if (charRes.ok) {
+                    const charData = await charRes.json();
+                    populateData(charData);
+                }
+            } catch (reloadErr) {
+                console.error('重新加载角色数据失败:', reloadErr);
+            }
         } else {
             showToast(data.message || '购买失败');
         }
@@ -4477,6 +5486,286 @@ async function purchaseItem(itemId, priceId) {
         console.error('购买失败:', e);
         showToast('购买失败');
     }
+}
+
+// 申领物详情弹窗（只显示嘉奖价格）
+function openShopDetail(itemId) {
+    const item = shopViewData.items.find(i => i.id === itemId);
+    if (!item) return;
+
+    document.getElementById('shopDetailTitle').textContent = item.title;
+    document.getElementById('shopDetailDesc').textContent = item.description || '暂无描述';
+
+    const availableCommend = shopViewData.availableCommendations || 0;
+    const canPurchase = !isReadOnly && !isShareMode;
+
+    // 只显示嘉奖价格
+    const commendPrices = (item.prices || []).filter(p => (p.currency_type || 'commendation') === 'commendation');
+    const pricesHtml = commendPrices.map(p => {
+        const canAfford = availableCommend >= p.price_cost;
+        const isDisabled = !canPurchase || !canAfford;
+
+        let usageLabel = '';
+        if (p.usage_type === 'consumable') {
+            usageLabel = '一次性使用';
+        } else if (p.usage_type === 'per_mission') {
+            usageLabel = `每任务${p.usage_count || 1}次`;
+        } else {
+            usageLabel = '永久';
+        }
+
+        let disabledReason = '';
+        if (!canPurchase) {
+            disabledReason = '只读模式';
+        } else if (!canAfford) {
+            disabledReason = '嘉奖不足';
+        }
+
+        return `<button class="shop-detail-price-btn ${isDisabled ? 'disabled' : ''}"
+            ${!isDisabled ? `onclick="purchaseFromDetail(${item.id}, ${p.id})"` : 'disabled'}
+            ${disabledReason ? `title="${disabledReason}"` : ''}>
+            <div class="shop-detail-price-info">
+                <span class="shop-detail-price-name">${escapeHtml(p.price_name)}</span>
+                <span class="shop-detail-price-usage">${usageLabel}</span>
+            </div>
+            <span class="shop-detail-price-cost">${p.price_cost} 嘉奖</span>
+        </button>`;
+    }).join('');
+
+    document.getElementById('shopDetailPrices').innerHTML = pricesHtml || '<div style="color:#999;text-align:center;">未设置标价</div>';
+    document.getElementById('shopDetailModal').classList.add('show');
+}
+
+function closeShopDetail() {
+    document.getElementById('shopDetailModal').classList.remove('show');
+}
+
+async function purchaseFromDetail(itemId, priceId) {
+    closeShopDetail();
+    await purchaseItem(itemId, priceId);
+}
+
+// ==========================================
+// Siphon商店功能（申诫商店独立界面）
+// ==========================================
+let zephyrShopData = { items: [], availableReprimands: 0 };
+
+function toggleZephyrShop() {
+    const modal = document.getElementById('zephyr-shop-modal');
+    if (modal.classList.contains('active')) {
+        closeZephyrShop();
+    } else {
+        openZephyrShop();
+    }
+}
+
+function openZephyrShop() {
+    document.getElementById('zephyr-shop-modal').classList.add('active');
+    loadZephyrShop();
+}
+
+function closeZephyrShop() {
+    document.getElementById('zephyr-shop-modal').classList.remove('active');
+}
+
+async function loadZephyrShop() {
+    const container = document.getElementById('zephyrItemsList');
+
+    if (!charId) {
+        container.innerHTML = `
+            <div class="zephyr-empty">
+                <i class="fas fa-wind"></i>
+                <p>离线模式无法使用Siphon商店</p>
+            </div>`;
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="zephyr-empty">
+            <i class="fas fa-circle-notch fa-spin"></i>
+            <p>加载中...</p>
+        </div>`;
+
+    try {
+        const res = await fetch(`/api/character/${charId}/shop`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+            zephyrShopData = {
+                items: data.items || [],
+                availableReprimands: data.availableReprimands || 0
+            };
+            renderZephyrShop();
+        } else {
+            container.innerHTML = `
+                <div class="zephyr-empty">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>${data.message || '加载失败'}</p>
+                </div>`;
+        }
+    } catch (e) {
+        console.error('加载Siphon商店失败:', e);
+        container.innerHTML = `
+            <div class="zephyr-empty">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>加载失败</p>
+            </div>`;
+    }
+}
+
+function renderZephyrShop() {
+    const container = document.getElementById('zephyrItemsList');
+    const availableReprimand = zephyrShopData.availableReprimands || 0;
+
+    document.getElementById('zephyrReprimandCount').textContent = availableReprimand;
+
+    const canPurchase = !isReadOnly && !isShareMode;
+
+    // 只显示有申诫价格的物品
+    const reprimandItems = (zephyrShopData.items || []).filter(item => {
+        const prices = item.prices || [];
+        return prices.some(p => p.currency_type === 'reprimand');
+    });
+
+    if (reprimandItems.length === 0) {
+        container.innerHTML = `
+            <div class="zephyr-empty">
+                <i class="fas fa-wind"></i>
+                <p>暂无可购买的Siphon物品</p>
+            </div>`;
+        return;
+    }
+
+    container.innerHTML = reprimandItems.map(item => {
+        // 只显示申诫价格选项
+        const reprimandPrices = (item.prices || []).filter(p => p.currency_type === 'reprimand');
+        const pricesHtml = reprimandPrices.map(p => {
+            const canAfford = availableReprimand >= p.price_cost;
+            const isDisabled = !canPurchase || !canAfford;
+            let usageLabel = '';
+            if (p.usage_type === 'consumable') {
+                usageLabel = '[一次性]';
+            } else if (p.usage_type === 'per_mission') {
+                usageLabel = `[每任务${p.usage_count || 1}次]`;
+            }
+
+            let disabledReason = '';
+            if (!canPurchase) {
+                disabledReason = '只读模式';
+            } else if (!canAfford) {
+                disabledReason = '申诫不足';
+            }
+
+            return `<button class="zephyr-price-btn ${isDisabled ? 'disabled' : ''}"
+                ${!isDisabled ? `onclick="event.stopPropagation(); purchaseZephyrItem(${item.id}, ${p.id})"` : 'disabled'}
+                ${disabledReason ? `title="${disabledReason}"` : ''}>
+                <span class="price-name">${escapeHtml(p.price_name)}</span>
+                <span class="price-cost">${p.price_cost} 申诫</span>
+                ${usageLabel ? `<span class="price-usage">${usageLabel}</span>` : ''}
+            </button>`;
+        }).join('');
+
+        return `
+            <div class="zephyr-item-card" onclick="openZephyrDetail(${item.id})">
+                <div class="zephyr-item-title">${escapeHtml(item.title)}</div>
+                <div class="zephyr-item-desc">${escapeHtml(item.description || '暂无描述')}</div>
+                <div class="zephyr-price-options">${pricesHtml || '<span style="color:#999;font-size:11px;">未设置标价</span>'}</div>
+            </div>`;
+    }).join('');
+}
+
+function openZephyrDetail(itemId) {
+    const item = zephyrShopData.items.find(i => i.id === itemId);
+    if (!item) return;
+
+    document.getElementById('zephyrDetailTitle').textContent = item.title;
+    document.getElementById('zephyrDetailDesc').textContent = item.description || '暂无描述';
+
+    const availableReprimand = zephyrShopData.availableReprimands || 0;
+    const canPurchase = !isReadOnly && !isShareMode;
+
+    // 只显示申诫价格
+    const reprimandPrices = (item.prices || []).filter(p => p.currency_type === 'reprimand');
+    const pricesHtml = reprimandPrices.map(p => {
+        const canAfford = availableReprimand >= p.price_cost;
+        const isDisabled = !canPurchase || !canAfford;
+
+        let usageLabel = '';
+        if (p.usage_type === 'consumable') {
+            usageLabel = '一次性使用';
+        } else if (p.usage_type === 'per_mission') {
+            usageLabel = `每任务${p.usage_count || 1}次`;
+        } else {
+            usageLabel = '永久';
+        }
+
+        let disabledReason = '';
+        if (!canPurchase) {
+            disabledReason = '只读模式';
+        } else if (!canAfford) {
+            disabledReason = '申诫不足';
+        }
+
+        return `<button class="shop-detail-price-btn ${isDisabled ? 'disabled' : ''}"
+            ${!isDisabled ? `onclick="purchaseFromZephyr(${item.id}, ${p.id})"` : 'disabled'}
+            ${disabledReason ? `title="${disabledReason}"` : ''}>
+            <div class="shop-detail-price-info">
+                <span class="shop-detail-price-name">${escapeHtml(p.price_name)}</span>
+                <span class="shop-detail-price-usage">${usageLabel}</span>
+            </div>
+            <span class="shop-detail-price-cost">${p.price_cost} 申诫</span>
+        </button>`;
+    }).join('');
+
+    document.getElementById('zephyrDetailPrices').innerHTML = pricesHtml || '<div style="color:#999;text-align:center;">未设置标价</div>';
+    document.getElementById('zephyrDetailModal').classList.add('show');
+}
+
+function closeZephyrDetail() {
+    document.getElementById('zephyrDetailModal').classList.remove('show');
+}
+
+async function purchaseZephyrItem(itemId, priceId) {
+    if (!confirm('确定要购买这个物品吗？购买后将扣除相应申诫。')) return;
+
+    try {
+        const res = await fetch(`/api/character/${charId}/shop/purchase`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ itemId, priceId })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+            showToast('购买成功！物品已添加到你的物品列表', 'success');
+            // 重新加载Siphon商店以更新余额
+            loadZephyrShop();
+            // 重新加载角色数据以更新物品列表
+            try {
+                const charRes = await fetch(`/api/character/${charId}`, { headers: getAuthHeaders() });
+                if (charRes.ok) {
+                    const charData = await charRes.json();
+                    populateData(charData);
+                }
+            } catch (reloadErr) {
+                console.error('重新加载角色数据失败:', reloadErr);
+            }
+        } else {
+            showToast(data.message || '购买失败');
+        }
+    } catch (e) {
+        console.error('购买失败:', e);
+        showToast('购买失败');
+    }
+}
+
+async function purchaseFromZephyr(itemId, priceId) {
+    closeZephyrDetail();
+    await purchaseZephyrItem(itemId, priceId);
 }
 
 function openShareModal() {
@@ -4581,11 +5870,24 @@ function copyShareUrl() {
 let cachedRecords = null;
 
 async function showRecordHistory(type) {
+    // 扳手模式下不弹出记录历史，允许直接编辑
+    if (isTrackCustomMode) {
+        return;
+    }
+
     const modal = document.getElementById('recordHistoryModal');
     const titleEl = document.getElementById('recordHistoryTitle');
     const contentEl = document.getElementById('recordHistoryContent');
 
-    titleEl.textContent = type === 'reward' ? '嘉奖记录' : '申诫记录';
+    const typeConfig = {
+        reward: { title: '嘉奖记录', key: 'rewards', emptyText: '嘉奖', styleClass: '' },
+        reprimand: { title: '申诫记录', key: 'reprimands', emptyText: '申诫', styleClass: 'reprimand' },
+        mvp: { title: 'MVP记录', key: 'mvpRecords', emptyText: 'MVP', styleClass: 'mvp' },
+        probation: { title: '观察期记录', key: 'probationRecords', emptyText: '观察期', styleClass: 'probation' }
+    };
+    const config = typeConfig[type] || typeConfig.reward;
+
+    titleEl.textContent = config.title;
     contentEl.innerHTML = '<div class="record-empty"><i class="fas fa-circle-notch fa-spin"></i> 加载中...</div>';
     modal.style.display = 'flex';
 
@@ -4600,9 +5902,7 @@ async function showRecordHistory(type) {
             }
         }
 
-        let records = type === 'reward'
-            ? (cachedRecords?.rewards || [])
-            : (cachedRecords?.reprimands || []);
+        let records = cachedRecords?.[config.key] || [];
 
         // 确保 records 是数组（可能因为旧数据是数字）
         if (!Array.isArray(records)) {
@@ -4610,7 +5910,7 @@ async function showRecordHistory(type) {
         }
 
         if (records.length === 0) {
-            contentEl.innerHTML = `<div class="record-empty">暂无${type === 'reward' ? '嘉奖' : '申诫'}记录</div>`;
+            contentEl.innerHTML = `<div class="record-empty">暂无${config.emptyText}记录</div>`;
             return;
         }
 
@@ -4622,11 +5922,11 @@ async function showRecordHistory(type) {
                 year: 'numeric', month: '2-digit', day: '2-digit',
                 hour: '2-digit', minute: '2-digit'
             }) : '未知时间';
-            const countBadge = (r.count && r.count > 1)
-                ? `<span class="record-count-badge ${type === 'reprimand' ? 'reprimand' : ''}">x${r.count}</span>`
+            const countBadge = (r.count && (r.count > 1 || r.count < 0))
+                ? `<span class="record-count-badge ${config.styleClass}">x${r.count}</span>`
                 : '';
             return `
-                <div class="record-entry ${type === 'reprimand' ? 'reprimand' : ''}">
+                <div class="record-entry ${config.styleClass}">
                     <div class="record-reason">${escapeHtmlText(r.reason || '无原因')}${countBadge}</div>
                     <div class="record-meta">
                         <i class="fas fa-clock"></i> ${date}
@@ -4854,6 +6154,31 @@ function escapeHtmlText(text) {
             </svg>
         </div>
         <h3>任务报告已提交</h3>
+    </div>
+</div>
+
+<!-- 申领物详情弹窗 -->
+<div id="shopDetailModal" class="shop-detail-modal" onclick="if(event.target===this)closeShopDetail()">
+    <div class="shop-detail-box">
+        <div class="shop-detail-header">
+            <h3 id="shopDetailTitle">物品详情</h3>
+            <button class="shop-detail-close" onclick="closeShopDetail()">&times;</button>
+        </div>
+        <div class="shop-detail-body">
+            <div class="shop-detail-section">
+                <h4>物品描述</h4>
+                <div class="shop-detail-desc" id="shopDetailDesc">暂无描述</div>
+            </div>
+            <div class="shop-detail-section">
+                <h4>购买选项</h4>
+                <div class="shop-detail-prices" id="shopDetailPrices">
+                    <!-- 动态填充 -->
+                </div>
+            </div>
+        </div>
+        <div class="shop-detail-footer">
+            <button onclick="closeShopDetail()">关闭</button>
+        </div>
     </div>
 </div>
 </body>

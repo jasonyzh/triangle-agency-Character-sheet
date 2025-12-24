@@ -400,6 +400,25 @@
             border-radius: 6px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             border-left: 5px solid var(--manager-blue);
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+        @media (max-width: 480px) {
+            .requisition-panel {
+                padding: 12px;
+            }
+            .requisition-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: stretch;
+            }
+            .requisition-header h3 {
+                text-align: center;
+            }
+            .btn-new-requisition {
+                width: 100%;
+                justify-content: center;
+            }
         }
         .requisition-header {
             display: flex;
@@ -435,10 +454,17 @@
         }
         .requisition-list {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 15px;
         }
+        @media (max-width: 600px) {
+            .requisition-list {
+                grid-template-columns: 1fr;
+            }
+        }
         .shop-item-card {
+            overflow: hidden;
+            word-break: break-word;
             background: #f8f9fa;
             border-radius: 8px;
             padding: 15px;
@@ -486,6 +512,8 @@
         .shop-price-tag {
             background: #fff3cd;
             color: #856404;
+            word-break: break-word;
+            max-width: 100%;
             font-size: 11px;
             padding: 4px 8px;
             border-radius: 4px;
@@ -504,15 +532,29 @@
         .shop-item-actions {
             display: flex;
             gap: 8px;
+            flex-wrap: wrap;
         }
         .shop-item-actions button {
-            flex: 1;
+            flex: 1 1 auto;
+            min-width: 0;
             padding: 6px 10px;
             font-size: 11px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             transition: 0.2s;
+            white-space: nowrap;
+        }
+        @media (max-width: 400px) {
+            .shop-item-actions {
+                flex-direction: column;
+            }
+            .shop-item-actions button {
+                flex: none;
+                width: 100%;
+                padding: 10px;
+                font-size: 12px;
+            }
         }
         .btn-edit-item {
             background: #e8f4fd;
@@ -656,6 +698,53 @@
             margin-top: 5px;
         }
         .btn-add-price:hover { background: #d0e8fa; }
+
+        /* 标价选项移动端适配 */
+        @media (max-width: 600px) {
+            .price-options-container {
+                padding: 10px;
+            }
+            .price-option-item {
+                padding: 12px;
+                position: relative;
+            }
+            .price-option-item .btn-remove-price {
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                padding: 4px 8px;
+                font-size: 11px;
+            }
+            .price-option-row {
+                flex-direction: column;
+                gap: 8px;
+                align-items: stretch;
+            }
+            .price-option-row:first-child {
+                padding-right: 40px;
+            }
+            .price-option-row input,
+            .price-option-row select {
+                width: 100% !important;
+                flex: none !important;
+                font-size: 14px;
+                padding: 10px 12px;
+                box-sizing: border-box;
+            }
+            .price-option-row input.price-name {
+                font-weight: 500;
+            }
+            .price-option-row .count-wrapper {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 13px;
+            }
+            .price-option-row .count-wrapper input {
+                width: 80px !important;
+                flex: 0 0 80px !important;
+            }
+        }
         .shop-modal-footer {
             padding: 15px 20px;
             border-top: 1px solid #eee;
@@ -767,7 +856,7 @@
 
         .char-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 15px;
         }
 
@@ -891,21 +980,30 @@
         }
 
         .card-footer {
-            padding: 10px 15px;
+            padding: 10px;
             background: #f8f9fa;
             border-top: 1px solid #ecf0f1;
-            display: flex;
-            justify-content: flex-end;
-            gap: 8px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(28px, 1fr));
+            gap: 6px;
         }
         .btn-card-action {
             border: none;
-            padding: 6px 12px;
-            border-radius: 3px;
-            font-size: 11px;
+            padding: 0;
+            height: 32px;
+            border-radius: 6px;
+            font-size: 12px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-card-action.btn-view {
+            grid-column: 1 / -1;
+            padding: 0 12px;
+            gap: 5px;
         }
         .btn-view {
             background: var(--manager-blue);
@@ -971,24 +1069,75 @@
             background: #e74c3c;
             color: white;
         }
-        /* 申诫商店权限按钮样式 */
-        .btn-rep-shop {
-            background: rgba(155, 89, 182, 0.1);
-            border: 1px solid #9b59b6;
-            color: #9b59b6;
+        /* 扳手模式权限按钮样式 */
+        .btn-wrench-perm {
+            background: rgba(230, 126, 34, 0.1);
+            border: 1px solid #e67e22;
+            color: #e67e22;
         }
-        .btn-rep-shop:hover {
-            background: #9b59b6;
+        .btn-wrench-perm:hover {
+            background: #e67e22;
             color: white;
         }
-        .btn-rep-shop.disabled {
+        .btn-wrench-perm.disabled {
             background: rgba(149, 165, 166, 0.1);
             border: 1px solid #95a5a6;
             color: #95a5a6;
         }
-        .btn-rep-shop.disabled:hover {
+        .btn-wrench-perm.disabled:hover {
             background: #95a5a6;
             color: white;
+        }
+        /* 申诫商店权限按钮样式 */
+        .btn-shop-access {
+            background: rgba(155, 89, 182, 0.1);
+            border: 1px solid #9b59b6;
+            color: #9b59b6;
+        }
+        .btn-shop-access:hover {
+            background: #9b59b6;
+            color: white;
+        }
+
+        /* 隐藏物品复选框样式 */
+        .hidden-item-checkbox {
+            display: flex;
+            align-items: flex-start;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .hidden-item-checkbox:hover {
+            background: rgba(0, 255, 255, 0.1);
+        }
+        .hidden-item-checkbox input {
+            margin-right: 10px;
+            margin-top: 3px;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        .hidden-item-checkbox .item-info {
+            flex: 1;
+        }
+        .hidden-item-checkbox .item-title {
+            font-weight: bold;
+            color: #00ffff;
+            margin-bottom: 4px;
+        }
+        .hidden-item-checkbox .item-desc {
+            font-size: 12px;
+            color: #888;
+            line-height: 1.4;
+        }
+        .no-hidden-items {
+            text-align: center;
+            color: #888;
+            padding: 20px;
+            font-style: italic;
         }
 
         .empty-state {
@@ -2045,7 +2194,24 @@
         .mission-form input:focus, .mission-form textarea:focus { outline: none; border-color: #27ae60; }
         .mission-form textarea { min-height: 80px; resize: vertical; }
         #missionModal .btn-modal-confirm { background: #27ae60; }
+        #missionModal { z-index: 10001; }
+        #missionModal .modal-box { max-width: 500px; max-height: 85vh; display: flex; flex-direction: column; }
+        #missionModal .modal-body { flex: 1; overflow-y: auto; }
 
+        /* 可选任务样式 */
+        .btn-add-optional { background: none; border: none; color: var(--manager-blue); cursor: pointer; font-size: 12px; margin-left: 6px; padding: 2px 6px; transition: all 0.2s; }
+        .btn-add-optional:hover { transform: scale(1.2); color: var(--manager-blue-dark); }
+        #optionalTasksContainer { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+        .optional-task-item { display: flex; align-items: center; gap: 8px; }
+        .optional-task-item .task-num { font-size: 13px; font-weight: bold; color: #666; min-width: 20px; }
+        .optional-task-item .optional-task-input { flex: 1; padding: 8px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; }
+        .optional-task-item .optional-task-input:focus { outline: none; border-color: var(--manager-blue); }
+        .btn-remove-optional { background: none; border: none; color: #bdc3c7; cursor: pointer; font-size: 14px; padding: 4px; transition: all 0.2s; }
+        .btn-remove-optional:hover { color: #e74c3c; }
+
+        /* 可选任务详情显示 */
+        .optional-tasks-display { margin: 0; padding-left: 20px; }
+        .optional-tasks-display li { margin-bottom: 8px; font-size: 14px; color: var(--text-dark); }
 
         /* === 邮件详情弹窗样式 === */
         #mailDetailModal .modal-box { max-width: 550px; }
@@ -3893,6 +4059,427 @@
                 display: flex;
             }
         }
+
+        /* ========== 公共申领物池样式 ========== */
+        .pool-quota-badge {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .pool-filter-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .pool-filter-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .pool-search-box {
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            padding: 6px 12px;
+            gap: 8px;
+            min-width: 200px;
+            transition: all 0.2s;
+        }
+        .pool-search-box:focus-within {
+            border-color: var(--manager-blue);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        .pool-search-box i.fa-search {
+            color: #95a5a6;
+            font-size: 12px;
+        }
+        .pool-search-box input {
+            border: none;
+            outline: none;
+            flex: 1;
+            font-size: 13px;
+            background: transparent;
+        }
+        .pool-search-box input::placeholder {
+            color: #bdc3c7;
+        }
+        .pool-search-clear {
+            background: none;
+            border: none;
+            color: #95a5a6;
+            cursor: pointer;
+            padding: 2px;
+            font-size: 12px;
+            transition: color 0.2s;
+        }
+        .pool-search-clear:hover {
+            color: #e74c3c;
+        }
+        .pool-filter-btn {
+            padding: 6px 14px;
+            border: 1px solid #e0e0e0;
+            border-radius: 15px;
+            background: white;
+            color: #666;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .pool-filter-btn:hover {
+            border-color: var(--manager-blue);
+            color: var(--manager-blue);
+        }
+        .pool-filter-btn.active {
+            background: var(--manager-blue);
+            border-color: var(--manager-blue);
+            color: white;
+        }
+
+        /* 公共池物品卡片扩展 */
+        .shop-item-card.pool-official { border-left: 3px solid var(--signal-red); }
+        .shop-item-card.pool-manager { border-left: 3px solid #3498db; }
+        .shop-item-card.pool-mine { border-left: 3px solid #27ae60; }
+
+        .pool-item-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 12px;
+            font-size: 11px;
+            color: #95a5a6;
+            margin-bottom: 10px;
+        }
+        .pool-item-stats span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .pool-item-stats .stat-like { color: #27ae60; }
+        .pool-item-stats .stat-dislike { color: #e74c3c; }
+
+        /* 投票按钮 */
+        .btn-vote {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            color: #6c757d;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-vote:hover { background: #e9ecef; }
+        .btn-vote.voted {
+            color: var(--manager-blue);
+            border-color: var(--manager-blue);
+            background: rgba(52, 152, 219, 0.1);
+        }
+
+        /* 上传到公共池按钮 */
+        .btn-upload-pool {
+            background: var(--manager-blue);
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .btn-upload-pool:hover { background: var(--manager-blue-dark); }
+
+        /* 公共物品详情弹窗样式 */
+        .pool-detail-modal .modal-box {
+            max-width: 650px;
+        }
+        .pool-detail-section {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        .pool-detail-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .pool-detail-section h4 {
+            font-size: 12px;
+            color: #95a5a6;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .pool-vote-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .pool-vote-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            background: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .pool-vote-btn.like:hover, .pool-vote-btn.like.active {
+            border-color: #27ae60;
+            color: #27ae60;
+            background: rgba(39,174,96,0.1);
+        }
+        .pool-vote-btn.dislike:hover, .pool-vote-btn.dislike.active {
+            border-color: #e74c3c;
+            color: #e74c3c;
+            background: rgba(231,76,60,0.1);
+        }
+
+        /* 评论区样式 */
+        .pool-comments-list {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        .pool-comment-item {
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .pool-comment-item.reply {
+            margin-left: 25px;
+            border-left: 3px solid #3498db;
+            background: #f0f7fc;
+        }
+        .pool-comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .pool-comment-user {
+            font-weight: 600;
+            font-size: 12px;
+            color: var(--text-dark);
+        }
+        .pool-comment-time {
+            font-size: 10px;
+            color: #95a5a6;
+        }
+        .pool-comment-content {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.5;
+        }
+        .pool-comment-actions {
+            margin-top: 8px;
+            display: flex;
+            gap: 10px;
+        }
+        .pool-comment-actions button {
+            background: none;
+            border: none;
+            font-size: 11px;
+            color: #95a5a6;
+            cursor: pointer;
+            padding: 0;
+        }
+        .pool-comment-actions button:hover { color: var(--manager-blue); }
+
+        .pool-comment-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .pool-comment-form input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #ecf0f1;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+        .pool-comment-form input:focus {
+            outline: none;
+            border-color: var(--manager-blue);
+        }
+        .pool-comment-form button {
+            padding: 10px 20px;
+            background: var(--manager-blue);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .pool-comment-form button:hover { background: var(--manager-blue-dark); }
+
+        /* 公共池模态框头部样式 */
+        .upload-pool-modal .modal-header,
+        .pool-detail-modal .modal-header {
+            background: linear-gradient(135deg, var(--manager-blue), var(--manager-blue-dark));
+        }
+        .upload-pool-modal .modal-header h3,
+        .upload-pool-modal .modal-close,
+        .pool-detail-modal .modal-header h3,
+        .pool-detail-modal .modal-close {
+            color: white;
+        }
+        .upload-pool-modal .btn-modal-confirm,
+        .pool-detail-modal .btn-modal-confirm {
+            background: var(--manager-blue);
+        }
+        .upload-pool-modal .btn-modal-confirm:hover,
+        .pool-detail-modal .btn-modal-confirm:hover {
+            background: var(--manager-blue-dark);
+        }
+
+        /* 上传到公共池模态框 */
+        .upload-pool-modal .price-options-container {
+            border: 1px solid #ecf0f1;
+            border-radius: 6px;
+            padding: 10px;
+            max-height: 180px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+        .upload-pool-modal .price-option-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr auto;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+        .upload-pool-modal .price-option-row input,
+        .upload-pool-modal .price-option-row select {
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .upload-pool-modal .btn-remove-price {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .upload-pool-modal .btn-add-price {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .quota-info-bar {
+                flex-direction: column;
+                text-align: center;
+            }
+            .pool-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .pool-filters {
+                justify-content: center;
+            }
+            .btn-upload-to-pool {
+                justify-content: center;
+            }
+            .public-pool-grid {
+                grid-template-columns: 1fr;
+            }
+            .pool-vote-buttons {
+                flex-direction: column;
+            }
+            .upload-pool-modal .modal-box {
+                width: 95%;
+                max-width: none;
+                margin: 10px;
+            }
+            .upload-pool-modal .modal-body {
+                padding: 15px;
+                max-height: 70vh;
+                overflow-y: auto;
+            }
+            .upload-pool-modal .price-options-container {
+                max-height: none;
+                overflow: visible;
+            }
+            .upload-pool-modal .price-option-row {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                padding: 10px;
+                background: #f9f9f9;
+                border-radius: 6px;
+                margin-bottom: 10px;
+                position: relative;
+            }
+            .upload-pool-modal .price-option-row input,
+            .upload-pool-modal .price-option-row select {
+                width: 100%;
+                box-sizing: border-box;
+                padding: 10px;
+                font-size: 14px;
+            }
+            .upload-pool-modal .btn-remove-price {
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                width: 24px;
+                height: 24px;
+            }
+            .upload-pool-modal .price-option-row input:first-child {
+                padding-right: 40px;
+            }
+            .pool-filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .pool-filter-buttons {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            .pool-search-box {
+                min-width: unset;
+                width: auto;
+                max-width: 100%;
+                box-sizing: border-box;
+                margin: 0;
+            }
+            .pool-search-box input {
+                min-width: 0;
+                width: 100%;
+            }
+        }
 	</style>
 </head>
 <body>
@@ -4010,6 +4597,9 @@
         <button class="main-tab" onclick="switchMainTab('requisitions')" data-tab="requisitions">
             <i class="fas fa-box"></i> 申领物管理
         </button>
+        <button class="main-tab" onclick="switchMainTab('publicpool')" data-tab="publicpool">
+            <i class="fas fa-store"></i> 公共申领物池
+        </button>
     </div>
 
     <!-- ========== 页面1: 已授权角色档案 ========== -->
@@ -4068,6 +4658,45 @@
             </div>
         </div>
     </div>
+
+    <!-- ========== 页面4: 公共申领物池 ========== -->
+    <div class="tab-content" id="tabPublicpool">
+        <div class="requisition-panel">
+            <div class="requisition-header">
+                <h3><i class="fas fa-store"></i> 公共申领物池</h3>
+                <div style="display:flex;gap:10px;align-items:center;">
+                    <span class="pool-quota-badge" id="poolQuotaBadge">
+                        <i class="fas fa-cloud-upload-alt"></i> 配额: <span id="quotaCurrent">0</span>/<span id="quotaMax">10</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- 筛选栏 -->
+            <div class="pool-filter-bar">
+                <div class="pool-filter-buttons">
+                    <button class="pool-filter-btn active" onclick="filterPublicPool('all')">全部</button>
+                    <button class="pool-filter-btn" onclick="filterPublicPool('official')">官方</button>
+                    <button class="pool-filter-btn" onclick="filterPublicPool('manager')">经理上传</button>
+                    <button class="pool-filter-btn" onclick="filterPublicPool('mine')">我的上传</button>
+                </div>
+                <div class="pool-search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="poolSearchInput" placeholder="搜索名称或效果..." oninput="onPoolSearchInput()">
+                    <button class="pool-search-clear" id="poolSearchClear" onclick="clearPoolSearch()" style="display:none;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 物品网格 -->
+            <div id="publicPoolGrid" class="requisition-list">
+                <div class="requisition-empty">
+                    <i class="fas fa-circle-notch fa-spin" style="font-size:32px;margin-bottom:15px;"></i>
+                    <p>加载中...</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- ========== 外勤任务详情全屏覆盖层 ========== -->
@@ -4092,6 +4721,12 @@
             <div class="mission-detail-section">
                 <h3><i class="fas fa-info-circle"></i> 任务描述</h3>
                 <p id="missionDetailDesc" class="mission-desc-text">暂无描述</p>
+            </div>
+
+            <!-- 可选任务 -->
+            <div class="mission-detail-section" id="optionalTasksSection" style="display:none;">
+                <h3><i class="fas fa-list-ol"></i> 可选任务</h3>
+                <ol id="missionDetailOptionalTasks" class="optional-tasks-display"></ol>
             </div>
 
             <!-- 任务成员 -->
@@ -4371,7 +5006,7 @@
                 <textarea id="recordReasonInput" placeholder="输入原因..."></textarea>
                 <div class="record-count-row">
                     <label>数量:</label>
-                    <input type="number" id="recordCountInput" class="record-count-input" value="1" min="1" max="99">
+                    <input type="number" id="recordCountInput" class="record-count-input" value="1" min="-99" max="99">
                 </div>
                 <button class="btn-add-record reward" id="btnAddRecord" onclick="addRecord()">
                     <i class="fas fa-plus"></i> 添加嘉奖
@@ -4409,6 +5044,12 @@
             </select>
             <label>任务描述</label>
             <textarea id="missionDesc" placeholder="输入任务描述（可选）"></textarea>
+            <label>可选任务 <button type="button" class="btn-add-optional" onclick="addOptionalTask()" title="添加可选任务"><i class="fas fa-plus"></i></button></label>
+            <div id="optionalTasksContainer">
+                <div class="optional-task-item" data-idx="1"><span class="task-num">1.</span><input type="text" class="optional-task-input" placeholder="可选任务内容"><button type="button" class="btn-remove-optional" onclick="removeOptionalTask(this)"><i class="fas fa-times"></i></button></div>
+                <div class="optional-task-item" data-idx="2"><span class="task-num">2.</span><input type="text" class="optional-task-input" placeholder="可选任务内容"><button type="button" class="btn-remove-optional" onclick="removeOptionalTask(this)"><i class="fas fa-times"></i></button></div>
+                <div class="optional-task-item" data-idx="3"><span class="task-num">3.</span><input type="text" class="optional-task-input" placeholder="可选任务内容"><button type="button" class="btn-remove-optional" onclick="removeOptionalTask(this)"><i class="fas fa-times"></i></button></div>
+            </div>
         </div>
         <div class="modal-footer">
             <button class="btn-modal btn-modal-cancel" onclick="closeMissionModal()">取消</button>
@@ -4598,11 +5239,110 @@
                     </label>
                 </div>
             </div>
+
+            <div class="shop-form-group">
+                <div class="global-checkbox-container">
+                    <input type="checkbox" id="shopItemShowToAgents" checked>
+                    <label for="shopItemShowToAgents" style="margin:0;font-weight:normal;">
+                        <i class="fas fa-eye"></i> 对特工展示（关闭后需单独授权特工才可见）
+                    </label>
+                </div>
+            </div>
         </div>
         <div class="shop-modal-footer">
             <button class="btn-cancel-shop" onclick="closeShopModal()">取消</button>
             <button class="btn-save-shop" onclick="saveShopItem()">
                 <i class="fas fa-save"></i> 保存
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 商店权限配置模态框 -->
+<div class="shop-modal-overlay" id="shopAccessModal">
+    <div class="shop-modal" style="max-width: 500px;">
+        <div class="shop-modal-header">
+            <h3><i class="fas fa-shopping-bag"></i> 商店权限配置 - <span id="shopAccessCharName"></span></h3>
+            <button class="shop-modal-close" onclick="closeShopAccessModal()">&times;</button>
+        </div>
+        <div class="shop-modal-body">
+            <input type="hidden" id="shopAccessCharId" value="">
+
+            <!-- 申诫商店开关 -->
+            <div class="shop-form-group">
+                <div class="global-checkbox-container" style="padding: 12px; background: rgba(156, 39, 176, 0.1); border-radius: 8px; border: 1px solid rgba(156, 39, 176, 0.3);">
+                    <input type="checkbox" id="shopAccessReprimand">
+                    <label for="shopAccessReprimand" style="margin:0;font-weight:normal;">
+                        <i class="fas fa-store" style="color: #9c27b0;"></i> 开放申诫商店（允许使用申诫购买物品）
+                    </label>
+                </div>
+            </div>
+
+            <!-- 特殊申领物授权 -->
+            <div class="shop-form-group">
+                <label><i class="fas fa-eye-slash"></i> 特殊申领物授权</label>
+                <p style="color: #888; font-size: 12px; margin: 5px 0 10px 0;">勾选后，该特工可看到以下未默认展示的申领物</p>
+                <div id="hiddenItemsList" style="max-height: 300px; overflow-y: auto; border: 1px solid rgba(0,255,255,0.2); border-radius: 8px; padding: 10px;">
+                    <div class="loading-items" style="text-align: center; color: #888;">
+                        <i class="fas fa-spinner fa-spin"></i> 加载中...
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="shop-modal-footer">
+            <button class="btn-cancel-shop" onclick="closeShopAccessModal()">取消</button>
+            <button class="btn-save-shop" onclick="saveShopAccess()">
+                <i class="fas fa-save"></i> 保存
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 上传到公共池模态框 -->
+<div class="modal-overlay upload-pool-modal" id="uploadPoolModal">
+    <div class="modal-box" style="max-width: 550px;">
+        <div class="modal-header">
+            <h3><i class="fas fa-cloud-upload-alt"></i> <span id="uploadPoolModalTitle">上传到公共池</span></h3>
+            <button class="modal-close" onclick="closeUploadPoolModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div style="margin-bottom:15px;">
+                <label style="font-size:12px;color:#7f8c8d;display:block;margin-bottom:5px;">物品名称 *</label>
+                <input type="text" id="uploadPoolTitle" placeholder="输入物品名称" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px;box-sizing:border-box;">
+            </div>
+            <div style="margin-bottom:15px;">
+                <label style="font-size:12px;color:#7f8c8d;display:block;margin-bottom:5px;">物品描述</label>
+                <textarea id="uploadPoolDesc" rows="3" placeholder="输入物品描述（支持详细说明）" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px;resize:vertical;box-sizing:border-box;"></textarea>
+            </div>
+            <div style="margin-bottom:15px;">
+                <label style="font-size:12px;color:#7f8c8d;display:block;margin-bottom:5px;">标价选项</label>
+                <div id="uploadPoolPricesContainer" class="price-options-container">
+                    <!-- 动态添加的标价行 -->
+                </div>
+                <button type="button" class="btn-add-price" onclick="addUploadPoolPriceOption()"><i class="fas fa-plus"></i> 添加标价</button>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-modal btn-modal-cancel" onclick="closeUploadPoolModal()">取消</button>
+            <button class="btn-modal btn-modal-confirm" onclick="submitUploadPool()"><i class="fas fa-upload"></i> 上传</button>
+        </div>
+    </div>
+</div>
+
+<!-- 公共池物品详情模态框 -->
+<div class="modal-overlay pool-detail-modal" id="poolDetailModal">
+    <div class="modal-box" style="max-width: 650px;">
+        <div class="modal-header">
+            <h3><i class="fas fa-info-circle"></i> 物品详情</h3>
+            <button class="modal-close" onclick="closePoolDetailModal()">&times;</button>
+        </div>
+        <div class="modal-body" id="poolDetailContent">
+            <!-- 动态内容 -->
+        </div>
+        <div class="modal-footer">
+            <button class="btn-modal btn-modal-cancel" onclick="closePoolDetailModal()">关闭</button>
+            <button class="btn-modal btn-modal-confirm" id="btnAddToMyPool" onclick="addToMyPoolFromDetail()">
+                <i class="fas fa-plus"></i> 添加到我的池
             </button>
         </div>
     </div>
@@ -4730,10 +5470,9 @@
             const msgPermIcon = c.canSendMessages ? 'fa-envelope' : 'fa-envelope-circle-xmark';
             const msgPermTitle = c.canSendMessages ? '禁止发信' : '允许发信';
 
-            // 申诫商店权限
-            const repShopClass = c.reprimandShopAccess ? '' : 'disabled';
-            const repShopIcon = c.reprimandShopAccess ? 'fa-store' : 'fa-store-slash';
-            const repShopTitle = c.reprimandShopAccess ? '关闭申诫商店' : '开放申诫商店';
+            const wrenchPermClass = c.canUseWrenchMode ? '' : 'disabled';
+            const wrenchPermIcon = c.canUseWrenchMode ? 'fa-wrench' : 'fa-ban';
+            const wrenchPermTitle = c.canUseWrenchMode ? '禁止扳手模式' : '允许扳手模式';
 
             return `
             <div class="char-card" data-char-id="${c.id}">
@@ -4776,8 +5515,11 @@
                     <button class="btn-card-action btn-msg-perm ${msgPermClass}" onclick="event.stopPropagation(); toggleMessagePermission('${c.id}', '${safeCharName}', ${c.canSendMessages})" title="${msgPermTitle}">
                         <i class="fas ${msgPermIcon}"></i>
                     </button>
-                    <button class="btn-card-action btn-rep-shop ${repShopClass}" onclick="event.stopPropagation(); toggleReprimandShopAccess('${c.id}', '${safeCharName}', ${c.reprimandShopAccess})" title="${repShopTitle}">
-                        <i class="fas ${repShopIcon}"></i>
+                    <button class="btn-card-action btn-wrench-perm ${wrenchPermClass}" onclick="event.stopPropagation(); toggleWrenchPermission('${c.id}', '${safeCharName}', ${c.canUseWrenchMode})" title="${wrenchPermTitle}">
+                        <i class="fas ${wrenchPermIcon}"></i>
+                    </button>
+                    <button class="btn-card-action btn-shop-access" onclick="event.stopPropagation(); openShopAccessModal('${c.id}', '${safeCharName}')" title="商店权限配置">
+                        <i class="fas fa-shopping-bag"></i>
                     </button>
                     ${removeAuthBtn}
                     <button class="btn-card-action btn-view" onclick="openSheet('${c.id}')">
@@ -4961,6 +5703,48 @@
         }
     }
 
+    // 切换扳手模式权限
+    async function toggleWrenchPermission(charId, charName, currentStatus) {
+        const action = currentStatus ? '禁止' : '恢复';
+        if (!confirm(`确定要${action} "${charName}" 的扳手模式权限吗？\n\n${currentStatus ? '禁止后该角色将无法使用扳手模式编辑数值。' : '恢复后该角色可以使用扳手模式自行调整数值。'}`)) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/manager/character/${charId}/wrench-mode`, {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ enabled: !currentStatus })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                showToast(`已${action}该角色的扳手模式权限`, true);
+                // 更新按钮状态
+                const card = document.querySelector(`.char-card[data-char-id="${charId}"]`);
+                if (card) {
+                    const btn = card.querySelector('.btn-wrench-perm');
+                    const icon = btn.querySelector('i');
+                    if (data.canUseWrenchMode) {
+                        btn.classList.remove('disabled');
+                        btn.title = '禁止扳手模式';
+                        btn.onclick = function(e) { e.stopPropagation(); toggleWrenchPermission(charId, charName, true); };
+                        icon.className = 'fas fa-wrench';
+                    } else {
+                        btn.classList.add('disabled');
+                        btn.title = '允许扳手模式';
+                        btn.onclick = function(e) { e.stopPropagation(); toggleWrenchPermission(charId, charName, false); };
+                        icon.className = 'fas fa-ban';
+                    }
+                }
+            } else {
+                showToast(data.message || '操作失败');
+            }
+        } catch (e) {
+            showToast('操作失败');
+        }
+    }
+
     // 切换申诫商店权限
     async function toggleReprimandShopAccess(charId, charName, currentStatus) {
         const action = currentStatus ? '关闭' : '开放';
@@ -5000,6 +5784,92 @@
             }
         } catch (e) {
             showToast('操作失败');
+        }
+    }
+
+    // ==========================================
+    // 商店权限配置功能
+    // ==========================================
+    let shopAccessCharId = null;
+
+    async function openShopAccessModal(charId, charName) {
+        shopAccessCharId = charId;
+        document.getElementById('shopAccessCharName').textContent = charName;
+        document.getElementById('shopAccessCharId').value = charId;
+        document.getElementById('hiddenItemsList').innerHTML = '<div class="loading-items" style="text-align: center; color: #888;"><i class="fas fa-spinner fa-spin"></i> 加载中...</div>';
+        document.getElementById('shopAccessModal').classList.add('show');
+
+        try {
+            const res = await fetch(`/api/manager/character/${charId}/shop-access`, {
+                headers: getAuthHeaders()
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                // 设置申诫商店开关
+                document.getElementById('shopAccessReprimand').checked = data.reprimandShopAccess;
+
+                // 渲染隐藏物品列表
+                const container = document.getElementById('hiddenItemsList');
+                if (data.hiddenItems && data.hiddenItems.length > 0) {
+                    container.innerHTML = data.hiddenItems.map(item => {
+                        const isChecked = data.visibleItemIds.includes(item.id);
+                        return `
+                            <label class="hidden-item-checkbox">
+                                <input type="checkbox" value="${item.id}" ${isChecked ? 'checked' : ''}>
+                                <div class="item-info">
+                                    <div class="item-title">${escapeHtml(item.title)}</div>
+                                    <div class="item-desc">${escapeHtml(item.description || '无描述')}</div>
+                                </div>
+                            </label>
+                        `;
+                    }).join('');
+                } else {
+                    container.innerHTML = '<div class="no-hidden-items">暂无需要单独授权的申领物<br><small>在申领物编辑中关闭"对特工展示"后，物品会出现在这里</small></div>';
+                }
+            } else {
+                showToast(data.message || '加载失败');
+                closeShopAccessModal();
+            }
+        } catch (e) {
+            console.error('加载商店权限配置失败:', e);
+            showToast('加载失败');
+            closeShopAccessModal();
+        }
+    }
+
+    function closeShopAccessModal() {
+        document.getElementById('shopAccessModal').classList.remove('show');
+        shopAccessCharId = null;
+    }
+
+    async function saveShopAccess() {
+        const charId = document.getElementById('shopAccessCharId').value;
+        if (!charId) return;
+
+        const reprimandShopAccess = document.getElementById('shopAccessReprimand').checked;
+
+        // 收集选中的物品ID
+        const checkboxes = document.querySelectorAll('#hiddenItemsList input[type="checkbox"]:checked');
+        const visibleItemIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+        try {
+            const res = await fetch(`/api/manager/character/${charId}/shop-access`, {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ reprimandShopAccess, visibleItemIds })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                showToast('商店权限配置已保存', true);
+                closeShopAccessModal();
+            } else {
+                showToast(data.message || '保存失败');
+            }
+        } catch (e) {
+            console.error('保存商店权限配置失败:', e);
+            showToast('保存失败');
         }
     }
 
@@ -5358,7 +6228,7 @@
                 year: 'numeric', month: '2-digit', day: '2-digit',
                 hour: '2-digit', minute: '2-digit'
             });
-            const countBadge = (r.count && r.count > 1)
+            const countBadge = (r.count && (r.count > 1 || r.count < 0))
                 ? `<span class="record-count-badge ${currentRecordTab === 'reprimand' ? 'reprimand' : ''}">x${r.count}</span>`
                 : '';
             return `
@@ -5391,8 +6261,8 @@
             return;
         }
 
-        if (count < 1 || count > 99) {
-            showToast('数量必须在1-99之间');
+        if (count < -99 || count > 99 || count === 0) {
+            showToast('数量必须在-99到99之间，且不能为0');
             return;
         }
 
@@ -5497,8 +6367,8 @@
                 const rewardItems = [];
                 if (r.rating) rewardItems.push(`<span class="report-rating">${r.rating}</span>`);
                 if (r.scatterValue) rewardItems.push(`<span class="report-scatter"><i class="fas fa-radiation"></i> ${r.scatterValue}</span>`);
-                if (r.totalCommend > 0) rewardItems.push(`<span class="report-commend"><i class="fas fa-medal"></i> +${r.totalCommend}</span>`);
-                if (r.totalReprimand > 0) rewardItems.push(`<span class="report-reprimand"><i class="fas fa-exclamation-triangle"></i> +${r.totalReprimand}</span>`);
+                if (r.totalCommend !== 0) rewardItems.push(`<span class="report-commend"><i class="fas fa-medal"></i> ${r.totalCommend > 0 ? '+' : ''}${r.totalCommend}</span>`);
+                if (r.totalReprimand !== 0) rewardItems.push(`<span class="report-reprimand"><i class="fas fa-exclamation-triangle"></i> ${r.totalReprimand > 0 ? '+' : ''}${r.totalReprimand}</span>`);
                 if (r.mvpCount > 0) rewardItems.push(`<span class="report-mvp"><i class="fas fa-trophy"></i> MVP×${r.mvpCount}</span>`);
                 if (r.probationCount > 0) rewardItems.push(`<span class="report-probation"><i class="fas fa-eye"></i> 查看期×${r.probationCount}</span>`);
 
@@ -5565,14 +6435,79 @@
                 document.getElementById('missionName').value = mission.name;
                 document.getElementById('missionType').value = mission.mission_type || 'containment';
                 document.getElementById('missionDesc').value = mission.description || '';
+                loadOptionalTasks(mission.optional_tasks || []);
             }
         } else {
             document.getElementById('missionName').value = '';
             document.getElementById('missionType').value = 'containment';
             document.getElementById('missionDesc').value = '';
+            loadOptionalTasks([]); // 重置为默认3条空白
         }
 
         document.getElementById('missionModal').classList.add('show');
+    }
+
+    // 可选任务功能
+    const MAX_OPTIONAL_TASKS = 10;
+    const DEFAULT_OPTIONAL_TASKS = 3;
+
+    function addOptionalTask() {
+        const container = document.getElementById('optionalTasksContainer');
+        const count = container.children.length;
+        if (count >= MAX_OPTIONAL_TASKS) {
+            showToast('最多只能添加10条可选任务');
+            return;
+        }
+        const idx = count + 1;
+        const item = document.createElement('div');
+        item.className = 'optional-task-item';
+        item.dataset.idx = idx;
+        item.innerHTML = `<span class="task-num">${idx}.</span><input type="text" class="optional-task-input" placeholder="可选任务内容"><button type="button" class="btn-remove-optional" onclick="removeOptionalTask(this)"><i class="fas fa-times"></i></button>`;
+        container.appendChild(item);
+        updateOptionalTaskNumbers();
+    }
+
+    function removeOptionalTask(btn) {
+        const container = document.getElementById('optionalTasksContainer');
+        if (container.children.length <= 1) {
+            showToast('至少保留1条可选任务');
+            return;
+        }
+        btn.closest('.optional-task-item').remove();
+        updateOptionalTaskNumbers();
+    }
+
+    function updateOptionalTaskNumbers() {
+        const items = document.querySelectorAll('#optionalTasksContainer .optional-task-item');
+        items.forEach((item, idx) => {
+            item.dataset.idx = idx + 1;
+            item.querySelector('.task-num').textContent = (idx + 1) + '.';
+        });
+    }
+
+    function getOptionalTasks() {
+        const tasks = [];
+        document.querySelectorAll('#optionalTasksContainer .optional-task-input').forEach(input => {
+            const val = input.value.trim();
+            if (val) tasks.push(val);
+        });
+        return tasks;
+    }
+
+    function loadOptionalTasks(tasks) {
+        const container = document.getElementById('optionalTasksContainer');
+        container.innerHTML = '';
+
+        // 如果没有任务，默认创建3条空白
+        const count = (tasks && tasks.length > 0) ? tasks.length : DEFAULT_OPTIONAL_TASKS;
+        for (let i = 0; i < count; i++) {
+            const item = document.createElement('div');
+            item.className = 'optional-task-item';
+            item.dataset.idx = i + 1;
+            const value = (tasks && tasks[i]) ? tasks[i].replace(/"/g, '&quot;') : '';
+            item.innerHTML = `<span class="task-num">${i + 1}.</span><input type="text" class="optional-task-input" placeholder="可选任务内容" value="${value}"><button type="button" class="btn-remove-optional" onclick="removeOptionalTask(this)"><i class="fas fa-times"></i></button>`;
+            container.appendChild(item);
+        }
     }
 
     function closeMissionModal() {
@@ -5588,6 +6523,7 @@
         const name = document.getElementById('missionName').value.trim();
         const missionType = document.getElementById('missionType').value;
         const description = document.getElementById('missionDesc').value.trim();
+        const optionalTasks = getOptionalTasks();
         const editId = document.getElementById('missionEditId').value;
 
         if (!name) {
@@ -5602,7 +6538,7 @@
             const res = await fetch(url, {
                 method,
                 headers: getAuthHeaders(),
-                body: JSON.stringify({ name, description, missionType })
+                body: JSON.stringify({ name, description, missionType, optionalTasks })
             });
 
             const data = await res.json();
@@ -5610,6 +6546,24 @@
                 showToast(editId ? '任务已更新' : '任务已创建', true);
                 closeMissionModal();
                 await loadMissions();
+                // 如果详情页还开着，更新详情页显示
+                if (currentMissionDetailId && editId) {
+                    const mission = missionsList.find(m => m.id === currentMissionDetailId);
+                    if (mission) {
+                        document.getElementById('missionDetailName').textContent = mission.name;
+                        document.getElementById('missionDetailDesc').textContent = mission.description || '无描述';
+                        // 更新可选任务显示
+                        const tasks = mission.optional_tasks || [];
+                        const optionalSection = document.getElementById('optionalTasksSection');
+                        const optionalList = document.getElementById('missionDetailOptionalTasks');
+                        if (tasks.length > 0) {
+                            optionalSection.style.display = 'block';
+                            optionalList.innerHTML = tasks.map(t => `<li>${escapeHtml(t)}</li>`).join('');
+                        } else {
+                            optionalSection.style.display = 'none';
+                        }
+                    }
+                }
             } else {
                 throw new Error(data.message || '保存失败');
             }
@@ -6035,7 +6989,8 @@
         const tabMap = {
             'characters': 'tabCharacters',
             'missions': 'tabMissions',
-            'requisitions': 'tabRequisitions'
+            'requisitions': 'tabRequisitions',
+            'publicpool': 'tabPublicpool'
         };
 
         const targetTab = document.getElementById(tabMap[tabName]);
@@ -6051,6 +7006,11 @@
         // 切换到申领物页时加载申领物列表
         if (tabName === 'requisitions') {
             loadShopItems();
+        }
+
+        // 切换到公共池页时加载公共池物品
+        if (tabName === 'publicpool') {
+            loadPublicPool();
         }
     }
 
@@ -6073,6 +7033,18 @@
         // 填充详情
         document.getElementById('missionDetailName').textContent = mission.name;
         document.getElementById('missionDetailDesc').textContent = mission.description || '暂无描述';
+
+        // 填充可选任务
+        const optionalTasks = mission.optional_tasks || [];
+        const optionalSection = document.getElementById('optionalTasksSection');
+        const optionalList = document.getElementById('missionDetailOptionalTasks');
+        if (optionalTasks.length > 0) {
+            optionalSection.style.display = 'block';
+            optionalList.innerHTML = optionalTasks.map(task => `<li>${escapeHtml(task)}</li>`).join('');
+        } else {
+            optionalSection.style.display = 'none';
+            optionalList.innerHTML = '';
+        }
 
         const statusEl = document.getElementById('missionDetailStatus');
         statusEl.textContent = mission.status === 'active' ? '进行中' : '已归档';
@@ -6535,11 +7507,11 @@
                         </div>
                         <div class="reward-group special">
                             <label class="reward-radio-item">
-                                <input type="radio" name="mission_mvp" value="${charId}" onchange="selectMVP('${charId}')" ${disabled ? 'disabled' : ''} ${rewards.mvp ? 'checked' : ''}>
+                                <input type="checkbox" name="mission_mvp_${charId}" onchange="toggleMVP('${charId}', this.checked)" ${disabled ? 'disabled' : ''} ${rewards.mvp ? 'checked' : ''}>
                                 <span class="radio-label mvp"><i class="fas fa-trophy"></i> MVP</span>
                             </label>
                             <label class="reward-radio-item">
-                                <input type="radio" name="mission_probation" value="${charId}" onchange="selectProbation('${charId}')" ${disabled ? 'disabled' : ''} ${rewards.probation ? 'checked' : ''}>
+                                <input type="checkbox" name="mission_probation_${charId}" onchange="toggleProbation('${charId}', this.checked)" ${disabled ? 'disabled' : ''} ${rewards.probation ? 'checked' : ''}>
                                 <span class="radio-label probation"><i class="fas fa-eye"></i> 查看期</span>
                             </label>
                         </div>
@@ -6553,31 +7525,25 @@
         if (!agentRewards[charId]) return;
 
         let newValue = agentRewards[charId][type] + delta;
-        if (newValue < 0) newValue = 0;
+        // 允许负数，限制在 -99 到 99 之间
+        if (newValue < -99) newValue = -99;
+        if (newValue > 99) newValue = 99;
 
         agentRewards[charId][type] = newValue;
         document.getElementById(`${type}_${charId}`).textContent = newValue;
     }
 
-    function selectMVP(charId) {
-        // 清除所有人的MVP
-        Object.keys(agentRewards).forEach(id => {
-            agentRewards[id].mvp = false;
-        });
-        // 设置选中的人为MVP
+    function toggleMVP(charId, checked) {
+        // 允许多人获得MVP
         if (agentRewards[charId]) {
-            agentRewards[charId].mvp = true;
+            agentRewards[charId].mvp = checked;
         }
     }
 
-    function selectProbation(charId) {
-        // 清除所有人的查看期
-        Object.keys(agentRewards).forEach(id => {
-            agentRewards[id].probation = false;
-        });
-        // 设置选中的人为查看期
+    function toggleProbation(charId, checked) {
+        // 允许多人获得查看期
         if (agentRewards[charId]) {
-            agentRewards[charId].probation = true;
+            agentRewards[charId].probation = checked;
         }
     }
 
@@ -6966,8 +7932,8 @@
 
             // 构建奖惩预览
             let rewardPreview = [];
-            if (r.pending_rewards?.commend > 0) rewardPreview.push(`嘉奖+${r.pending_rewards.commend}`);
-            if (r.pending_rewards?.reprimand > 0) rewardPreview.push(`申诫+${r.pending_rewards.reprimand}`);
+            if (r.pending_rewards?.commend !== 0 && r.pending_rewards?.commend !== undefined) rewardPreview.push(`嘉奖${r.pending_rewards.commend > 0 ? '+' : ''}${r.pending_rewards.commend}`);
+            if (r.pending_rewards?.reprimand !== 0 && r.pending_rewards?.reprimand !== undefined) rewardPreview.push(`申诫${r.pending_rewards.reprimand > 0 ? '+' : ''}${r.pending_rewards.reprimand}`);
             if (r.pending_rewards?.mvp) rewardPreview.push('MVP');
             if (r.pending_rewards?.probation) rewardPreview.push('观察期');
 
@@ -7369,7 +8335,6 @@
 
     function editCurrentMission() {
         if (!currentMissionDetailId) return;
-        closeMissionDetail();
         openMissionModal(currentMissionDetailId);
     }
 
@@ -7483,6 +8448,9 @@
                         <button class="btn-edit-item" onclick="editShopItem(${item.id})">
                             <i class="fas fa-edit"></i> 编辑
                         </button>
+                        <button class="btn-upload-pool" onclick="uploadShopItemToPool(${item.id})" title="上传到公共池">
+                            <i class="fas fa-cloud-upload-alt"></i> 上传公共池
+                        </button>
                         <button class="btn-delete-item" onclick="deleteShopItem(${item.id})">
                             <i class="fas fa-trash"></i> 删除
                         </button>
@@ -7497,6 +8465,7 @@
         document.getElementById('shopItemName').value = '';
         document.getElementById('shopItemDesc').value = '';
         document.getElementById('shopItemGlobal').checked = false;
+        document.getElementById('shopItemShowToAgents').checked = true; // 默认对特工展示
         document.getElementById('priceOptionsContainer').innerHTML = '';
 
         // 只有超管才能看到全局选项
@@ -7564,6 +8533,8 @@
         document.getElementById('shopItemName').value = item.title || '';
         document.getElementById('shopItemDesc').value = item.description || '';
         document.getElementById('shopItemGlobal').checked = !!item.is_global;
+        // show_to_agents 默认为1，如果字段不存在也认为是展示
+        document.getElementById('shopItemShowToAgents').checked = item.show_to_agents !== 0;
         document.getElementById('priceOptionsContainer').innerHTML = '';
 
         // 只有超管才能看到全局选项
@@ -7586,6 +8557,7 @@
         const title = document.getElementById('shopItemName').value.trim();
         const description = document.getElementById('shopItemDesc').value.trim();
         const isGlobal = document.getElementById('shopItemGlobal').checked;
+        const showToAgents = document.getElementById('shopItemShowToAgents').checked;
 
         if (!title) {
             showToast('请输入物品名称');
@@ -7621,7 +8593,7 @@
             const res = await fetch(url, {
                 method,
                 headers: getAuthHeaders(),
-                body: JSON.stringify({ title, description, prices, isGlobal })
+                body: JSON.stringify({ title, description, prices, isGlobal, showToAgents })
             });
 
             const data = await res.json();
@@ -7657,6 +8629,55 @@
         } catch (e) {
             console.error('删除申领物失败:', e);
             showToast('删除失败');
+        }
+    }
+
+    // 上传现有申领物到公共池
+    async function uploadShopItemToPool(itemId) {
+        const item = shopItems.find(i => i.id === itemId);
+        if (!item) {
+            showToast('未找到该申领物');
+            return;
+        }
+
+        if (!confirm(`确定要将"${item.title}"上传到公共申领物池吗？\n\n上传后其他经理可以将其添加到自己的申领物池。`)) {
+            return;
+        }
+
+        try {
+            // 准备价格数据 - 使用API期望的字段名
+            const prices = (item.prices || []).map((p) => ({
+                name: p.price_name,
+                cost: p.price_cost,
+                currencyType: p.currency_type || 'commendation',
+                usageType: p.usage_type || 'permanent',
+                usageCount: p.usage_count || 0
+            }));
+
+            const res = await fetch('/api/public-shop/items', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    title: item.title,
+                    description: item.description || '',
+                    prices: prices
+                })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                showToast('已成功上传到公共池', true);
+                // 如果在公共池tab中，刷新列表
+                if (document.getElementById('tabPublicpool').style.display !== 'none') {
+                    loadPublicPool();
+                }
+                loadUploadQuota();
+            } else {
+                showToast(data.message || '上传失败');
+            }
+        } catch (e) {
+            console.error('上传到公共池失败:', e);
+            showToast('上传失败');
         }
     }
 
@@ -7710,6 +8731,600 @@
             }
         });
     });
+
+    // ==========================================
+    // 公共申领物池功能
+    // ==========================================
+    let publicPoolData = [];
+    let currentPoolFilter = 'all';
+    let currentPoolSearchText = '';
+    let poolSearchTimer = null;
+    let currentPoolDetailId = null;
+    let editingPoolItemId = null;
+    const currentUserId = parseInt(localStorage.getItem('ta_uid') || '0');
+
+    async function loadPublicPool() {
+        const container = document.getElementById('publicPoolGrid');
+        container.innerHTML = '<div class="pool-loading"><i class="fas fa-circle-notch fa-spin"></i><p>加载中...</p></div>';
+
+        try {
+            const res = await fetch('/api/public-shop/items', { headers: getAuthHeaders() });
+            const data = await res.json();
+            if (data.success) {
+                publicPoolData = data.items;
+                filterPublicPool(currentPoolFilter);
+                loadUploadQuota();
+            } else {
+                container.innerHTML = '<div class="pool-empty"><i class="fas fa-exclamation-circle"></i><p>加载失败</p></div>';
+            }
+        } catch (e) {
+            console.error(e);
+            container.innerHTML = '<div class="pool-empty"><i class="fas fa-exclamation-circle"></i><p>加载失败</p></div>';
+        }
+    }
+
+    function filterPublicPool(filter) {
+        currentPoolFilter = filter;
+
+        // 更新按钮状态
+        document.querySelectorAll('.pool-filter-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.textContent.includes(filter === 'all' ? '全部' : filter === 'official' ? '官方' : filter === 'manager' ? '经理' : '我的')) {
+                btn.classList.add('active');
+            }
+        });
+
+        applyPoolFilters();
+    }
+
+    function applyPoolFilters() {
+        let filtered = publicPoolData;
+
+        // 先按类型筛选
+        if (currentPoolFilter === 'official') {
+            filtered = filtered.filter(i => i.is_official === 1);
+        } else if (currentPoolFilter === 'manager') {
+            filtered = filtered.filter(i => i.is_official === 0);
+        } else if (currentPoolFilter === 'mine') {
+            filtered = filtered.filter(i => i.uploaded_by === currentUserId);
+        }
+
+        // 再按搜索文本筛选
+        if (currentPoolSearchText.trim()) {
+            const searchLower = currentPoolSearchText.trim().toLowerCase();
+            filtered = filtered.filter(item => {
+                const titleMatch = (item.title || '').toLowerCase().includes(searchLower);
+                const descMatch = (item.description || '').toLowerCase().includes(searchLower);
+                return titleMatch || descMatch;
+            });
+        }
+
+        renderPublicPoolItems(filtered);
+    }
+
+    function onPoolSearchInput() {
+        const input = document.getElementById('poolSearchInput');
+        const clearBtn = document.getElementById('poolSearchClear');
+        currentPoolSearchText = input.value;
+
+        // 显示/隐藏清除按钮
+        clearBtn.style.display = currentPoolSearchText ? 'block' : 'none';
+
+        // 防抖：延迟300ms再执行筛选
+        if (poolSearchTimer) clearTimeout(poolSearchTimer);
+        poolSearchTimer = setTimeout(() => {
+            applyPoolFilters();
+        }, 300);
+    }
+
+    function clearPoolSearch() {
+        const input = document.getElementById('poolSearchInput');
+        const clearBtn = document.getElementById('poolSearchClear');
+        input.value = '';
+        currentPoolSearchText = '';
+        clearBtn.style.display = 'none';
+        applyPoolFilters();
+        input.focus();
+    }
+
+    function renderPublicPoolItems(items) {
+        const container = document.getElementById('publicPoolGrid');
+
+        if (items.length === 0) {
+            const isSearching = currentPoolSearchText.trim() !== '';
+            container.innerHTML = `
+                <div class="requisition-empty">
+                    <i class="fas ${isSearching ? 'fa-search' : 'fa-box-open'}" style="font-size:48px;margin-bottom:15px;opacity:0.3;"></i>
+                    <p>${isSearching ? '未找到匹配的物品' : '暂无物品'}</p>
+                    <p style="font-size:12px;color:#95a5a6;">${isSearching ? '尝试其他关键词或清除搜索' : '公共申领物池为空'}</p>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = items.map(item => {
+            const isOfficial = item.is_official === 1;
+            const isMine = item.uploaded_by === currentUserId;
+            const poolClass = isMine ? 'pool-mine' : (isOfficial ? 'pool-official' : 'pool-manager');
+            const badgeText = isMine ? '我的' : (isOfficial ? '官方' : '经理上传');
+
+            const pricesHtml = (item.prices || []).map(p => {
+                let usageLabel = '';
+                if (p.usage_type === 'consumable') {
+                    usageLabel = ' <span class="usage">[一次性]</span>';
+                } else if (p.usage_type === 'per_mission') {
+                    usageLabel = ` <span class="usage">[每任务${p.usage_count || 1}次]</span>`;
+                }
+                const currencyName = p.currency_type === 'commendation' ? '嘉奖' : '申诫';
+                return `<div class="shop-price-tag">
+                    ${escapeHtml(p.price_name)}: <span class="cost">${p.price_cost}${currencyName}</span>${usageLabel}
+                </div>`;
+            }).join('');
+
+            const likeClass = item.user_vote === 1 ? 'voted' : '';
+            const dislikeClass = item.user_vote === -1 ? 'voted' : '';
+
+            return `
+                <div class="shop-item-card ${poolClass}">
+                    <div class="shop-item-header">
+                        <div class="shop-item-title">${escapeHtml(item.title)}</div>
+                        <span class="shop-item-badge">${badgeText}</span>
+                    </div>
+                    ${!isOfficial ? `<div style="font-size:11px;color:#666;margin-bottom:5px;"><i class="fas fa-user"></i> ${escapeHtml(item.uploader_name || '未知')}</div>` : ''}
+                    <div class="shop-item-desc">${escapeHtml(item.description || '暂无描述')}</div>
+                    <div class="pool-item-stats">
+                        <span class="stat-like"><i class="fas fa-thumbs-up"></i> ${item.like_count || 0}</span>
+                        <span class="stat-dislike"><i class="fas fa-thumbs-down"></i> ${item.dislike_count || 0}</span>
+                        <span class="stat-comments"><i class="fas fa-comments"></i> ${item.comment_count || 0}</span>
+                        <span class="stat-adds"><i class="fas fa-download"></i> ${item.add_count || 0}</span>
+                    </div>
+                    <div class="shop-item-prices">${pricesHtml || '<span style="color:#999;font-size:11px;">未设置标价</span>'}</div>
+                    <div class="shop-item-actions">
+                        <button class="btn-vote ${likeClass}" onclick="votePoolItem(${item.id}, 1)" title="点赞">
+                            <i class="fas fa-thumbs-up"></i>
+                        </button>
+                        <button class="btn-vote ${dislikeClass}" onclick="votePoolItem(${item.id}, -1)" title="点踩">
+                            <i class="fas fa-thumbs-down"></i>
+                        </button>
+                        <button class="btn-edit-item" onclick="openPoolDetail(${item.id})" title="详情">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        ${isMine ? `
+                        <button class="btn-edit-item" onclick="editPoolItem(${item.id})" title="编辑">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-delete-item" onclick="deletePoolItem(${item.id})" title="删除">
+                            <i class="fas fa-trash"></i>
+                        </button>` : `
+                        <button class="btn-upload-pool" onclick="addToMyPool(${item.id})" title="添加到我的池">
+                            <i class="fas fa-plus"></i>
+                        </button>`}
+                    </div>
+                </div>`;
+        }).join('');
+    }
+
+    async function loadUploadQuota() {
+        try {
+            const res = await fetch('/api/manager/upload-quota', { headers: getAuthHeaders() });
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('quotaCurrent').textContent = data.currentCount || 0;
+                document.getElementById('quotaMax').textContent = data.finalQuota || 10;
+            }
+        } catch (e) {
+            console.error('加载配额失败', e);
+        }
+    }
+
+    // 上传到公共池
+    function openUploadToPoolModal(itemId = null) {
+        editingPoolItemId = itemId;
+        document.getElementById('uploadPoolModalTitle').textContent = itemId ? '编辑公共池物品' : '上传到公共池';
+        document.getElementById('uploadPoolTitle').value = '';
+        document.getElementById('uploadPoolDesc').value = '';
+        document.getElementById('uploadPoolPricesContainer').innerHTML = '';
+
+        if (itemId) {
+            const item = publicPoolData.find(i => i.id === itemId);
+            if (item) {
+                document.getElementById('uploadPoolTitle').value = item.title || '';
+                document.getElementById('uploadPoolDesc').value = item.description || '';
+                (item.prices || []).forEach(p => addUploadPoolPriceOption(p));
+            }
+        } else {
+            addUploadPoolPriceOption();
+        }
+
+        document.getElementById('uploadPoolModal').classList.add('show');
+    }
+
+    function closeUploadPoolModal() {
+        document.getElementById('uploadPoolModal').classList.remove('show');
+        editingPoolItemId = null;
+    }
+
+    function addUploadPoolPriceOption(priceData = null) {
+        const container = document.getElementById('uploadPoolPricesContainer');
+        const row = document.createElement('div');
+        row.className = 'price-option-row';
+        row.innerHTML = `
+            <input type="text" placeholder="标价名称" class="price-name" value="${priceData?.price_name || ''}">
+            <input type="number" placeholder="价格" class="price-cost" min="0" value="${priceData?.price_cost || ''}">
+            <select class="price-currency">
+                <option value="commendation" ${priceData?.currency_type !== 'censure' ? 'selected' : ''}>嘉奖</option>
+                <option value="censure" ${priceData?.currency_type === 'censure' ? 'selected' : ''}>申诫</option>
+            </select>
+            <select class="price-usage">
+                <option value="permanent" ${priceData?.usage_type !== 'consumable' ? 'selected' : ''}>永久</option>
+                <option value="consumable" ${priceData?.usage_type === 'consumable' ? 'selected' : ''}>消耗品</option>
+            </select>
+            <button type="button" class="btn-remove-price" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
+        `;
+        container.appendChild(row);
+    }
+
+    async function submitUploadPool() {
+        const title = document.getElementById('uploadPoolTitle').value.trim();
+        const description = document.getElementById('uploadPoolDesc').value.trim();
+
+        if (!title) {
+            showToast('请输入物品名称');
+            return;
+        }
+
+        const priceRows = document.querySelectorAll('#uploadPoolPricesContainer .price-option-row');
+        const prices = [];
+        priceRows.forEach((row, index) => {
+            const name = row.querySelector('.price-name').value.trim();
+            const cost = parseInt(row.querySelector('.price-cost').value) || 0;
+            const currency = row.querySelector('.price-currency').value;
+            const usage = row.querySelector('.price-usage').value;
+
+            if (name && cost >= 0) {
+                prices.push({
+                    price_name: name,
+                    price_cost: cost,
+                    currency_type: currency,
+                    usage_type: usage,
+                    usage_count: usage === 'consumable' ? 1 : 0,
+                    sort_order: index
+                });
+            }
+        });
+
+        try {
+            const url = editingPoolItemId
+                ? `/api/public-shop/items/${editingPoolItemId}`
+                : '/api/public-shop/items';
+            const method = editingPoolItemId ? 'PUT' : 'POST';
+
+            const res = await fetch(url, {
+                method,
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ title, description, prices, is_official: 0 })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                showToast(editingPoolItemId ? '已更新' : '已上传到公共池', true);
+                closeUploadPoolModal();
+                loadPublicPool();
+            } else {
+                showToast(data.message || '操作失败');
+            }
+        } catch (e) {
+            showToast('操作失败');
+        }
+    }
+
+    function editPoolItem(itemId) {
+        openUploadToPoolModal(itemId);
+    }
+
+    async function deletePoolItem(itemId) {
+        if (!confirm('确定删除此物品？')) return;
+
+        try {
+            const res = await fetch(`/api/public-shop/items/${itemId}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                showToast('已删除', true);
+                loadPublicPool();
+            } else {
+                showToast(data.message || '删除失败');
+            }
+        } catch (e) {
+            showToast('删除失败');
+        }
+    }
+
+    // 投票
+    async function votePoolItem(itemId, voteType) {
+        try {
+            const item = publicPoolData.find(i => i.id === itemId);
+            const newVoteType = item && item.user_vote === voteType ? 0 : voteType;
+
+            const res = await fetch(`/api/public-shop/items/${itemId}/vote`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ voteType: newVoteType })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                loadPublicPool();
+            } else {
+                showToast(data.message || '投票失败');
+            }
+        } catch (e) {
+            showToast('投票失败');
+        }
+    }
+
+    // 添加到我的池
+    async function addToMyPool(itemId) {
+        try {
+            const res = await fetch(`/api/public-shop/items/${itemId}/add-to-pool`, {
+                method: 'POST',
+                headers: getAuthHeaders()
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                showToast('已添加到你的申领物池', true);
+                loadPublicPool();
+            } else {
+                showToast(data.message || '添加失败');
+            }
+        } catch (e) {
+            showToast('添加失败');
+        }
+    }
+
+    // 物品详情
+    async function openPoolDetail(itemId) {
+        currentPoolDetailId = itemId;
+
+        try {
+            const res = await fetch(`/api/public-shop/items/${itemId}`, { headers: getAuthHeaders() });
+            const data = await res.json();
+
+            if (data.success) {
+                const item = data.item;
+                const isOfficial = item.is_official === 1;
+                const isMine = item.uploaded_by === currentUserId;
+
+                // 标价选项
+                const pricesHtml = (item.prices || []).map(p => {
+                    const currencyName = p.currency_type === 'commendation' ? '嘉奖' : '申诫';
+                    const usageText = p.usage_type === 'permanent' ? '永久' : `${p.usage_count}次`;
+                    return `<div style="padding:8px 12px;background:#f8f9fa;border-radius:6px;margin-bottom:5px;display:flex;justify-content:space-between;">
+                        <span>${p.price_name}</span>
+                        <span style="font-weight:bold;">${p.price_cost} ${currencyName} (${usageText})</span>
+                    </div>`;
+                }).join('') || '<div style="color:#7f8c8d;text-align:center;">暂无标价</div>';
+
+                // 评论
+                const commentsHtml = renderPoolComments(item.comments || []);
+
+                // 投票按钮状态 (普通用户显示高亮，管理员不显示高亮因为可以多次投票)
+                const isAdmin = role >= 2;
+                const likeActive = !isAdmin && item.user_vote === 1 ? 'active' : '';
+                const dislikeActive = !isAdmin && item.user_vote === -1 ? 'active' : '';
+
+                // 管理员投票提示
+                const adminVoteHint = isAdmin ? '<div style="font-size:11px;color:#9b59b6;text-align:center;margin-top:8px;"><i class="fas fa-crown"></i> 管理员模式: 每次点击都会新增一票</div>' : '';
+
+                document.getElementById('poolDetailContent').innerHTML = `
+                    <div class="pool-detail-section">
+                        <h4>基本信息</h4>
+                        <div style="font-size:18px;font-weight:bold;margin-bottom:10px;">${item.title}</div>
+                        ${!isOfficial ? `<div style="font-size:12px;color:#95a5a6;margin-bottom:10px;"><i class="fas fa-user"></i> 上传者: ${item.uploader_name || '未知'}</div>` : ''}
+                        <div style="font-size:13px;color:#555;line-height:1.6;">${item.description || '暂无描述'}</div>
+                    </div>
+                    <div class="pool-detail-section">
+                        <h4>标价选项</h4>
+                        ${pricesHtml}
+                    </div>
+                    <div class="pool-detail-section">
+                        <h4>互动</h4>
+                        <div class="pool-vote-buttons">
+                            <button class="pool-vote-btn like ${likeActive}" onclick="voteFromDetail(1)">
+                                <i class="fas fa-thumbs-up"></i> 点赞 (${item.like_count || 0})
+                            </button>
+                            <button class="pool-vote-btn dislike ${dislikeActive}" onclick="voteFromDetail(-1)">
+                                <i class="fas fa-thumbs-down"></i> 点踩 (${item.dislike_count || 0})
+                            </button>
+                        </div>
+                        ${adminVoteHint}
+                        <div style="font-size:12px;color:#95a5a6;text-align:center;margin-top:8px;">
+                            <i class="fas fa-download"></i> 已被添加 ${item.add_count || 0} 次
+                        </div>
+                        ${isAdmin ? '<div id="adminVotesSection" style="margin-top:15px;"></div>' : ''}
+                    </div>
+                    <div class="pool-detail-section">
+                        <h4>评论 (${(item.comments || []).length})</h4>
+                        <div class="pool-comments-list" id="poolCommentsList">
+                            ${commentsHtml}
+                        </div>
+                        <div class="pool-comment-form">
+                            <input type="text" id="poolCommentInput" placeholder="发表评论...">
+                            <button onclick="postPoolComment()">发送</button>
+                            <button onclick="document.getElementById('poolCommentInput').value=''" style="background:#95a5a6;" title="清空">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                // 如果是自己的物品，隐藏添加按钮
+                document.getElementById('btnAddToMyPool').style.display = isMine ? 'none' : 'inline-flex';
+
+                document.getElementById('poolDetailModal').classList.add('show');
+
+                // 管理员加载自己的投票记录
+                if (isAdmin) {
+                    loadAdminVotes(itemId);
+                }
+            } else {
+                showToast('加载详情失败');
+            }
+        } catch (e) {
+            showToast('加载详情失败');
+        }
+    }
+
+    function renderPoolComments(comments) {
+        if (comments.length === 0) {
+            return '<div style="color:#7f8c8d;text-align:center;padding:20px;">暂无评论</div>';
+        }
+
+        const isAdmin = role >= 2;
+
+        // 简单列表，不支持回复
+        return comments.map(c => {
+            const canDelete = isAdmin || c.user_id === currentUserId;
+            const deleteBtn = canDelete
+                ? `<button onclick="deletePoolComment(${c.id})"><i class="fas fa-trash"></i> 删除</button>`
+                : '';
+
+            return `
+                <div class="pool-comment-item">
+                    <div class="pool-comment-header">
+                        <span class="pool-comment-user">${c.user_name || '匿名'}</span>
+                        <span class="pool-comment-time">${new Date(c.created_at).toLocaleString()}</span>
+                    </div>
+                    <div class="pool-comment-content">${c.content}</div>
+                    ${canDelete ? `<div class="pool-comment-actions">${deleteBtn}</div>` : ''}
+                </div>
+            `;
+        }).join('');
+    }
+
+    function closePoolDetailModal() {
+        document.getElementById('poolDetailModal').classList.remove('show');
+        currentPoolDetailId = null;
+    }
+
+    async function voteFromDetail(voteType) {
+        if (!currentPoolDetailId) return;
+        await votePoolItem(currentPoolDetailId, voteType);
+        openPoolDetail(currentPoolDetailId);
+    }
+
+    // 加载管理员的投票记录
+    async function loadAdminVotes(itemId) {
+        try {
+            const res = await fetch(`/api/public-shop/items/${itemId}/my-votes`, { headers: getAuthHeaders() });
+            const data = await res.json();
+
+            if (data.success && data.votes && data.votes.length > 0) {
+                const votesHtml = data.votes.map(v => {
+                    const voteIcon = v.vote_type === 1 ? 'fa-thumbs-up' : 'fa-thumbs-down';
+                    const voteColor = v.vote_type === 1 ? '#27ae60' : '#e74c3c';
+                    const voteText = v.vote_type === 1 ? '赞' : '踩';
+                    return `<span class="admin-vote-tag" style="display:inline-flex;align-items:center;gap:4px;padding:4px 8px;background:#f8f9fa;border-radius:4px;margin:2px;font-size:11px;">
+                        <i class="fas ${voteIcon}" style="color:${voteColor};"></i> ${voteText}
+                        <button onclick="deleteAdminVote(${v.id})" style="background:none;border:none;color:#e74c3c;cursor:pointer;padding:0 2px;" title="删除此票">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </span>`;
+                }).join('');
+
+                document.getElementById('adminVotesSection').innerHTML = `
+                    <div style="font-size:11px;color:#9b59b6;margin-bottom:8px;"><i class="fas fa-crown"></i> 我的投票记录 (${data.votes.length}票):</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:4px;">${votesHtml}</div>
+                `;
+            } else {
+                document.getElementById('adminVotesSection').innerHTML = `
+                    <div style="font-size:11px;color:#95a5a6;"><i class="fas fa-crown"></i> 暂无投票记录</div>
+                `;
+            }
+        } catch (e) {
+            console.error('加载投票记录失败', e);
+        }
+    }
+
+    // 删除管理员投票
+    async function deleteAdminVote(voteId) {
+        try {
+            const res = await fetch(`/api/public-shop/votes/${voteId}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                showToast('投票已删除', true);
+                openPoolDetail(currentPoolDetailId);
+            } else {
+                showToast(data.message || '删除失败');
+            }
+        } catch (e) {
+            showToast('删除失败');
+        }
+    }
+
+    function addToMyPoolFromDetail() {
+        if (!currentPoolDetailId) return;
+        addToMyPool(currentPoolDetailId);
+        closePoolDetailModal();
+    }
+
+    async function postPoolComment() {
+        if (!currentPoolDetailId) return;
+
+        const input = document.getElementById('poolCommentInput');
+        const content = input.value.trim();
+        if (!content) {
+            showToast('请输入评论内容');
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/public-shop/items/${currentPoolDetailId}/comments`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ content })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                input.value = '';
+                openPoolDetail(currentPoolDetailId);
+            } else {
+                showToast(data.message || '评论失败');
+            }
+        } catch (e) {
+            showToast('评论失败');
+        }
+    }
+
+    // 删除评论
+    async function deletePoolComment(commentId) {
+        if (!confirm('确定要删除这条评论吗？')) return;
+
+        try {
+            const res = await fetch(`/api/public-shop/comments/${commentId}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                showToast('评论已删除', true);
+                openPoolDetail(currentPoolDetailId);
+            } else {
+                showToast(data.message || '删除失败');
+            }
+        } catch (e) {
+            showToast('删除失败');
+        }
+    }
 </script>
 </body>
 </html>

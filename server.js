@@ -310,6 +310,15 @@ db.serialize(() => {
         }
     });
 
+    // 迁移: 为shop_items添加show_to_agents字段
+    db.all("PRAGMA table_info(shop_items)", [], (err, columns) => {
+        if (err) return;
+        const columnNames = columns.map(c => c.name);
+        if (!columnNames.includes('show_to_agents')) {
+            db.run("ALTER TABLE shop_items ADD COLUMN show_to_agents INTEGER DEFAULT 1");
+        }
+    });
+
     // 申领物购买记录表
     db.run(`CREATE TABLE IF NOT EXISTS shop_purchases (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -326,6 +335,116 @@ db.serialize(() => {
         FOREIGN KEY(character_id) REFERENCES characters(id) ON DELETE CASCADE,
         FOREIGN KEY(approved_by) REFERENCES users(id) ON DELETE SET NULL
     )`);
+
+    // 特工可见申领物授权表（用于非默认展示的物品）
+    db.run(`CREATE TABLE IF NOT EXISTS character_visible_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        character_id TEXT NOT NULL,
+        item_id INTEGER NOT NULL,
+        granted_by INTEGER,
+        granted_at INTEGER,
+        FOREIGN KEY(character_id) REFERENCES characters(id) ON DELETE CASCADE,
+        FOREIGN KEY(item_id) REFERENCES shop_items(id) ON DELETE CASCADE,
+        FOREIGN KEY(granted_by) REFERENCES users(id) ON DELETE SET NULL,
+        UNIQUE(character_id, item_id)
+    )`);
+
+    // 邀请码表
+    db.run(`CREATE TABLE IF NOT EXISTS invitation_codes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        code TEXT UNIQUE NOT NULL,
+        created_by INTEGER NOT NULL,
+        max_uses INTEGER DEFAULT 1,
+        used_count INTEGER DEFAULT 0,
+        is_active INTEGER DEFAULT 1,
+        expires_at INTEGER,
+        created_at INTEGER,
+        FOREIGN KEY(created_by) REFERENCES users(id) ON DELETE CASCADE
+    )`);
+
+    // 邀请码使用记录表
+    db.run(`CREATE TABLE IF NOT EXISTS invitation_uses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        code_id INTEGER NOT NULL,
+        used_by INTEGER NOT NULL,
+        used_at INTEGER,
+        FOREIGN KEY(code_id) REFERENCES invitation_codes(id) ON DELETE CASCADE,
+        FOREIGN KEY(used_by) REFERENCES users(id) ON DELETE CASCADE
+    )`);
+
+    // 迁移: 为invitation_codes添加grant_role字段（0=普通用户，1=经理）
+    db.all("PRAGMA table_info(invitation_codes)", [], (err, columns) => {
+        if (err) return;
+        const columnNames = columns.map(c => c.name);
+        if (!columnNames.includes('grant_role')) {
+            db.run("ALTER TABLE invitation_codes ADD COLUMN grant_role INTEGER DEFAULT 0");
+        }
+    });
+
+    // ==========================================
+    // 公共申领物池系统表
+    // ==========================================
+
+    // 公共申领物池表
+    db.run(`CREATE TABLE IF NOT EXISTS public_shop_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        description TEXT,
+        uploaded_by INTEGER NOT NULL,
+        is_official INTEGER DEFAULT 0,
+        is_active INTEGER DEFAULT 1,
+        add_count INTEGER DEFAULT 0,
+        created_at INTEGER,
+        updated_at INTEGER,
+        FOREIGN KEY(uploaded_by) REFERENCES users(id)
+    )`);
+
+    // 公共申领物标价选项表
+    db.run(`CREATE TABLE IF NOT EXISTS public_shop_item_prices (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        item_id INTEGER NOT NULL,
+        price_name TEXT NOT NULL,
+        price_cost INTEGER NOT NULL,
+        currency_type TEXT DEFAULT 'commendation',
+        usage_type TEXT DEFAULT 'permanent',
+        usage_count INTEGER DEFAULT 0,
+        sort_order INTEGER DEFAULT 0,
+        FOREIGN KEY(item_id) REFERENCES public_shop_items(id) ON DELETE CASCADE
+    )`);
+
+    // 点赞/点踩记录表 (管理员可多次投票，普通用户每人一票)
+    db.run(`CREATE TABLE IF NOT EXISTS public_item_votes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        item_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        vote_type INTEGER NOT NULL,
+        is_admin_vote INTEGER DEFAULT 0,
+        created_at INTEGER,
+        FOREIGN KEY(item_id) REFERENCES public_shop_items(id) ON DELETE CASCADE,
+        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    )`);
+
+    // 评论表（支持回复）
+    db.run(`CREATE TABLE IF NOT EXISTS public_item_comments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        item_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        parent_id INTEGER DEFAULT NULL,
+        content TEXT NOT NULL,
+        created_at INTEGER,
+        FOREIGN KEY(item_id) REFERENCES public_shop_items(id) ON DELETE CASCADE,
+        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY(parent_id) REFERENCES public_item_comments(id) ON DELETE CASCADE
+    )`);
+
+    // 迁移: 为shop_items添加source_public_id字段
+    db.all("PRAGMA table_info(shop_items)", [], (err, columns) => {
+        if (err) return;
+        const columnNames = columns.map(c => c.name);
+        if (!columnNames.includes('source_public_id')) {
+            db.run("ALTER TABLE shop_items ADD COLUMN source_public_id INTEGER DEFAULT NULL");
+        }
+    });
 
     // 为 field_missions 添加新字段的迁移
     db.all("PRAGMA table_info(field_missions)", [], (err, columns) => {
@@ -345,6 +464,9 @@ db.serialize(() => {
         }
         if (!columnNames.includes('report_status')) {
             db.run("ALTER TABLE field_missions ADD COLUMN report_status TEXT DEFAULT 'none'");
+        }
+        if (!columnNames.includes('optional_tasks')) {
+            db.run("ALTER TABLE field_missions ADD COLUMN optional_tasks TEXT DEFAULT '[]'");
         }
     });
 
@@ -431,6 +553,7 @@ db.serialize(() => {
     const defaultConfigs = [
         ['registration_enabled', 'true'],
         ['email_registration_enabled', 'false'],
+        ['invitation_required', 'false'],
         ['smtp_host', ''],
         ['smtp_port', '587'],
         ['smtp_user', ''],
@@ -478,6 +601,39 @@ db.serialize(() => {
                 }
             }
         });
+    });
+
+    // 迁移: public_item_votes 表结构变更 (添加is_admin_vote列，移除唯一约束)
+    db.all("PRAGMA table_info(public_item_votes)", [], (err, columns) => {
+        if (err || !columns || columns.length === 0) return;
+        const columnNames = columns.map(c => c.name);
+
+        // 如果没有 is_admin_vote 列，需要重建表
+        if (!columnNames.includes('is_admin_vote')) {
+            console.log('迁移: 重建 public_item_votes 表以支持管理员多次投票...');
+            db.serialize(() => {
+                // 1. 创建新表（不含唯一约束）
+                db.run(`CREATE TABLE IF NOT EXISTS public_item_votes_new (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    item_id INTEGER NOT NULL,
+                    user_id INTEGER NOT NULL,
+                    vote_type INTEGER NOT NULL,
+                    is_admin_vote INTEGER DEFAULT 0,
+                    created_at INTEGER,
+                    FOREIGN KEY(item_id) REFERENCES public_shop_items(id) ON DELETE CASCADE,
+                    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+                )`);
+                // 2. 复制数据
+                db.run(`INSERT INTO public_item_votes_new (id, item_id, user_id, vote_type, is_admin_vote, created_at)
+                        SELECT id, item_id, user_id, vote_type, 0, created_at FROM public_item_votes`);
+                // 3. 删除旧表
+                db.run(`DROP TABLE public_item_votes`);
+                // 4. 重命名新表
+                db.run(`ALTER TABLE public_item_votes_new RENAME TO public_item_votes`, (err) => {
+                    if (!err) console.log('迁移完成: public_item_votes 表已重建');
+                });
+            });
+        }
     });
 
 // 初始化默认用户，修改admin在此处。
@@ -705,12 +861,15 @@ app.get('/api/register/status', async (req, res) => {
     try {
         const regEnabled = await getConfig('registration_enabled');
         const emailEnabled = await getConfig('email_registration_enabled');
+        const invitationRequired = await getConfig('invitation_required');
         res.json({
             registrationEnabled: regEnabled === 'true',
-            emailRequired: emailEnabled === 'true'
+            emailRequired: true,  // 邮箱始终必填（用于登录）
+            emailVerificationRequired: emailEnabled === 'true',  // 验证码是否必须
+            invitationRequired: invitationRequired === 'true'
         });
     } catch (e) {
-        res.json({ registrationEnabled: false, emailRequired: false });
+        res.json({ registrationEnabled: false, emailRequired: true, emailVerificationRequired: false, invitationRequired: false });
     }
 });
 
@@ -764,7 +923,7 @@ app.post('/api/register/send-code', async (req, res) => {
 // ==========================================
 app.post('/api/register/verify', async (req, res) => {
     try {
-        const { username, password, name, email, code } = req.body;
+        const { username, password, name, email, code, invitationCode } = req.body;
 
         if (!username || !password) {
             return res.status(400).json({ success: false, message: '账号和密码必填' });
@@ -775,12 +934,52 @@ app.post('/api/register/verify', async (req, res) => {
             return res.status(400).json({ success: false, message: '注册功能已关闭' });
         }
 
+        // 检查邀请码
+        const invitationRequired = await getConfig('invitation_required');
+        let validInvitation = null;
+        if (invitationRequired === 'true') {
+            if (!invitationCode) {
+                return res.status(400).json({ success: false, message: '请输入邀请码' });
+            }
+
+            validInvitation = await new Promise((resolve, reject) => {
+                db.get(`SELECT * FROM invitation_codes
+                        WHERE code = ? AND is_active = 1
+                        AND (max_uses = 0 OR used_count < max_uses)
+                        AND (expires_at IS NULL OR expires_at > ?)`,
+                    [invitationCode, Date.now()], (err, row) => {
+                        if (err) reject(err);
+                        else resolve(row);
+                    });
+            });
+
+            if (!validInvitation) {
+                return res.status(400).json({ success: false, message: '邀请码无效或已用完' });
+            }
+        }
+
+        // 邮箱始终必填（用于登录）
+        if (!email) {
+            return res.status(400).json({ success: false, message: '邮箱必填' });
+        }
+
+        // 检查邮箱是否已被使用
+        const existingEmail = await new Promise((resolve, reject) => {
+            db.get('SELECT id FROM users WHERE email = ?', [email], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+        if (existingEmail) {
+            return res.status(400).json({ success: false, message: '该邮箱已被注册' });
+        }
+
         const emailEnabled = await getConfig('email_registration_enabled');
 
-        // 如果启用了邮箱注册，验证验证码
+        // 如果启用了邮箱验证，验证验证码
         if (emailEnabled === 'true') {
-            if (!email || !code) {
-                return res.status(400).json({ success: false, message: '邮箱和验证码必填' });
+            if (!code) {
+                return res.status(400).json({ success: false, message: '请输入验证码' });
             }
 
             const validCode = await new Promise((resolve, reject) => {
@@ -815,12 +1014,23 @@ app.post('/api/register/verify', async (req, res) => {
         const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
         const userId = Date.now();
 
+        // 根据邀请码授予的角色设置用户角色（0=普通用户，1=经理）
+        const userRole = validInvitation && validInvitation.grant_role ? validInvitation.grant_role : ROLE.PLAYER;
+
         db.run('INSERT INTO users (id, username, password_hash, name, is_admin, role, email, email_verified, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [userId, username, passwordHash, name || '新职员', 0, ROLE.PLAYER, email || null, emailEnabled === 'true' ? 1 : 0, Date.now()],
+            [userId, username, passwordHash, name || '新职员', 0, userRole, email || null, emailEnabled === 'true' ? 1 : 0, Date.now()],
             function(err) {
                 if (err) {
                     return res.status(500).json({ success: false, message: '注册失败' });
                 }
+
+                // 更新邀请码使用记录
+                if (validInvitation) {
+                    db.run('UPDATE invitation_codes SET used_count = used_count + 1 WHERE id = ?', [validInvitation.id]);
+                    db.run('INSERT INTO invitation_uses (code_id, used_by, used_at) VALUES (?, ?, ?)',
+                        [validInvitation.id, userId, Date.now()]);
+                }
+
                 res.json({ success: true, message: '注册成功' });
             });
     } catch (e) {
@@ -836,8 +1046,9 @@ app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
 
+        // 支持邮箱或用户名登录
         const user = await new Promise((resolve, reject) => {
-            db.get('SELECT * FROM users WHERE username = ?', [username], (err, row) => {
+            db.get('SELECT * FROM users WHERE username = ? OR email = ?', [username, username], (err, row) => {
                 if (err) reject(err);
                 else resolve(row);
             });
@@ -924,6 +1135,121 @@ app.post('/api/admin/test-smtp', authenticateToken, requireRole(ROLE.SUPER_ADMIN
         res.json({ success: true, message: 'SMTP连接成功' });
     } catch (e) {
         res.status(500).json({ success: false, message: 'SMTP连接失败: ' + e.message });
+    }
+});
+
+// ==========================================
+// 邀请码管理 API（超管）
+// ==========================================
+
+// 获取邀请码列表（含使用记录）
+app.get('/api/admin/invitation-codes', authenticateToken, requireRole(ROLE.SUPER_ADMIN), async (req, res) => {
+    try {
+        const codes = await new Promise((resolve, reject) => {
+            db.all(`SELECT ic.*, u.username as created_by_name
+                    FROM invitation_codes ic
+                    LEFT JOIN users u ON ic.created_by = u.id
+                    ORDER BY ic.created_at DESC`, [], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
+            });
+        });
+
+        // 获取每个邀请码的使用记录
+        for (const code of codes) {
+            const uses = await new Promise((resolve, reject) => {
+                db.all(`SELECT iu.*, u.username, u.name
+                        FROM invitation_uses iu
+                        LEFT JOIN users u ON iu.used_by = u.id
+                        WHERE iu.code_id = ?
+                        ORDER BY iu.used_at DESC`, [code.id], (err, rows) => {
+                    if (err) reject(err);
+                    else resolve(rows || []);
+                });
+            });
+            code.uses = uses;
+        }
+
+        res.json({ success: true, codes });
+    } catch (e) {
+        console.error('获取邀请码列表失败:', e);
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+
+// 生成邀请码
+app.post('/api/admin/invitation-codes', authenticateToken, requireRole(ROLE.SUPER_ADMIN), async (req, res) => {
+    try {
+        const { maxUses, expiresInDays, grantRole } = req.body;
+        const code = generateShortCode(8).toUpperCase();
+        const expiresAt = expiresInDays ? Date.now() + expiresInDays * 24 * 60 * 60 * 1000 : null;
+        // grantRole: 0=普通用户, 1=经理
+        const roleToGrant = grantRole === 1 ? 1 : 0;
+
+        db.run(`INSERT INTO invitation_codes (code, created_by, max_uses, expires_at, grant_role, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)`,
+            [code, req.user.userId, maxUses || 1, expiresAt, roleToGrant, Date.now()],
+            function(err) {
+                if (err) {
+                    return res.status(500).json({ success: false, message: '创建失败' });
+                }
+                res.json({
+                    success: true,
+                    invitation: {
+                        id: this.lastID,
+                        code,
+                        max_uses: maxUses || 1,
+                        expires_at: expiresAt,
+                        grant_role: roleToGrant,
+                        created_at: Date.now()
+                    }
+                });
+            });
+    } catch (e) {
+        console.error('生成邀请码失败:', e);
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+
+// 删除邀请码
+app.delete('/api/admin/invitation-codes/:id', authenticateToken, requireRole(ROLE.SUPER_ADMIN), async (req, res) => {
+    try {
+        const { id } = req.params;
+        db.run('DELETE FROM invitation_codes WHERE id = ?', [id], function(err) {
+            if (err) {
+                return res.status(500).json({ success: false, message: '删除失败' });
+            }
+            res.json({ success: true });
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+
+// 切换邀请码启用状态
+app.put('/api/admin/invitation-codes/:id/toggle', authenticateToken, requireRole(ROLE.SUPER_ADMIN), async (req, res) => {
+    try {
+        const { id } = req.params;
+        const code = await new Promise((resolve, reject) => {
+            db.get('SELECT is_active FROM invitation_codes WHERE id = ?', [id], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!code) {
+            return res.status(404).json({ success: false, message: '邀请码不存在' });
+        }
+
+        const newState = code.is_active ? 0 : 1;
+        db.run('UPDATE invitation_codes SET is_active = ? WHERE id = ?', [newState, id], function(err) {
+            if (err) {
+                return res.status(500).json({ success: false, message: '更新失败' });
+            }
+            res.json({ success: true, is_active: newState });
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, message: e.message });
     }
 });
 
@@ -1136,7 +1462,14 @@ app.get('/api/character/:id', optionalAuth, (req, res) => {
                     data.realSlots = data.realSlots || 3;
                     data.canSendMessages = row.can_send_messages !== 0; // 默认允许发信
 
-                    res.json(data);
+                    // 获取全局私信开关状态
+                    getAllConfig().then(config => {
+                        data.globalMessagingEnabled = config.messaging_enabled !== 'false';
+                        res.json(data);
+                    }).catch(() => {
+                        data.globalMessagingEnabled = true; // 获取失败时默认开启
+                        res.json(data);
+                    });
                 } catch (e) {
                     console.error('处理角色数据失败:', e);
                     res.status(500).json({ error: e.message });
@@ -1190,9 +1523,11 @@ app.put('/api/character/:id', optionalAuth, (req, res) => {
                     }
                 } catch (e) {}
 
-                // 合并数据，保留嘉奖/申诫记录
+                // 合并数据，保留嘉奖/申诫/MVP/观察期记录
                 let rewards = existingData.rewards || [];
                 const reprimands = existingData.reprimands || [];
+                const mvpRecords = existingData.mvpRecords || [];
+                const probationRecords = existingData.probationRecords || [];
 
                 // 处理职能进度嘉奖：合并新的记录到rewards数组
                 // 重要：只有实际在pf（职能进度红格子）中的才算有效
@@ -1236,18 +1571,55 @@ app.put('/api/character/:id', optionalAuth, (req, res) => {
                     ...req.body,
                     rewards: rewards,
                     reprimands: reprimands,
+                    mvpRecords: mvpRecords,
+                    probationRecords: probationRecords,
                     funcProgressRewardIds: currentFuncRewardIds
                 };
 
                 // 删除funcProgressRewards，不需要保存到数据
                 delete newData.funcProgressRewards;
 
-                db.run('UPDATE characters SET data = ? WHERE id = ?',
-                    [JSON.stringify(newData), req.params.id],
-                    function(err) {
-                        if (err) res.status(500).json({ success: false });
-                        else res.json({ success: true });
-                    });
+                // 保护经理设置的字段，不允许玩家覆盖
+                // 槽位限制：保留原有值（如果存在）
+                if (existingData.anomSlots !== undefined) {
+                    newData.anomSlots = existingData.anomSlots;
+                }
+                if (existingData.realSlots !== undefined) {
+                    newData.realSlots = existingData.realSlots;
+                }
+                // 申诫商店权限：保留原有值
+                if (existingData.reprimandShopAccess !== undefined) {
+                    newData.reprimandShopAccess = existingData.reprimandShopAccess;
+                }
+                // 商店权限配置：保留原有值
+                if (existingData.shopAccess !== undefined) {
+                    newData.shopAccess = existingData.shopAccess;
+                }
+
+                // 检查是否有绑定的经理
+                db.get('SELECT id FROM character_authorizations WHERE character_id = ? AND manager_id IS NOT NULL',
+                    [req.params.id], (err, hasManager) => {
+
+                    if (hasManager) {
+                        // 有经理：从数组计算嘉奖/申诫总数
+                        newData.mvpCount = rewards.reduce((sum, r) => sum + (r.count || 1), 0);
+                        newData.watchCount = reprimands.reduce((sum, r) => sum + (r.count || 1), 0);
+                    } else {
+                        // 无经理：保留玩家输入的值（如果有记录则用记录，否则用玩家输入）
+                        const rewardsTotal = rewards.reduce((sum, r) => sum + (r.count || 1), 0);
+                        const reprimandsTotal = reprimands.reduce((sum, r) => sum + (r.count || 1), 0);
+                        // 如果有记录则用记录计算，否则用玩家直接输入的值
+                        newData.mvpCount = rewardsTotal > 0 ? rewardsTotal : (parseInt(req.body.mvpCount) || 0);
+                        newData.watchCount = reprimandsTotal > 0 ? reprimandsTotal : (parseInt(req.body.watchCount) || 0);
+                    }
+
+                    db.run('UPDATE characters SET data = ? WHERE id = ?',
+                        [JSON.stringify(newData), req.params.id],
+                        function(err) {
+                            if (err) res.status(500).json({ success: false });
+                            else res.json({ success: true });
+                        });
+                });
             });
         });
     });
@@ -1327,13 +1699,52 @@ app.post('/api/auth/claim', authenticateToken, requireRole(ROLE.MANAGER), (req, 
                     return res.status(400).json({ success: false, message: '您已拥有该角色的授权' });
                 }
 
-                // 绑定经理
-                db.run('UPDATE character_authorizations SET manager_id = ? WHERE id = ?',
-                    [req.user.userId, auth.id],
-                    function(err) {
-                        if (err) return res.status(500).json({ success: false });
-                        res.json({ success: true, message: '授权成功' });
-                    });
+                // 绑定经理前，保留角色现有的嘉奖/申诫记录
+                db.get('SELECT data FROM characters WHERE id = ?', [auth.character_id], (err, char) => {
+                    if (err) return res.status(500).json({ success: false });
+
+                    let charData = {};
+                    try { charData = JSON.parse(char?.data || '{}'); } catch(e) {}
+
+                    const currentMvp = parseInt(charData.mvpCount) || 0;
+                    const currentWatch = parseInt(charData.watchCount) || 0;
+
+                    // 如果有现有的嘉奖/申诫数量，转换为历史记录
+                    if (currentMvp > 0 || currentWatch > 0) {
+                        if (!Array.isArray(charData.rewards)) charData.rewards = [];
+                        if (!Array.isArray(charData.reprimands)) charData.reprimands = [];
+
+                        const now = new Date().toISOString().slice(0, 10);
+
+                        if (currentMvp > 0) {
+                            charData.rewards.push({
+                                date: now,
+                                count: currentMvp,
+                                note: `绑定前剩余${currentMvp}嘉奖`
+                            });
+                        }
+
+                        if (currentWatch > 0) {
+                            charData.reprimands.push({
+                                date: now,
+                                count: currentWatch,
+                                note: `绑定前剩余${currentWatch}申诫`
+                            });
+                        }
+
+                        // 更新角色数据
+                        db.run('UPDATE characters SET data = ? WHERE id = ?',
+                            [JSON.stringify(charData), auth.character_id]);
+                    }
+
+                    // 绑定经理
+                    db.run('UPDATE character_authorizations SET manager_id = ? WHERE id = ?',
+                        [req.user.userId, auth.id],
+                        function(err) {
+                            if (err) return res.status(500).json({ success: false });
+                            res.json({ success: true, message: '授权成功' });
+                        });
+                });
             });
     });
 });
@@ -1367,13 +1778,14 @@ app.get('/api/manager/characters', authenticateToken, requireRole(ROLE.MANAGER),
             real: d.pReal || "---",
             commendations: totalCommendations,
             reprimands: totalReprimands,
-            mvpCount: parseInt(d.mvpCount) || 0,
-            probationCount: parseInt(d.probationCount) || 0,
+            mvpCount: parseInt(d.pComm) || 0,
+            probationCount: parseInt(d.pRep) || 0,
             ownerName: row.owner_name,
             ownerId: row.user_id,
             authId: authId,
             canSendMessages: row.can_send_messages !== 0, // 默认允许发信
-            reprimandShopAccess: d.reprimandShopAccess === true // 申诫商店权限，默认关闭
+            reprimandShopAccess: d.reprimandShopAccess === true, // 申诫商店权限，默认关闭
+            canUseWrenchMode: d.canUseWrenchMode !== false // 扳手权限，默认允许
         };
     };
 
@@ -1405,9 +1817,8 @@ app.delete('/api/auth/:authId', authenticateToken, (req, res) => {
             WHERE ca.id = ?`, [req.params.authId], (err, auth) => {
         if (!auth) return res.status(404).json({ success: false });
 
-        // 角色所有者、超管、或被授权的经理本人可以撤销
-        const canRevoke = auth.user_id === req.user.userId ||
-                          req.user.role >= ROLE.SUPER_ADMIN ||
+        // 只有超管或被授权的经理本人可以撤销（特工不能移除经理）
+        const canRevoke = req.user.role >= ROLE.SUPER_ADMIN ||
                           auth.manager_id === req.user.userId;
         if (!canRevoke) {
             return res.status(403).json({ success: false, message: '无权撤销此授权' });
@@ -1537,24 +1948,26 @@ app.get('/api/character/:id/records', authenticateToken, (req, res) => {
     const charId = req.params.id;
 
     db.get('SELECT data, user_id FROM characters WHERE id = ?', [charId], (err, row) => {
+        if (err) return res.status(500).json({ error: '数据库错误' });
         if (!row) return res.status(404).json({ error: '角色不存在' });
 
-        // 检查权限：经理需要有授权或任务成员关系，或者是超管，或者是角色所有者
+        // 检查权限：超管优先，然后是角色所有者，最后检查经理授权
         const checkAccess = () => {
+            // 超管直接通过
             if (req.user.role >= ROLE.SUPER_ADMIN) return Promise.resolve(true);
+            // 角色所有者直接通过
             if (req.user.userId === row.user_id) return Promise.resolve(true);
+            // 非经理直接拒绝
+            if (req.user.role < ROLE.MANAGER) return Promise.resolve(false);
 
             return new Promise((resolve) => {
-                if (req.user.role < ROLE.MANAGER) {
-                    resolve(false);
-                    return;
-                }
-                // 首先检查授权表
+                // 检查授权表
                 db.get('SELECT id FROM character_authorizations WHERE character_id = ? AND manager_id = ?',
                     [charId, req.user.userId], (err, auth) => {
+                        if (err) return resolve(false);
                         if (auth) return resolve(true);
 
-                        // 然后检查任务成员关系 - 角色是否在该经理创建的任务中
+                        // 检查任务成员关系
                         db.get(`SELECT 1 FROM field_mission_members fmm
                             JOIN field_missions fm ON fmm.mission_id = fm.id
                             WHERE fmm.character_id = ? AND fm.created_by = ? AND fm.status = 'active'`,
@@ -1574,38 +1987,52 @@ app.get('/api/character/:id/records', authenticateToken, (req, res) => {
                 const data = JSON.parse(row.data);
                 res.json({
                     rewards: data.rewards || [],
-                    reprimands: data.reprimands || []
+                    reprimands: data.reprimands || [],
+                    mvpRecords: data.mvpRecords || [],
+                    probationRecords: data.probationRecords || []
                 });
             } catch (e) {
-                res.json({ rewards: [], reprimands: [] });
+                res.json({ rewards: [], reprimands: [], mvpRecords: [], probationRecords: [] });
             }
         });
     });
 });
 
 // 添加嘉奖记录
-
-// 添加嘉奖记录
-app.post('/api/character/:id/reward', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+app.post('/api/character/:id/reward', authenticateToken, (req, res) => {
     const charId = req.params.id;
-    const { reason, count } = req.body;
-    const recordCount = Math.max(1, Math.min(99, parseInt(count) || 1));
+    const { reason, count, newValue, isSelfEdit } = req.body;
+    const useNewValue = typeof newValue === 'number';
 
     if (!reason || !reason.trim()) {
         return res.status(400).json({ success: false, message: '请填写嘉奖原因' });
     }
 
     db.get('SELECT data, user_id FROM characters WHERE id = ?', [charId], (err, row) => {
+        if (err) return res.status(500).json({ success: false, message: '数据库错误' });
         if (!row) return res.status(404).json({ success: false, message: '角色不存在' });
 
-        // ... (权限检查代码保持不变) ...
+        // 权限检查：超管优先，玩家扳手模式，然后检查授权或任务关系
         const checkAccess = () => {
+            // 超管直接通过
             if (req.user.role >= ROLE.SUPER_ADMIN) return Promise.resolve(true);
+            // 玩家本人在扳手模式下可编辑
+            if (isSelfEdit && row.user_id === req.user.userId) {
+                const data = JSON.parse(row.data || '{}');
+                if (data.canUseWrenchMode !== false) return Promise.resolve(true);
+            }
+            // 非经理直接拒绝
+            if (req.user.role < ROLE.MANAGER) return Promise.resolve(false);
+
             return new Promise((resolve) => {
-                if (req.user.role < ROLE.MANAGER) return resolve(false);
+                // 检查是否有授权关系
                 db.get('SELECT id FROM character_authorizations WHERE character_id = ? AND manager_id = ?', [charId, req.user.userId], (err, auth) => {
+                    if (err) return resolve(false);
                     if (auth) return resolve(true);
-                    db.get(`SELECT 1 FROM field_mission_members fmm JOIN field_missions fm ON fmm.mission_id = fm.id WHERE fmm.character_id = ? AND fm.created_by = ? AND fm.status = 'active'`, [charId, req.user.userId], (err, member) => resolve(!!member));
+                    // 检查任务成员关系
+                    db.get(`SELECT 1 FROM field_mission_members fmm JOIN field_missions fm ON fmm.mission_id = fm.id WHERE fmm.character_id = ? AND fm.created_by = ? AND fm.status = 'active'`, [charId, req.user.userId], (err, member) => {
+                        resolve(!!member);
+                    });
                 });
             });
         };
@@ -1619,12 +2046,27 @@ app.post('/api/character/:id/reward', authenticateToken, requireRole(ROLE.MANAGE
                 const data = JSON.parse(row.data);
                 if (!data.rewards) data.rewards = [];
 
+                // 计算当前 records 总和
+                const currentTotal = data.rewards.reduce((sum, r) => sum + (r.count || 1), 0);
+
+                // 如果提供了 newValue，计算差值；否则使用 count
+                let recordCount;
+                if (useNewValue) {
+                    recordCount = newValue - currentTotal;
+                    if (recordCount === 0) {
+                        return res.json({ success: true, message: '数值未变化' });
+                    }
+                } else {
+                    const parsedCount = parseInt(count) || 1;
+                    recordCount = parsedCount === 0 ? 1 : Math.max(-99, Math.min(99, parsedCount));
+                }
+
                 data.rewards.push({
                     id: Date.now().toString(),
                     reason: reason.trim(),
                     count: recordCount,
                     date: Date.now(),
-                    addedByName: req.user.username // 记录操作者
+                    addedByName: isSelfEdit ? '玩家自行调整' : req.user.username
                 });
 
                 // 核心修正：重新计算总数
@@ -1643,30 +2085,44 @@ app.post('/api/character/:id/reward', authenticateToken, requireRole(ROLE.MANAGE
 });
 
 // 添加申诫记录
-app.post('/api/character/:id/reprimand', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
+app.post('/api/character/:id/reprimand', authenticateToken, (req, res) => {
     const charId = req.params.id;
-    const { reason, count } = req.body;
-    const recordCount = Math.max(1, Math.min(99, parseInt(count) || 1));
+    const { reason, count, newValue, isSelfEdit } = req.body;
+    const useNewValue = typeof newValue === 'number';
 
     if (!reason || !reason.trim()) {
         return res.status(400).json({ success: false, message: '请填写申诫原因' });
     }
 
     db.get('SELECT data, user_id FROM characters WHERE id = ?', [charId], (err, row) => {
+        if (err) return res.status(500).json({ success: false, message: '数据库错误' });
         if (!row) return res.status(404).json({ success: false, message: '角色不存在' });
 
-        // ... (权限检查代码保持不变) ...
+        // 权限检查：超管优先，玩家扳手模式，然后检查授权或任务关系
         const checkAccess = () => {
+            // 超管直接通过
             if (req.user.role >= ROLE.SUPER_ADMIN) return Promise.resolve(true);
+            // 玩家本人在扳手模式下可编辑
+            if (isSelfEdit && row.user_id === req.user.userId) {
+                const data = JSON.parse(row.data || '{}');
+                if (data.canUseWrenchMode !== false) return Promise.resolve(true);
+            }
+            // 非经理直接拒绝
+            if (req.user.role < ROLE.MANAGER) return Promise.resolve(false);
+
             return new Promise((resolve) => {
-                if (req.user.role < ROLE.MANAGER) return resolve(false);
+                // 检查是否有授权关系
                 db.get('SELECT id FROM character_authorizations WHERE character_id = ? AND manager_id = ?', [charId, req.user.userId], (err, auth) => {
+                    if (err) return resolve(false);
                     if (auth) return resolve(true);
-                    db.get(`SELECT 1 FROM field_mission_members fmm JOIN field_missions fm ON fmm.mission_id = fm.id WHERE fmm.character_id = ? AND fm.created_by = ? AND fm.status = 'active'`, [charId, req.user.userId], (err, member) => resolve(!!member));
+                    // 检查任务成员关系
+                    db.get(`SELECT 1 FROM field_mission_members fmm JOIN field_missions fm ON fmm.mission_id = fm.id WHERE fmm.character_id = ? AND fm.created_by = ? AND fm.status = 'active'`, [charId, req.user.userId], (err, member) => {
+                        resolve(!!member);
+                    });
                 });
             });
         };
-        
+
         Promise.resolve(checkAccess()).then(hasAccess => {
             if (!hasAccess) {
                 return res.status(403).json({ success: false, message: '无权修改此角色' });
@@ -1676,12 +2132,27 @@ app.post('/api/character/:id/reprimand', authenticateToken, requireRole(ROLE.MAN
                 const data = JSON.parse(row.data);
                 if (!data.reprimands) data.reprimands = [];
 
+                // 计算当前 records 总和
+                const currentTotal = data.reprimands.reduce((sum, r) => sum + (r.count || 1), 0);
+
+                // 如果提供了 newValue，计算差值；否则使用 count
+                let recordCount;
+                if (useNewValue) {
+                    recordCount = newValue - currentTotal;
+                    if (recordCount === 0) {
+                        return res.json({ success: true, message: '数值未变化' });
+                    }
+                } else {
+                    const parsedCount = parseInt(count) || 1;
+                    recordCount = parsedCount === 0 ? 1 : Math.max(-99, Math.min(99, parsedCount));
+                }
+
                 data.reprimands.push({
                     id: Date.now().toString(),
                     reason: reason.trim(),
                     count: recordCount,
                     date: Date.now(),
-                    addedByName: req.user.username
+                    addedByName: isSelfEdit ? '玩家自行调整' : req.user.username
                 });
 
                 // 核心修正：重新计算总数
@@ -1699,20 +2170,175 @@ app.post('/api/character/:id/reprimand', authenticateToken, requireRole(ROLE.MAN
     });
 });
 
-// 删除嘉奖/申诫记录
+// 添加MVP记录
+app.post('/api/character/:id/mvp', authenticateToken, (req, res) => {
+    const charId = req.params.id;
+    const { reason, count, newValue, isSelfEdit } = req.body;
+    // 如果提供了 newValue，则由服务器计算差值；否则使用传入的 count
+    const useNewValue = typeof newValue === 'number';
+
+    if (!reason || !reason.trim()) {
+        return res.status(400).json({ success: false, message: '请填写原因' });
+    }
+
+    db.get('SELECT data, user_id FROM characters WHERE id = ?', [charId], (err, row) => {
+        if (err) return res.status(500).json({ success: false, message: '数据库错误' });
+        if (!row) return res.status(404).json({ success: false, message: '角色不存在' });
+
+        const checkAccess = () => {
+            // 超管直接通过
+            if (req.user.role >= ROLE.SUPER_ADMIN) return Promise.resolve(true);
+            // 玩家本人在扳手模式下可编辑
+            if (isSelfEdit && row.user_id === req.user.userId) {
+                const data = JSON.parse(row.data || '{}');
+                if (data.canUseWrenchMode !== false) return Promise.resolve(true);
+            }
+            // 经理检查授权
+            if (req.user.role < ROLE.MANAGER) return Promise.resolve(false);
+            return new Promise((resolve) => {
+                db.get('SELECT id FROM character_authorizations WHERE character_id = ? AND manager_id = ?', [charId, req.user.userId], (err, auth) => {
+                    if (auth) return resolve(true);
+                    db.get(`SELECT 1 FROM field_mission_members fmm JOIN field_missions fm ON fmm.mission_id = fm.id WHERE fmm.character_id = ? AND fm.created_by = ? AND fm.status = 'active'`, [charId, req.user.userId], (err, member) => resolve(!!member));
+                });
+            });
+        };
+
+        Promise.resolve(checkAccess()).then(hasAccess => {
+            if (!hasAccess) {
+                return res.status(403).json({ success: false, message: '无权修改此角色' });
+            }
+
+            try {
+                const data = JSON.parse(row.data);
+                if (!data.mvpRecords) data.mvpRecords = [];
+
+                // 计算当前 records 总和
+                const currentTotal = data.mvpRecords.reduce((sum, r) => sum + (r.count || 1), 0);
+
+                // 如果提供了 newValue，计算差值；否则使用 count
+                let recordCount;
+                if (useNewValue) {
+                    recordCount = newValue - currentTotal;
+                    if (recordCount === 0) {
+                        return res.json({ success: true, message: '数值未变化' });
+                    }
+                } else {
+                    const parsedCount = parseInt(count) || 1;
+                    recordCount = parsedCount === 0 ? 1 : Math.max(-99, Math.min(99, parsedCount));
+                }
+
+                data.mvpRecords.push({
+                    id: Date.now().toString(),
+                    reason: reason.trim(),
+                    count: recordCount,
+                    date: Date.now(),
+                    addedByName: isSelfEdit ? '玩家自行调整' : req.user.username
+                });
+
+                // 重新计算总数
+                const totalMvp = data.mvpRecords.reduce((sum, r) => sum + (r.count || 1), 0);
+                data.pComm = totalMvp;
+
+                db.run('UPDATE characters SET data = ? WHERE id = ?', [JSON.stringify(data), charId], function(err) {
+                    if (err) return res.status(500).json({ success: false });
+                    res.json({ success: true, message: `已添加 ${recordCount} 个MVP` });
+                });
+            } catch (e) {
+                res.status(500).json({ success: false, message: '数据解析失败' });
+            }
+        });
+    });
+});
+
+// 添加观察期记录
+app.post('/api/character/:id/probation', authenticateToken, (req, res) => {
+    const charId = req.params.id;
+    const { reason, count, newValue, isSelfEdit } = req.body;
+    const useNewValue = typeof newValue === 'number';
+
+    if (!reason || !reason.trim()) {
+        return res.status(400).json({ success: false, message: '请填写原因' });
+    }
+
+    db.get('SELECT data, user_id FROM characters WHERE id = ?', [charId], (err, row) => {
+        if (err) return res.status(500).json({ success: false, message: '数据库错误' });
+        if (!row) return res.status(404).json({ success: false, message: '角色不存在' });
+
+        const checkAccess = () => {
+            if (req.user.role >= ROLE.SUPER_ADMIN) return Promise.resolve(true);
+            if (isSelfEdit && row.user_id === req.user.userId) {
+                const data = JSON.parse(row.data || '{}');
+                if (data.canUseWrenchMode !== false) return Promise.resolve(true);
+            }
+            if (req.user.role < ROLE.MANAGER) return Promise.resolve(false);
+            return new Promise((resolve) => {
+                db.get('SELECT id FROM character_authorizations WHERE character_id = ? AND manager_id = ?', [charId, req.user.userId], (err, auth) => {
+                    if (auth) return resolve(true);
+                    db.get(`SELECT 1 FROM field_mission_members fmm JOIN field_missions fm ON fmm.mission_id = fm.id WHERE fmm.character_id = ? AND fm.created_by = ? AND fm.status = 'active'`, [charId, req.user.userId], (err, member) => resolve(!!member));
+                });
+            });
+        };
+
+        Promise.resolve(checkAccess()).then(hasAccess => {
+            if (!hasAccess) {
+                return res.status(403).json({ success: false, message: '无权修改此角色' });
+            }
+
+            try {
+                const data = JSON.parse(row.data);
+                if (!data.probationRecords) data.probationRecords = [];
+
+                // 计算当前 records 总和
+                const currentTotal = data.probationRecords.reduce((sum, r) => sum + (r.count || 1), 0);
+
+                // 如果提供了 newValue，计算差值；否则使用 count
+                let recordCount;
+                if (useNewValue) {
+                    recordCount = newValue - currentTotal;
+                    if (recordCount === 0) {
+                        return res.json({ success: true, message: '数值未变化' });
+                    }
+                } else {
+                    const parsedCount = parseInt(count) || 1;
+                    recordCount = parsedCount === 0 ? 1 : Math.max(-99, Math.min(99, parsedCount));
+                }
+
+                data.probationRecords.push({
+                    id: Date.now().toString(),
+                    reason: reason.trim(),
+                    count: recordCount,
+                    date: Date.now(),
+                    addedByName: isSelfEdit ? '玩家自行调整' : req.user.username
+                });
+
+                // 重新计算总数
+                const totalProbation = data.probationRecords.reduce((sum, r) => sum + (r.count || 1), 0);
+                data.pRep = totalProbation;
+
+                db.run('UPDATE characters SET data = ? WHERE id = ?', [JSON.stringify(data), charId], function(err) {
+                    if (err) return res.status(500).json({ success: false });
+                    res.json({ success: true, message: `已添加 ${recordCount} 个观察期` });
+                });
+            } catch (e) {
+                res.status(500).json({ success: false, message: '数据解析失败' });
+            }
+        });
+    });
+});
+
+// 删除嘉奖/申诫/MVP/观察期记录
 app.delete('/api/character/:id/record/:recordId', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
     const charId = req.params.id;
     const recordId = req.params.recordId;
     const { type } = req.query;
 
-    if (!type || !['reward', 'reprimand'].includes(type)) {
+    if (!type || !['reward', 'reprimand', 'mvp', 'probation'].includes(type)) {
         return res.status(400).json({ success: false, message: '无效的记录类型' });
     }
 
     db.get('SELECT data, user_id FROM characters WHERE id = ?', [charId], (err, row) => {
         if (!row) return res.status(404).json({ success: false, message: '角色不存在' });
 
-        // ... (权限检查代码保持不变) ...
         const checkAccess = () => {
             if (req.user.role >= ROLE.SUPER_ADMIN) return Promise.resolve(true);
             return new Promise((resolve) => {
@@ -1731,12 +2357,19 @@ app.delete('/api/character/:id/record/:recordId', authenticateToken, requireRole
 
             try {
                 const data = JSON.parse(row.data);
-                const arrayKey = type === 'reward' ? 'rewards' : 'reprimands';
-                const countKey = type === 'reward' ? 'mvpCount' : 'watchCount';
+
+                // 根据类型确定数组键和计数键
+                const typeMap = {
+                    reward: { arrayKey: 'rewards', countKey: 'mvpCount' },
+                    reprimand: { arrayKey: 'reprimands', countKey: 'watchCount' },
+                    mvp: { arrayKey: 'mvpRecords', countKey: 'pComm' },
+                    probation: { arrayKey: 'probationRecords', countKey: 'pRep' }
+                };
+                const { arrayKey, countKey } = typeMap[type];
 
                 if (!data[arrayKey]) return res.status(404).json({ success: false, message: '记录不存在' });
 
-                // 核心修正：删除后重新计算总数
+                // 删除后重新计算总数
                 data[arrayKey] = data[arrayKey].filter(r => r.id !== recordId);
                 const newTotal = data[arrayKey].reduce((sum, r) => sum + (r.count || 1), 0);
                 data[countKey] = newTotal;
@@ -2556,6 +3189,899 @@ app.put('/api/manager/character/:charId/reprimand-shop-access', authenticateToke
     }
 });
 
+// 经理控制扳手权限
+app.put('/api/manager/character/:charId/wrench-mode', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    try {
+        const managerId = req.user.userId;
+        const charId = req.params.charId;
+        const { enabled } = req.body;
+
+        // 检查经理是否有该角色卡的授权
+        const isAuthorized = await checkManagerCharacterAuth(managerId, charId);
+        if (!isAuthorized && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权操作该角色卡' });
+        }
+
+        // 获取角色当前数据
+        const char = await new Promise((resolve, reject) => {
+            db.get('SELECT data FROM characters WHERE id = ?', [charId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!char) {
+            return res.status(404).json({ success: false, message: '角色不存在' });
+        }
+
+        // 更新charData中的canUseWrenchMode字段
+        let charData = {};
+        try { charData = JSON.parse(char.data); } catch(e) {}
+        charData.canUseWrenchMode = enabled !== false;
+
+        db.run('UPDATE characters SET data = ? WHERE id = ?', [JSON.stringify(charData), charId], function(err) {
+            if (err) return res.status(500).json({ success: false, message: err.message });
+            res.json({ success: true, canUseWrenchMode: charData.canUseWrenchMode });
+        });
+    } catch (e) {
+        console.error('切换扳手权限失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// 获取角色商店权限配置（申诫商店权限 + 可见申领物）
+app.get('/api/manager/character/:charId/shop-access', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    try {
+        const managerId = req.user.userId;
+        const charId = req.params.charId;
+
+        // 检查经理是否有该角色卡的授权
+        const isAuthorized = await checkManagerCharacterAuth(managerId, charId);
+        if (!isAuthorized && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权操作该角色卡' });
+        }
+
+        // 获取角色当前数据
+        const char = await new Promise((resolve, reject) => {
+            db.get('SELECT data FROM characters WHERE id = ?', [charId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!char) {
+            return res.status(404).json({ success: false, message: '角色不存在' });
+        }
+
+        let charData = {};
+        try { charData = JSON.parse(char.data); } catch(e) {}
+
+        // 获取该角色已授权的可见物品ID列表
+        const visibleItems = await new Promise((resolve, reject) => {
+            db.all('SELECT item_id FROM character_visible_items WHERE character_id = ?', [charId], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
+            });
+        });
+        const visibleItemIds = visibleItems.map(v => v.item_id);
+
+        // 获取所有非默认展示的申领物（show_to_agents=0）供经理选择
+        // 只获取该经理创建的或全局的物品
+        const hiddenItems = await new Promise((resolve, reject) => {
+            db.all(`SELECT id, title, description FROM shop_items
+                    WHERE is_active = 1 AND show_to_agents = 0
+                    AND (is_global = 1 OR created_by = ?)
+                    ORDER BY title`, [managerId], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
+            });
+        });
+
+        res.json({
+            success: true,
+            reprimandShopAccess: charData.reprimandShopAccess === true,
+            visibleItemIds,
+            hiddenItems // 可供配置的非默认展示物品列表
+        });
+    } catch (e) {
+        console.error('获取商店权限配置失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// 保存角色商店权限配置
+app.put('/api/manager/character/:charId/shop-access', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    try {
+        const managerId = req.user.userId;
+        const charId = req.params.charId;
+        const { reprimandShopAccess, visibleItemIds } = req.body;
+
+        // 检查经理是否有该角色卡的授权
+        const isAuthorized = await checkManagerCharacterAuth(managerId, charId);
+        if (!isAuthorized && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权操作该角色卡' });
+        }
+
+        // 获取角色当前数据
+        const char = await new Promise((resolve, reject) => {
+            db.get('SELECT data FROM characters WHERE id = ?', [charId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!char) {
+            return res.status(404).json({ success: false, message: '角色不存在' });
+        }
+
+        // 更新charData中的reprimandShopAccess字段
+        let charData = {};
+        try { charData = JSON.parse(char.data); } catch(e) {}
+        charData.reprimandShopAccess = !!reprimandShopAccess;
+
+        await new Promise((resolve, reject) => {
+            db.run('UPDATE characters SET data = ? WHERE id = ?', [JSON.stringify(charData), charId], function(err) {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
+
+        // 更新可见物品授权
+        // 先删除该角色的所有授权，再重新插入
+        await new Promise((resolve, reject) => {
+            db.run('DELETE FROM character_visible_items WHERE character_id = ?', [charId], (err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
+
+        if (visibleItemIds && Array.isArray(visibleItemIds) && visibleItemIds.length > 0) {
+            const now = Date.now();
+            const stmt = db.prepare('INSERT OR IGNORE INTO character_visible_items (character_id, item_id, granted_by, granted_at) VALUES (?, ?, ?, ?)');
+            for (const itemId of visibleItemIds) {
+                stmt.run(charId, itemId, managerId, now);
+            }
+            stmt.finalize();
+        }
+
+        res.json({ success: true, message: '商店权限配置已保存' });
+    } catch (e) {
+        console.error('保存商店权限配置失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// ==========================================
+// 公共申领物池 API
+// ==========================================
+
+// 计算经理上传配额
+function calculateUploadQuota(managerId) {
+    return new Promise((resolve, reject) => {
+        db.all(`SELECT psi.id,
+                (SELECT COUNT(*) FROM public_item_votes WHERE item_id = psi.id AND vote_type = 1) as like_count,
+                (SELECT COUNT(*) FROM public_item_votes WHERE item_id = psi.id AND vote_type = -1) as dislike_count
+                FROM public_shop_items psi
+                WHERE psi.uploaded_by = ? AND psi.is_active = 1 AND psi.is_official = 0`,
+            [managerId], (err, items) => {
+                if (err) return reject(err);
+
+                const BASE_QUOTA = 10;
+                let totalLikes = 0;
+                let totalDislikes = 0;
+
+                (items || []).forEach(item => {
+                    totalLikes += item.like_count || 0;
+                    totalDislikes += item.dislike_count || 0;
+                });
+
+                const bonusSlots = Math.floor(totalLikes / 50);
+                const penaltySlots = Math.floor(totalDislikes / 50);
+                const finalQuota = Math.max(0, BASE_QUOTA + bonusSlots - penaltySlots);
+
+                resolve({
+                    baseQuota: BASE_QUOTA,
+                    bonusSlots,
+                    penaltySlots,
+                    finalQuota,
+                    currentCount: items.length,
+                    totalLikes,
+                    totalDislikes
+                });
+            });
+    });
+}
+
+// 获取经理上传配额
+app.get('/api/manager/upload-quota', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    try {
+        const quota = await calculateUploadQuota(req.user.userId);
+        res.json({ success: true, ...quota });
+    } catch (e) {
+        console.error('获取上传配额失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// 获取公共池列表
+app.get('/api/public-shop/items', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    try {
+        const { filter } = req.query; // all, official, uploaded, mine
+        const userId = req.user.userId;
+
+        let whereClause = 'psi.is_active = 1';
+        const params = [];
+
+        if (filter === 'official') {
+            whereClause += ' AND psi.is_official = 1';
+        } else if (filter === 'uploaded') {
+            whereClause += ' AND psi.is_official = 0';
+        } else if (filter === 'mine') {
+            whereClause += ' AND psi.uploaded_by = ?';
+            params.push(userId);
+        }
+
+        const items = await new Promise((resolve, reject) => {
+            db.all(`SELECT psi.*,
+                    u.name as uploader_name,
+                    u.username as uploader_username,
+                    (SELECT COUNT(*) FROM public_item_votes WHERE item_id = psi.id AND vote_type = 1) as like_count,
+                    (SELECT COUNT(*) FROM public_item_votes WHERE item_id = psi.id AND vote_type = -1) as dislike_count,
+                    (SELECT COUNT(*) FROM public_item_comments WHERE item_id = psi.id) as comment_count,
+                    (SELECT vote_type FROM public_item_votes WHERE item_id = psi.id AND user_id = ?) as my_vote
+                    FROM public_shop_items psi
+                    LEFT JOIN users u ON psi.uploaded_by = u.id
+                    WHERE ${whereClause}
+                    ORDER BY psi.is_official DESC, psi.created_at DESC`,
+                [userId, ...params], (err, rows) => {
+                    if (err) reject(err);
+                    else resolve(rows || []);
+                });
+        });
+
+        // 获取每个物品的标价选项
+        for (const item of items) {
+            const prices = await new Promise((resolve, reject) => {
+                db.all('SELECT * FROM public_shop_item_prices WHERE item_id = ? ORDER BY sort_order',
+                    [item.id], (err, rows) => {
+                        if (err) reject(err);
+                        else resolve(rows || []);
+                    });
+            });
+            item.prices = prices;
+            item.canEdit = item.uploaded_by === userId || req.user.role >= ROLE.SUPER_ADMIN;
+        }
+
+        res.json({ success: true, items });
+    } catch (e) {
+        console.error('获取公共池列表失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// 获取单个公共物品详情（含评论）
+app.get('/api/public-shop/items/:id', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    try {
+        const itemId = req.params.id;
+        const userId = req.user.userId;
+
+        const item = await new Promise((resolve, reject) => {
+            db.get(`SELECT psi.*,
+                    u.name as uploader_name,
+                    u.username as uploader_username,
+                    (SELECT COUNT(*) FROM public_item_votes WHERE item_id = psi.id AND vote_type = 1) as like_count,
+                    (SELECT COUNT(*) FROM public_item_votes WHERE item_id = psi.id AND vote_type = -1) as dislike_count,
+                    (SELECT vote_type FROM public_item_votes WHERE item_id = psi.id AND user_id = ?) as my_vote
+                    FROM public_shop_items psi
+                    LEFT JOIN users u ON psi.uploaded_by = u.id
+                    WHERE psi.id = ? AND psi.is_active = 1`,
+                [userId, itemId], (err, row) => {
+                    if (err) reject(err);
+                    else resolve(row);
+                });
+        });
+
+        if (!item) {
+            return res.status(404).json({ success: false, message: '物品不存在' });
+        }
+
+        // 获取标价选项
+        const prices = await new Promise((resolve, reject) => {
+            db.all('SELECT * FROM public_shop_item_prices WHERE item_id = ? ORDER BY sort_order',
+                [itemId], (err, rows) => {
+                    if (err) reject(err);
+                    else resolve(rows || []);
+                });
+        });
+        item.prices = prices;
+
+        // 获取评论（含回复）
+        const comments = await new Promise((resolve, reject) => {
+            db.all(`SELECT c.*, u.name as user_name, u.username
+                    FROM public_item_comments c
+                    LEFT JOIN users u ON c.user_id = u.id
+                    WHERE c.item_id = ?
+                    ORDER BY c.created_at ASC`,
+                [itemId], (err, rows) => {
+                    if (err) reject(err);
+                    else resolve(rows || []);
+                });
+        });
+
+        // 构建评论树
+        const commentTree = [];
+        const commentMap = {};
+        comments.forEach(c => {
+            c.replies = [];
+            c.canDelete = c.user_id === userId || req.user.role >= ROLE.SUPER_ADMIN;
+            commentMap[c.id] = c;
+        });
+        comments.forEach(c => {
+            if (c.parent_id && commentMap[c.parent_id]) {
+                commentMap[c.parent_id].replies.push(c);
+            } else if (!c.parent_id) {
+                commentTree.push(c);
+            }
+        });
+
+        item.comments = commentTree;
+        item.canEdit = item.uploaded_by === userId || req.user.role >= ROLE.SUPER_ADMIN;
+
+        res.json({ success: true, item });
+    } catch (e) {
+        console.error('获取公共物品详情失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// 上传物品到公共池
+app.post('/api/public-shop/items', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    try {
+        const { title, description, prices, isOfficial, is_official } = req.body;
+        const userId = req.user.userId;
+
+        if (!title || !title.trim()) {
+            return res.status(400).json({ success: false, message: '请填写物品标题' });
+        }
+
+        if (!prices || !Array.isArray(prices) || prices.length === 0) {
+            return res.status(400).json({ success: false, message: '请至少添加一个标价选项' });
+        }
+
+        // 只有超管可以创建官方物品（兼容 isOfficial 和 is_official 两种格式）
+        const wantsOfficial = isOfficial || is_official;
+        const official = (wantsOfficial && req.user.role >= ROLE.SUPER_ADMIN) ? 1 : 0;
+
+        // 如果不是官方物品，检查配额
+        if (!official) {
+            const quota = await calculateUploadQuota(userId);
+            if (quota.currentCount >= quota.finalQuota) {
+                return res.status(400).json({
+                    success: false,
+                    message: `上传配额已满（${quota.currentCount}/${quota.finalQuota}），获得更多点赞可增加配额`
+                });
+            }
+        }
+
+        const now = Date.now();
+
+        const itemId = await new Promise((resolve, reject) => {
+            db.run(`INSERT INTO public_shop_items (title, description, uploaded_by, is_official, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?)`,
+                [title.trim(), description || '', userId, official, now, now],
+                function(err) {
+                    if (err) reject(err);
+                    else resolve(this.lastID);
+                });
+        });
+
+        // 插入标价选项
+        const stmt = db.prepare('INSERT INTO public_shop_item_prices (item_id, price_name, price_cost, currency_type, usage_type, usage_count, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)');
+        prices.forEach((p, idx) => {
+            const priceName = p.price_name || p.name;
+            const priceCost = p.price_cost ?? p.cost;
+            if (priceName && priceCost >= 0) {
+                const currencyType = p.currency_type || p.currencyType || 'commendation';
+                const usageType = p.usage_type || p.usageType || 'permanent';
+                const usageCount = parseInt(p.usage_count ?? p.usageCount) || 0;
+                stmt.run(itemId, priceName.trim(), parseInt(priceCost) || 0, currencyType, usageType, usageCount, idx);
+            }
+        });
+        stmt.finalize();
+
+        res.json({ success: true, itemId, message: '上传成功' });
+    } catch (e) {
+        console.error('上传公共物品失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// 编辑公共池物品
+app.put('/api/public-shop/items/:id', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    try {
+        const itemId = req.params.id;
+        const { title, description, prices } = req.body;
+        const userId = req.user.userId;
+
+        const item = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM public_shop_items WHERE id = ? AND is_active = 1', [itemId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!item) {
+            return res.status(404).json({ success: false, message: '物品不存在' });
+        }
+
+        // 只有上传者或超管可以编辑
+        if (item.uploaded_by !== userId && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权编辑此物品' });
+        }
+
+        const now = Date.now();
+
+        await new Promise((resolve, reject) => {
+            db.run('UPDATE public_shop_items SET title = ?, description = ?, updated_at = ? WHERE id = ?',
+                [title.trim(), description || '', now, itemId], (err) => {
+                    if (err) reject(err);
+                    else resolve();
+                });
+        });
+
+        // 删除旧标价，插入新标价
+        await new Promise((resolve, reject) => {
+            db.run('DELETE FROM public_shop_item_prices WHERE item_id = ?', [itemId], (err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
+
+        if (prices && Array.isArray(prices)) {
+            const stmt = db.prepare('INSERT INTO public_shop_item_prices (item_id, price_name, price_cost, currency_type, usage_type, usage_count, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)');
+            prices.forEach((p, idx) => {
+                const priceName = p.price_name || p.name;
+                const priceCost = p.price_cost ?? p.cost;
+                if (priceName && priceCost >= 0) {
+                    const currencyType = p.currency_type || p.currencyType || 'commendation';
+                    const usageType = p.usage_type || p.usageType || 'permanent';
+                    const usageCount = parseInt(p.usage_count ?? p.usageCount) || 0;
+                    stmt.run(itemId, priceName.trim(), parseInt(priceCost) || 0, currencyType, usageType, usageCount, idx);
+                }
+            });
+            stmt.finalize();
+        }
+
+        res.json({ success: true, message: '更新成功' });
+    } catch (e) {
+        console.error('编辑公共物品失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// 删除公共池物品
+app.delete('/api/public-shop/items/:id', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    try {
+        const itemId = req.params.id;
+        const userId = req.user.userId;
+
+        const item = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM public_shop_items WHERE id = ?', [itemId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!item) {
+            return res.status(404).json({ success: false, message: '物品不存在' });
+        }
+
+        // 只有上传者或超管可以删除
+        if (item.uploaded_by !== userId && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权删除此物品' });
+        }
+
+        // 软删除
+        await new Promise((resolve, reject) => {
+            db.run('UPDATE public_shop_items SET is_active = 0 WHERE id = ?', [itemId], (err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
+
+        res.json({ success: true, message: '删除成功' });
+    } catch (e) {
+        console.error('删除公共物品失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// 添加公共物品到自己的申领物池（复制副本）
+app.post('/api/public-shop/items/:id/add-to-pool', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    try {
+        const publicItemId = req.params.id;
+        const userId = req.user.userId;
+
+        // 获取公共物品
+        const publicItem = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM public_shop_items WHERE id = ? AND is_active = 1', [publicItemId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!publicItem) {
+            return res.status(404).json({ success: false, message: '物品不存在' });
+        }
+
+        // 获取标价选项
+        const publicPrices = await new Promise((resolve, reject) => {
+            db.all('SELECT * FROM public_shop_item_prices WHERE item_id = ? ORDER BY sort_order',
+                [publicItemId], (err, rows) => {
+                    if (err) reject(err);
+                    else resolve(rows || []);
+                });
+        });
+
+        const now = Date.now();
+
+        // 创建副本到shop_items
+        const newItemId = await new Promise((resolve, reject) => {
+            db.run(`INSERT INTO shop_items (title, description, created_by, is_global, show_to_agents, source_public_id, created_at, updated_at)
+                    VALUES (?, ?, ?, 0, 1, ?, ?, ?)`,
+                [publicItem.title, publicItem.description, userId, publicItemId, now, now],
+                function(err) {
+                    if (err) reject(err);
+                    else resolve(this.lastID);
+                });
+        });
+
+        // 复制标价选项
+        const stmt = db.prepare('INSERT INTO shop_item_prices (item_id, price_name, price_cost, currency_type, usage_type, usage_count, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)');
+        publicPrices.forEach(p => {
+            stmt.run(newItemId, p.price_name, p.price_cost, p.currency_type, p.usage_type, p.usage_count, p.sort_order);
+        });
+        stmt.finalize();
+
+        // 增加添加次数
+        await new Promise((resolve, reject) => {
+            db.run('UPDATE public_shop_items SET add_count = add_count + 1 WHERE id = ?', [publicItemId], (err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
+
+        res.json({ success: true, newItemId, message: '已添加到我的申领物池' });
+    } catch (e) {
+        console.error('添加到自己池失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// 点赞/点踩
+app.post('/api/public-shop/items/:id/vote', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    try {
+        const itemId = req.params.id;
+        const userId = req.user.userId;
+        const userRole = req.user.role;
+        const { voteType } = req.body; // 1=赞, -1=踩, 0=取消
+        const isAdmin = userRole >= ROLE.SUPER_ADMIN;
+
+        // 检查物品是否存在
+        const item = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM public_shop_items WHERE id = ? AND is_active = 1', [itemId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!item) {
+            return res.status(404).json({ success: false, message: '物品不存在' });
+        }
+
+        if (voteType === 0) {
+            // 取消投票 - 只对普通用户有效，管理员需要通过删除投票API
+            if (!isAdmin) {
+                await new Promise((resolve, reject) => {
+                    db.run('DELETE FROM public_item_votes WHERE item_id = ? AND user_id = ? AND is_admin_vote = 0',
+                        [itemId, userId], (err) => {
+                            if (err) reject(err);
+                            else resolve();
+                        });
+                });
+            }
+        } else if (voteType === 1 || voteType === -1) {
+            if (isAdmin) {
+                // 管理员: 直接插入新投票，可以多次投票
+                await new Promise((resolve, reject) => {
+                    db.run(`INSERT INTO public_item_votes (item_id, user_id, vote_type, is_admin_vote, created_at)
+                            VALUES (?, ?, ?, 1, ?)`,
+                        [itemId, userId, voteType, Date.now()], (err) => {
+                            if (err) reject(err);
+                            else resolve();
+                        });
+                });
+            } else {
+                // 普通用户: 先删除旧投票，再插入新投票（保持每人一票）
+                await new Promise((resolve, reject) => {
+                    db.run('DELETE FROM public_item_votes WHERE item_id = ? AND user_id = ? AND is_admin_vote = 0',
+                        [itemId, userId], (err) => {
+                            if (err) reject(err);
+                            else resolve();
+                        });
+                });
+                await new Promise((resolve, reject) => {
+                    db.run(`INSERT INTO public_item_votes (item_id, user_id, vote_type, is_admin_vote, created_at)
+                            VALUES (?, ?, ?, 0, ?)`,
+                        [itemId, userId, voteType, Date.now()], (err) => {
+                            if (err) reject(err);
+                            else resolve();
+                        });
+                });
+            }
+        }
+
+        // 检查是否需要处理超额（当有新的踩时）
+        if (voteType === -1) {
+            // 获取被踩物品的上传者
+            const uploaderId = item.uploaded_by;
+            if (uploaderId !== userId) { // 不处理自己的物品
+                const quota = await calculateUploadQuota(uploaderId);
+                if (quota.currentCount > quota.finalQuota) {
+                    // 需要移除踩最多的物品
+                    const uploaderItems = await new Promise((resolve, reject) => {
+                        db.all(`SELECT psi.id,
+                                (SELECT COUNT(*) FROM public_item_votes WHERE item_id = psi.id AND vote_type = -1) as dislike_count
+                                FROM public_shop_items psi
+                                WHERE psi.uploaded_by = ? AND psi.is_active = 1 AND psi.is_official = 0
+                                ORDER BY dislike_count DESC`,
+                            [uploaderId], (err, rows) => {
+                                if (err) reject(err);
+                                else resolve(rows || []);
+                            });
+                    });
+
+                    const removeCount = quota.currentCount - quota.finalQuota;
+                    for (let i = 0; i < removeCount && i < uploaderItems.length; i++) {
+                        await new Promise((resolve, reject) => {
+                            db.run('UPDATE public_shop_items SET is_active = 0 WHERE id = ?',
+                                [uploaderItems[i].id], (err) => {
+                                    if (err) reject(err);
+                                    else resolve();
+                                });
+                        });
+                    }
+                }
+            }
+        }
+
+        // 返回最新投票数
+        const votes = await new Promise((resolve, reject) => {
+            db.get(`SELECT
+                    (SELECT COUNT(*) FROM public_item_votes WHERE item_id = ? AND vote_type = 1) as like_count,
+                    (SELECT COUNT(*) FROM public_item_votes WHERE item_id = ? AND vote_type = -1) as dislike_count`,
+                [itemId, itemId], (err, row) => {
+                    if (err) reject(err);
+                    else resolve(row);
+                });
+        });
+
+        res.json({
+            success: true,
+            like_count: votes.like_count,
+            dislike_count: votes.dislike_count,
+            my_vote: voteType === 0 ? null : voteType
+        });
+    } catch (e) {
+        console.error('投票失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// 获取管理员自己的投票记录（用于显示和删除）
+app.get('/api/public-shop/items/:id/my-votes', authenticateToken, requireRole(ROLE.SUPER_ADMIN), async (req, res) => {
+    try {
+        const itemId = req.params.id;
+        const userId = req.user.userId;
+
+        const votes = await new Promise((resolve, reject) => {
+            db.all(`SELECT id, vote_type, created_at FROM public_item_votes
+                    WHERE item_id = ? AND user_id = ? AND is_admin_vote = 1
+                    ORDER BY created_at DESC`,
+                [itemId, userId], (err, rows) => {
+                    if (err) reject(err);
+                    else resolve(rows || []);
+                });
+        });
+
+        res.json({ success: true, votes });
+    } catch (e) {
+        console.error('获取投票记录失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// 删除投票（管理员删除自己的投票）
+app.delete('/api/public-shop/votes/:voteId', authenticateToken, requireRole(ROLE.SUPER_ADMIN), async (req, res) => {
+    try {
+        const voteId = req.params.voteId;
+        const userId = req.user.userId;
+
+        // 只能删除自己的管理员投票
+        const vote = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM public_item_votes WHERE id = ? AND user_id = ? AND is_admin_vote = 1',
+                [voteId, userId], (err, row) => {
+                    if (err) reject(err);
+                    else resolve(row);
+                });
+        });
+
+        if (!vote) {
+            return res.status(404).json({ success: false, message: '投票不存在或无权删除' });
+        }
+
+        await new Promise((resolve, reject) => {
+            db.run('DELETE FROM public_item_votes WHERE id = ?', [voteId], (err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
+
+        res.json({ success: true, message: '删除成功' });
+    } catch (e) {
+        console.error('删除投票失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// 获取评论列表
+app.get('/api/public-shop/items/:id/comments', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    try {
+        const itemId = req.params.id;
+        const userId = req.user.userId;
+
+        const comments = await new Promise((resolve, reject) => {
+            db.all(`SELECT c.*, u.name as user_name, u.username
+                    FROM public_item_comments c
+                    LEFT JOIN users u ON c.user_id = u.id
+                    WHERE c.item_id = ?
+                    ORDER BY c.created_at ASC`,
+                [itemId], (err, rows) => {
+                    if (err) reject(err);
+                    else resolve(rows || []);
+                });
+        });
+
+        // 构建评论树
+        const commentTree = [];
+        const commentMap = {};
+        comments.forEach(c => {
+            c.replies = [];
+            c.canDelete = c.user_id === userId || req.user.role >= ROLE.SUPER_ADMIN;
+            commentMap[c.id] = c;
+        });
+        comments.forEach(c => {
+            if (c.parent_id && commentMap[c.parent_id]) {
+                commentMap[c.parent_id].replies.push(c);
+            } else if (!c.parent_id) {
+                commentTree.push(c);
+            }
+        });
+
+        res.json({ success: true, comments: commentTree });
+    } catch (e) {
+        console.error('获取评论失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// 发表评论
+app.post('/api/public-shop/items/:id/comments', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    try {
+        const itemId = req.params.id;
+        const userId = req.user.userId;
+        const { content, parentId } = req.body;
+
+        if (!content || !content.trim()) {
+            return res.status(400).json({ success: false, message: '评论内容不能为空' });
+        }
+
+        // 检查物品是否存在
+        const item = await new Promise((resolve, reject) => {
+            db.get('SELECT id FROM public_shop_items WHERE id = ? AND is_active = 1', [itemId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!item) {
+            return res.status(404).json({ success: false, message: '物品不存在' });
+        }
+
+        // 如果是回复，检查父评论是否存在
+        if (parentId) {
+            const parentComment = await new Promise((resolve, reject) => {
+                db.get('SELECT id FROM public_item_comments WHERE id = ? AND item_id = ?',
+                    [parentId, itemId], (err, row) => {
+                        if (err) reject(err);
+                        else resolve(row);
+                    });
+            });
+            if (!parentComment) {
+                return res.status(404).json({ success: false, message: '回复的评论不存在' });
+            }
+        }
+
+        const commentId = await new Promise((resolve, reject) => {
+            db.run(`INSERT INTO public_item_comments (item_id, user_id, parent_id, content, created_at)
+                    VALUES (?, ?, ?, ?, ?)`,
+                [itemId, userId, parentId || null, content.trim(), Date.now()],
+                function(err) {
+                    if (err) reject(err);
+                    else resolve(this.lastID);
+                });
+        });
+
+        // 获取完整评论信息
+        const comment = await new Promise((resolve, reject) => {
+            db.get(`SELECT c.*, u.name as user_name, u.username
+                    FROM public_item_comments c
+                    LEFT JOIN users u ON c.user_id = u.id
+                    WHERE c.id = ?`,
+                [commentId], (err, row) => {
+                    if (err) reject(err);
+                    else resolve(row);
+                });
+        });
+
+        comment.replies = [];
+        comment.canDelete = true;
+
+        res.json({ success: true, comment });
+    } catch (e) {
+        console.error('发表评论失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// 删除评论
+app.delete('/api/public-shop/comments/:id', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    try {
+        const commentId = req.params.id;
+        const userId = req.user.userId;
+
+        const comment = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM public_item_comments WHERE id = ?', [commentId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!comment) {
+            return res.status(404).json({ success: false, message: '评论不存在' });
+        }
+
+        // 只有评论者或超管可以删除
+        if (comment.user_id !== userId && req.user.role < ROLE.SUPER_ADMIN) {
+            return res.status(403).json({ success: false, message: '无权删除此评论' });
+        }
+
+        // 删除评论及其所有回复
+        await new Promise((resolve, reject) => {
+            db.run('DELETE FROM public_item_comments WHERE id = ? OR parent_id = ?',
+                [commentId, commentId], (err) => {
+                    if (err) reject(err);
+                    else resolve();
+                });
+        });
+
+        res.json({ success: true, message: '删除成功' });
+    } catch (e) {
+        console.error('删除评论失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
 // 经理直接发放奖惩
 app.post('/api/manager/character/:charId/reward', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
     try {
@@ -2707,7 +4233,7 @@ app.get('/api/manager/character/:charId/rewards', authenticateToken, requireRole
 
 // 创建外勤任务
 app.post('/api/manager/mission', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
-    const { name, description, missionType, characterIds } = req.body;
+    const { name, description, missionType, characterIds, optionalTasks } = req.body;
 
     if (!name || !name.trim()) {
         return res.status(400).json({ success: false, message: '任务名称不能为空' });
@@ -2715,14 +4241,16 @@ app.post('/api/manager/mission', authenticateToken, requireRole(ROLE.MANAGER), (
 
     // 任务类型: containment(收容) 或 sweep(清扫)
     const validType = ['containment', 'sweep'].includes(missionType) ? missionType : 'containment';
+    // 可选任务：数组转JSON字符串
+    const optionalTasksJson = JSON.stringify(optionalTasks || []);
 
     const missionId = Date.now().toString();
     const now = Date.now();
 
     db.run(`INSERT INTO field_missions
-        (id, name, description, mission_type, status, created_by, created_at, updated_at, report_status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [missionId, name.trim(), description || '', validType, 'active', req.user.userId, now, now, 'none'],
+        (id, name, description, mission_type, status, created_by, created_at, updated_at, report_status, optional_tasks)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [missionId, name.trim(), description || '', validType, 'active', req.user.userId, now, now, 'none', optionalTasksJson],
         function(err) {
             if (err) return res.status(500).json({ success: false, message: err.message });
 
@@ -2852,10 +4380,17 @@ app.get('/api/manager/missions', authenticateToken, requireRole(ROLE.MANAGER), (
                         };
                     }
 
+                    // 解析可选任务
+                    let optionalTasks = [];
+                    try {
+                        optionalTasks = JSON.parse(mission.optional_tasks || '[]');
+                    } catch (e) {}
+
                     const missionData = {
                         ...mission,
                         members: memberList,
                         mission_type: mission.mission_type || 'containment',
+                        optional_tasks: optionalTasks,
                         reportInfo
                     };
 
@@ -2874,7 +4409,7 @@ app.get('/api/manager/missions', authenticateToken, requireRole(ROLE.MANAGER), (
 // 更新任务信息
 app.put('/api/manager/mission/:id', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
     const missionId = req.params.id;
-    const { name, description, status, missionType, chaosValue, scatterValue } = req.body;
+    const { name, description, status, missionType, chaosValue, scatterValue, optionalTasks } = req.body;
 
     db.get('SELECT created_by FROM field_missions WHERE id = ?', [missionId], (err, mission) => {
         if (!mission) return res.status(404).json({ success: false, message: '任务不存在' });
@@ -2911,6 +4446,11 @@ app.put('/api/manager/mission/:id', authenticateToken, requireRole(ROLE.MANAGER)
         if (scatterValue !== undefined && !isNaN(parseInt(scatterValue))) {
             updates.push('scatter_value = ?');
             params.push(parseInt(scatterValue));
+        }
+        // 可选任务
+        if (optionalTasks !== undefined) {
+            updates.push('optional_tasks = ?');
+            params.push(JSON.stringify(optionalTasks));
         }
 
         if (updates.length === 0) {
@@ -3464,8 +5004,8 @@ app.post('/api/manager/mission/:id/report/:reportId/send-with-rewards', authenti
 
             // 构建个人奖惩预览
             let personalRewards = [];
-            if (rewards.commend > 0) personalRewards.push(`嘉奖 +${rewards.commend}`);
-            if (rewards.reprimand > 0) personalRewards.push(`申诫 +${rewards.reprimand}`);
+            if (rewards.commend !== 0) personalRewards.push(`嘉奖 ${rewards.commend > 0 ? '+' : ''}${rewards.commend}`);
+            if (rewards.reprimand !== 0) personalRewards.push(`申诫 ${rewards.reprimand > 0 ? '+' : ''}${rewards.reprimand}`);
             if (rewards.mvp) personalRewards.push(`获得 MVP`);
             if (rewards.probation) personalRewards.push(`进入查看期`);
 
@@ -3571,8 +5111,8 @@ app.post('/api/character/:charId/appeal-rating/:reportId', authenticateToken, as
             // 获取该特工的待结算奖惩
             const pendingRewards = JSON.parse(response.pending_rewards || '{}');
             let rewardPreview = [];
-            if (pendingRewards.commend > 0) rewardPreview.push(`嘉奖 +${pendingRewards.commend}`);
-            if (pendingRewards.reprimand > 0) rewardPreview.push(`申诫 +${pendingRewards.reprimand}`);
+            if (pendingRewards.commend !== 0) rewardPreview.push(`嘉奖 ${pendingRewards.commend > 0 ? '+' : ''}${pendingRewards.commend}`);
+            if (pendingRewards.reprimand !== 0) rewardPreview.push(`申诫 ${pendingRewards.reprimand > 0 ? '+' : ''}${pendingRewards.reprimand}`);
             if (pendingRewards.mvp) rewardPreview.push(`获得 MVP`);
             if (pendingRewards.probation) rewardPreview.push(`进入查看期`);
 
@@ -3693,6 +5233,15 @@ app.post('/api/character/:charId/accept-rating/:reportId', authenticateToken, as
                     targetCharData.watchCount = (parseInt(targetCharData.watchCount) || 0) + (rewards.reprimand || 0);
                     if (rewards.probation) {
                         targetCharData.pRep = (parseInt(targetCharData.pRep) || 0) + 1;
+                        // 添加观察期记录
+                        if (!Array.isArray(targetCharData.probationRecords)) targetCharData.probationRecords = [];
+                        targetCharData.probationRecords.push({
+                            id: Date.now().toString(),
+                            reason: `来自「${missionName}」任务结算`,
+                            count: 1,
+                            date: now,
+                            addedByName: '任务系统'
+                        });
                         // 察看期自动在异常轨道点1格（不需要从其他轨道移除）
                         if (!Array.isArray(targetCharData.pa)) targetCharData.pa = [];
                         const nextACell = findNextEmptyCell(targetCharData.pa, targetCharData.pa_ign || []);
@@ -3702,6 +5251,15 @@ app.post('/api/character/:charId/accept-rating/:reportId', authenticateToken, as
                     }
                     if (rewards.mvp) {
                         targetCharData.pComm = (parseInt(targetCharData.pComm) || 0) + 1;
+                        // 添加MVP记录
+                        if (!Array.isArray(targetCharData.mvpRecords)) targetCharData.mvpRecords = [];
+                        targetCharData.mvpRecords.push({
+                            id: Date.now().toString(),
+                            reason: `来自「${missionName}」任务结算`,
+                            count: 1,
+                            date: now,
+                            addedByName: '任务系统'
+                        });
                         // MVP自动在职能轨道点1格（不需要从其他轨道移除）+ 自动3嘉奖
                         if (!Array.isArray(targetCharData.pf)) targetCharData.pf = [];
                         const nextFCell = findNextEmptyCell(targetCharData.pf, targetCharData.pf_ign || []);
@@ -3753,8 +5311,8 @@ app.post('/api/character/:charId/accept-rating/:reportId', authenticateToken, as
 
                     // 发送最终结算通知
                     let rewardMsg = [];
-                    if (rewards.commend > 0) rewardMsg.push(`嘉奖 +${rewards.commend}`);
-                    if (rewards.reprimand > 0) rewardMsg.push(`申诫 +${rewards.reprimand}`);
+                    if (rewards.commend !== 0) rewardMsg.push(`嘉奖 ${rewards.commend > 0 ? '+' : ''}${rewards.commend}`);
+                    if (rewards.reprimand !== 0) rewardMsg.push(`申诫 ${rewards.reprimand > 0 ? '+' : ''}${rewards.reprimand}`);
                     if (rewards.mvp) rewardMsg.push(`获得MVP`);
                     if (rewards.probation) rewardMsg.push(`进入查看期`);
 
@@ -3876,6 +5434,15 @@ app.post('/api/manager/mission/:id/report/:reportId/finalize', authenticateToken
                     charData.watchCount = (parseInt(charData.watchCount) || 0) + (rewards.reprimand || 0);
                     if (rewards.probation) {
                         charData.pRep = (parseInt(charData.pRep) || 0) + 1;
+                        // 添加观察期记录
+                        if (!Array.isArray(charData.probationRecords)) charData.probationRecords = [];
+                        charData.probationRecords.push({
+                            id: Date.now().toString(),
+                            reason: `来自「${missionName}」任务结算`,
+                            count: 1,
+                            date: now,
+                            addedByName: '任务系统'
+                        });
                         // 察看期自动在异常轨道点1格（不需要从其他轨道移除）
                         if (!Array.isArray(charData.pa)) charData.pa = [];
                         const nextACell = findNextEmptyCell(charData.pa, charData.pa_ign || []);
@@ -3885,6 +5452,15 @@ app.post('/api/manager/mission/:id/report/:reportId/finalize', authenticateToken
                     }
                     if (rewards.mvp) {
                         charData.pComm = (parseInt(charData.pComm) || 0) + 1;
+                        // 添加MVP记录
+                        if (!Array.isArray(charData.mvpRecords)) charData.mvpRecords = [];
+                        charData.mvpRecords.push({
+                            id: Date.now().toString(),
+                            reason: `来自「${missionName}」任务结算`,
+                            count: 1,
+                            date: now,
+                            addedByName: '任务系统'
+                        });
                         // MVP自动在职能轨道点1格（不需要从其他轨道移除）+ 自动3嘉奖
                         if (!Array.isArray(charData.pf)) charData.pf = [];
                         const nextFCell = findNextEmptyCell(charData.pf, charData.pf_ign || []);
@@ -3937,8 +5513,8 @@ app.post('/api/manager/mission/:id/report/:reportId/finalize', authenticateToken
 
                     // 发送最终结算通知
                     let rewardMsg = [];
-                    if (rewards.commend > 0) rewardMsg.push(`嘉奖 +${rewards.commend}`);
-                    if (rewards.reprimand > 0) rewardMsg.push(`申诫 +${rewards.reprimand}`);
+                    if (rewards.commend !== 0) rewardMsg.push(`嘉奖 ${rewards.commend > 0 ? '+' : ''}${rewards.commend}`);
+                    if (rewards.reprimand !== 0) rewardMsg.push(`申诫 ${rewards.reprimand > 0 ? '+' : ''}${rewards.reprimand}`);
                     if (rewards.mvp) rewardMsg.push(`获得MVP`);
                     if (rewards.probation) rewardMsg.push(`进入查看期`);
 
@@ -4076,9 +5652,35 @@ app.get('/api/character/:charId/mission', authenticateToken, (req, res) => {
     db.get('SELECT user_id FROM characters WHERE id = ?', [charId], (err, char) => {
         if (!char) return res.status(404).json({ error: '角色不存在' });
 
-        if (char.user_id !== req.user.userId && req.user.role < ROLE.SUPER_ADMIN) {
-            return res.status(403).json({ error: '无权访问' });
-        }
+        // 检查权限：所有者、超管、或有授权的经理
+        const checkAccess = () => {
+            // 角色所有者
+            if (char.user_id === req.user.userId) return Promise.resolve(true);
+            // 超管
+            if (req.user.role >= ROLE.SUPER_ADMIN) return Promise.resolve(true);
+            // 经理检查授权
+            if (req.user.role >= ROLE.MANAGER) {
+                return new Promise((resolve) => {
+                    db.get('SELECT id FROM character_authorizations WHERE character_id = ? AND manager_id = ?',
+                        [charId, req.user.userId], (err, auth) => {
+                            if (auth) return resolve(true);
+                            // 也检查任务成员关系
+                            db.get(`SELECT 1 FROM field_mission_members fmm
+                                JOIN field_missions fm ON fmm.mission_id = fm.id
+                                WHERE fmm.character_id = ? AND fm.created_by = ? AND fm.status = 'active'`,
+                                [charId, req.user.userId], (err, member) => {
+                                    resolve(!!member);
+                                });
+                        });
+                });
+            }
+            return Promise.resolve(false);
+        };
+
+        checkAccess().then(hasAccess => {
+            if (!hasAccess) {
+                return res.status(403).json({ error: '无权访问' });
+            }
 
         // 先获取该角色卡的负责经理
         db.all(`
@@ -4135,17 +5737,23 @@ app.get('/api/character/:charId/mission', authenticateToken, (req, res) => {
                     });
 
                     // 构建任务列表
-                    const missionList = missions.map(m => ({
-                        missionId: m.id,
-                        missionName: m.name,
-                        missionDescription: m.description,
-                        missionType: m.mission_type,
-                        missionStatus: m.status,
-                        myStatus: m.member_status,
-                        creatorName: m.creator_name || m.creator_username || '未知',
-                        creatorId: m.created_by,
-                        teammates: membersByMission[m.id] || []
-                    }));
+                    const missionList = missions.map(m => {
+                        // 解析可选任务
+                        let optionalTasks = [];
+                        try { optionalTasks = JSON.parse(m.optional_tasks || '[]'); } catch(e) {}
+                        return {
+                            missionId: m.id,
+                            missionName: m.name,
+                            missionDescription: m.description,
+                            missionType: m.mission_type,
+                            missionStatus: m.status,
+                            myStatus: m.member_status,
+                            creatorName: m.creator_name || m.creator_username || '未知',
+                            creatorId: m.created_by,
+                            teammates: membersByMission[m.id] || [],
+                            optionalTasks: optionalTasks
+                        };
+                    });
 
                     res.json({
                         inMission: true,
@@ -4160,6 +5768,7 @@ app.get('/api/character/:charId/mission', authenticateToken, (req, res) => {
                 });
             });
         });
+        }); // 关闭checkAccess().then
     });
 });
 
@@ -4795,7 +6404,7 @@ app.get('/api/manager/shop/items', authenticateToken, requireRole(ROLE.MANAGER),
 
 // 创建申领物
 app.post('/api/manager/shop/items', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
-    const { title, description, prices, isGlobal } = req.body;
+    const { title, description, prices, isGlobal, showToAgents } = req.body;
 
     if (!title || !title.trim()) {
         return res.status(400).json({ success: false, message: '请填写物品标题' });
@@ -4807,10 +6416,12 @@ app.post('/api/manager/shop/items', authenticateToken, requireRole(ROLE.MANAGER)
 
     // 只有超管可以创建全局物品
     const global = (isGlobal && req.user.role >= ROLE.SUPER_ADMIN) ? 1 : 0;
+    // showToAgents默认为1（对特工展示）
+    const showAgents = showToAgents === false ? 0 : 1;
     const now = Date.now();
 
-    db.run(`INSERT INTO shop_items (title, description, created_by, is_global, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)`,
-        [title.trim(), description || '', req.user.userId, global, now, now],
+    db.run(`INSERT INTO shop_items (title, description, created_by, is_global, show_to_agents, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [title.trim(), description || '', req.user.userId, global, showAgents, now, now],
         function(err) {
             if (err) return res.status(500).json({ success: false, message: '创建失败' });
 
@@ -4837,7 +6448,7 @@ app.post('/api/manager/shop/items', authenticateToken, requireRole(ROLE.MANAGER)
 // 更新申领物
 app.put('/api/manager/shop/items/:id', authenticateToken, requireRole(ROLE.MANAGER), (req, res) => {
     const itemId = req.params.id;
-    const { title, description, prices, isGlobal } = req.body;
+    const { title, description, prices, isGlobal, showToAgents } = req.body;
 
     db.get('SELECT * FROM shop_items WHERE id = ?', [itemId], (err, item) => {
         if (!item) return res.status(404).json({ success: false, message: '物品不存在' });
@@ -4848,10 +6459,11 @@ app.put('/api/manager/shop/items/:id', authenticateToken, requireRole(ROLE.MANAG
         }
 
         const global = (isGlobal && req.user.role >= ROLE.SUPER_ADMIN) ? 1 : 0;
+        const showAgents = showToAgents === false ? 0 : 1;
         const now = Date.now();
 
-        db.run('UPDATE shop_items SET title = ?, description = ?, is_global = ?, updated_at = ? WHERE id = ?',
-            [title.trim(), description || '', global, now, itemId],
+        db.run('UPDATE shop_items SET title = ?, description = ?, is_global = ?, show_to_agents = ?, updated_at = ? WHERE id = ?',
+            [title.trim(), description || '', global, showAgents, now, itemId],
             function(err) {
                 if (err) return res.status(500).json({ success: false });
 
@@ -4929,20 +6541,27 @@ app.get('/api/character/:charId/shop', authenticateToken, (req, res) => {
             const managerIds = (auths || []).map(a => a.manager_id);
 
             // 获取全局物品 + 管理该角色的经理创建的物品
+            // 显示条件：(show_to_agents=1) 或 (在character_visible_items中有授权记录)
             let query, params;
             if (managerIds.length > 0) {
                 const placeholders = managerIds.map(() => '?').join(',');
                 query = `SELECT si.*, u.name as creator_name FROM shop_items si
                          LEFT JOIN users u ON si.created_by = u.id
-                         WHERE si.is_active = 1 AND (si.is_global = 1 OR si.created_by IN (${placeholders}))
+                         LEFT JOIN character_visible_items cvi ON si.id = cvi.item_id AND cvi.character_id = ?
+                         WHERE si.is_active = 1
+                         AND (si.show_to_agents = 1 OR cvi.id IS NOT NULL)
+                         AND (si.is_global = 1 OR si.created_by IN (${placeholders}))
                          ORDER BY si.is_global DESC, si.created_at DESC`;
-                params = managerIds;
+                params = [charId, ...managerIds];
             } else {
                 query = `SELECT si.*, u.name as creator_name FROM shop_items si
                          LEFT JOIN users u ON si.created_by = u.id
-                         WHERE si.is_active = 1 AND si.is_global = 1
+                         LEFT JOIN character_visible_items cvi ON si.id = cvi.item_id AND cvi.character_id = ?
+                         WHERE si.is_active = 1
+                         AND (si.show_to_agents = 1 OR cvi.id IS NOT NULL)
+                         AND si.is_global = 1
                          ORDER BY si.created_at DESC`;
-                params = [];
+                params = [charId];
             }
 
             db.all(query, params, (err, items) => {
@@ -5029,56 +6648,27 @@ app.post('/api/character/:charId/shop/purchase', authenticateToken, (req, res) =
                 return res.status(400).json({ success: false, message: `${currencyName}不足，需要 ${price.price_cost} ${currencyName}，当前只有 ${available} ${currencyName}` });
             }
 
-            // 扣除货币
-            let remaining = price.price_cost;
+            // 扣除货币 - 通过添加负数记录的方式
+            const purchaseRecord = {
+                id: Date.now().toString(),
+                reason: `商店购买「${price.item_title}」- ${price.price_name}`,
+                count: -price.price_cost, // 负数表示扣除
+                date: Date.now(),
+                addedByName: '商店系统'
+            };
 
             if (currencyType === 'reprimand') {
-                // 从 reprimands 数组扣
-                if (Array.isArray(charData.reprimands)) {
-                    const newReprimands = [];
-                    for (const r of charData.reprimands) {
-                        if (remaining <= 0) {
-                            newReprimands.push(r);
-                            continue;
-                        }
-                        const count = r.count || 1;
-                        if (count <= remaining) {
-                            remaining -= count;
-                        } else {
-                            r.count = count - remaining;
-                            remaining = 0;
-                            newReprimands.push(r);
-                        }
-                    }
-                    charData.reprimands = newReprimands;
-                }
+                // 添加负数申诫记录
+                if (!Array.isArray(charData.reprimands)) charData.reprimands = [];
+                charData.reprimands.push(purchaseRecord);
+                // 更新申诫总计
+                charData.watchCount = charData.reprimands.reduce((sum, r) => sum + (r.count || 1), 0);
             } else {
-                // 先从 commendations 数值扣
-                if (charData.commendations && charData.commendations > 0) {
-                    const deduct = Math.min(charData.commendations, remaining);
-                    charData.commendations -= deduct;
-                    remaining -= deduct;
-                }
-
-                // 再从 rewards 数组扣
-                if (remaining > 0 && Array.isArray(charData.rewards)) {
-                    const newRewards = [];
-                    for (const r of charData.rewards) {
-                        if (remaining <= 0) {
-                            newRewards.push(r);
-                            continue;
-                        }
-                        const count = r.count || 1;
-                        if (count <= remaining) {
-                            remaining -= count;
-                        } else {
-                            r.count = count - remaining;
-                            remaining = 0;
-                            newRewards.push(r);
-                        }
-                    }
-                    charData.rewards = newRewards;
-                }
+                // 添加负数嘉奖记录
+                if (!Array.isArray(charData.rewards)) charData.rewards = [];
+                charData.rewards.push(purchaseRecord);
+                // 更新嘉奖总计
+                charData.mvpCount = charData.rewards.reduce((sum, r) => sum + (r.count || 1), 0);
             }
 
             // 获取物品详细信息用于添加到角色物品列表

@@ -387,10 +387,14 @@ POST /api/character/:id/reward
 **请求体**:
 ```json
 {
-  "amount": 1,
+  "count": 1,
   "reason": "表现优秀"
 }
 ```
+
+**参数说明**:
+- `count`: 数量，支持负数（范围 -99 到 99，不能为 0）
+- `reason`: 原因描述
 
 ### 添加申诫
 
@@ -403,10 +407,14 @@ POST /api/character/:id/reprimand
 **请求体**:
 ```json
 {
-  "amount": 1,
+  "count": 1,
   "reason": "违规行为"
 }
 ```
+
+**参数说明**:
+- `count`: 数量，支持负数（范围 -99 到 99，不能为 0）
+- `reason`: 原因描述
 
 ### 删除记录
 
@@ -1175,6 +1183,10 @@ POST /api/character/:charId/shop/purchase
   }
 }
 ```
+
+**说明**:
+- 购买时会自动在嘉奖/申诫历史记录中添加一条负数记录
+- 记录格式：`商店购买「物品名」- 标价名`，数量为负数
 
 ---
 

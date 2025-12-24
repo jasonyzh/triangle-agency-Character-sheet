@@ -297,18 +297,21 @@
             gap: 8px;
             align-items: flex-end;
         }
-        .code-row input { flex: 1; }
+        .code-row input { flex: 1; min-width: 0; }
         .btn-code {
             background: var(--agency-black);
             color: white;
             border: none;
-            padding: 6px 10px;
+            padding: 6px 0;
             font-size: 10px;
             font-weight: bold;
             cursor: pointer;
             border-radius: 3px;
             white-space: nowrap;
             transition: all 0.2s;
+            min-width: 72px;
+            text-align: center;
+            flex-shrink: 0;
         }
         .btn-code:hover { background: var(--agency-red); }
         .btn-code:disabled { background: #94a3b8; cursor: not-allowed; }
@@ -364,16 +367,26 @@
             font-weight: bold;
         }
 
-        .email-section { display: none; }
+        .email-section { display: none; width: 100%; }
         .email-section.show { display: block; }
+
+        .invitation-section { display: none; width: 100%; }
+        .invitation-section.show { display: block; }
+
+        .badge-container.invitation-mode { height: 580px; }
+        .badge-container.email-mode.invitation-mode { height: 700px; }
 
         @media (max-width: 400px) {
             .badge-container { width: 85vw; max-width: 300px; height: 520px; }
             .badge-container.email-mode { height: 650px; }
+            .badge-container.invitation-mode { height: 580px; }
+            .badge-container.email-mode.invitation-mode { height: 700px; }
         }
 
         @media (max-height: 700px) {
             .badge-container.email-mode { height: 90vh; }
+            .badge-container.invitation-mode { height: 85vh; }
+            .badge-container.email-mode.invitation-mode { height: 95vh; }
         }
     </style>
 </head>
@@ -422,18 +435,25 @@
                         <input type="password" id="password2" placeholder="再次输入密码">
                     </div>
 
-                    <div class="email-section" id="emailSection">
-                        <div class="form-group">
-                            <label>通讯邮箱</label>
-                            <input type="email" id="email" placeholder="您的电子邮箱">
-                        </div>
+                    <div class="form-group">
+                        <label>通讯邮箱</label>
+                        <input type="email" id="email" placeholder="您的电子邮箱（用于登录）">
+                    </div>
 
+                    <div class="email-section" id="emailSection">
                         <div class="form-group">
                             <label>验证码</label>
                             <div class="code-row">
                                 <input type="text" id="code" placeholder="6位验证码">
                                 <button class="btn-code" id="btnCode" onclick="sendCode()">发送验证码</button>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="invitation-section" id="invitationSection">
+                        <div class="form-group">
+                            <label>邀请码</label>
+                            <input type="text" id="invitationCode" placeholder="请输入邀请码" autocomplete="off">
                         </div>
                     </div>
 
@@ -468,7 +488,8 @@
         const inner = document.getElementById('badgeInner');
         const lanyard = document.getElementById('lanyard');
 
-        let emailRequired = false;
+        let emailVerificationRequired = false;
+        let invitationRequired = false;
         let countdown = 0;
 
         // 检查注册状态
@@ -487,10 +508,17 @@
                     `;
                     return;
                 }
-                if (data.emailRequired) {
-                    emailRequired = true;
+                // 邮箱始终必填，所以表单基础高度已包含邮箱输入
+                // 如果需要邮箱验证码，则显示验证码区域
+                if (data.emailVerificationRequired) {
+                    emailVerificationRequired = true;
                     document.getElementById('emailSection').classList.add('show');
                     document.getElementById('badgeContainer').classList.add('email-mode');
+                }
+                if (data.invitationRequired) {
+                    invitationRequired = true;
+                    document.getElementById('invitationSection').classList.add('show');
+                    document.getElementById('badgeContainer').classList.add('invitation-mode');
                 }
             } catch (e) {
                 console.error(e);
@@ -561,6 +589,7 @@
             const password2 = document.getElementById('password2').value;
             const email = document.getElementById('email')?.value || '';
             const code = document.getElementById('code')?.value || '';
+            const invitationCode = document.getElementById('invitationCode')?.value || '';
             const msg = document.getElementById('msg');
             const btn = document.querySelector('.btn-verify');
 
@@ -584,8 +613,22 @@
                 return;
             }
 
-            if (emailRequired && (!email || !code)) {
-                msg.textContent = '请输入邮箱和验证码';
+            // 邮箱始终必填
+            if (!email) {
+                msg.textContent = '请输入邮箱';
+                msg.classList.add('show');
+                return;
+            }
+
+            // 如果启用邮箱验证，检查验证码
+            if (emailVerificationRequired && !code) {
+                msg.textContent = '请输入验证码';
+                msg.classList.add('show');
+                return;
+            }
+
+            if (invitationRequired && !invitationCode) {
+                msg.textContent = '请输入邀请码';
                 msg.classList.add('show');
                 return;
             }
@@ -597,7 +640,7 @@
                 const res = await fetch('/api/register/verify', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password, name, email, code })
+                    body: JSON.stringify({ username, password, name, email, code, invitationCode })
                 });
                 const data = await res.json();
 
