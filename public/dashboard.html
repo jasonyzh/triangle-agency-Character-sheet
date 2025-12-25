@@ -779,6 +779,24 @@
     <div class="toast" id="toast"></div>
 
     <script>
+        // SSO Token处理 - 如果URL带有sso_token参数，自动登录
+        (function handleSSOLogin() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const ssoToken = urlParams.get('sso_token');
+            const ssoUid = urlParams.get('sso_uid');
+            const ssoRole = urlParams.get('sso_role');
+
+            if (ssoToken && ssoUid) {
+                // 保存SSO登录信息到localStorage
+                localStorage.setItem('ta_token', ssoToken);
+                localStorage.setItem('ta_uid', ssoUid);
+                localStorage.setItem('ta_role', ssoRole || '0');
+
+                // 清除URL参数，避免刷新后重复处理
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        })();
+
         const uid = localStorage.getItem('ta_uid');
         const token = localStorage.getItem('ta_token');
         const userRole = parseInt(localStorage.getItem('ta_role') || '0');

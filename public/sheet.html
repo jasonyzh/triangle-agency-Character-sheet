@@ -487,8 +487,8 @@
     .attr-btn { width: 18px; height: 18px; border: 1px solid #bdc3c7; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0; background: #f8f9fa; color: #555; }
     .attr-btn:hover { background: #e9ecef; border-color: #adb5bd; color: #333; }
     .attr-btn:active { transform: scale(0.95); background: #dee2e6; }
-    .attr-dots-container { flex: 1; display: flex; justify-content: center; }
-    .attr-dots { display: flex; gap: 0; align-items: center; }
+    .attr-dots-container { flex: 1; display: flex; justify-content: center; min-width: 0; }
+    .attr-dots { display: flex; flex-wrap: wrap; gap: 2px 0; align-items: center; justify-content: center; }
     .attr-dots .dot { width: 0; height: 0; cursor: pointer; flex-shrink: 0; transition: all 0.2s; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 14px solid #ddd; margin: 0 2px; }
     .attr-dots .dot.up { border-top: none; border-bottom: 14px solid #ddd; }
     .attr-dots .dot.active { border-top-color: var(--signal-red); }
@@ -2089,7 +2089,7 @@
 <div class="track-stat clickable-stat" onclick="showRecordHistory('probation')"><label>察看期</label><input type="text" id="pRep" placeholder="0" readonly></div>
 </div>
 <div class="track-sec"><h3 class="c-func" style="font-size:12px; margin:5px 0;">职能</h3><div class="track-row"><div class="p-grid"><div class="p-cell f-cell" data-idx="1"></div><div class="p-cell f-cell" data-idx="2"></div><div class="p-cell f-cell" data-idx="3"><span>A3</span></div><div class="p-cell f-cell" data-idx="4"></div><div class="p-cell f-cell" data-idx="5"></div><div class="p-cell f-cell" data-idx="6"><span>D4</span></div><div class="p-cell f-cell" data-idx="7"></div><div class="p-cell f-cell" data-idx="8"></div><div class="p-cell f-cell" data-idx="9"><span>G3</span></div><div class="p-cell f-cell" data-idx="10"></div></div><div class="p-grid"><div class="p-cell f-cell" data-idx="11"></div><div class="p-cell f-cell" data-idx="12"><span>J3</span></div><div class="p-cell f-cell" data-idx="13"></div><div class="p-cell f-cell" data-idx="14"></div><div class="p-cell f-cell" data-idx="15"><span>N3</span></div><div class="p-cell f-cell" data-idx="16"></div><div class="p-cell f-cell" data-idx="17"></div><div class="p-cell f-cell" data-idx="18"><span>Q3</span></div><div class="p-cell f-cell" data-idx="19"></div><div class="p-cell f-cell" data-idx="20"></div></div><div class="p-grid"><div class="p-cell f-cell" data-idx="21"><span>T3</span></div><div class="p-cell f-cell" data-idx="22"></div><div class="p-cell f-cell" data-idx="23"></div><div class="p-cell f-cell" data-idx="24"><span>W8</span></div><div class="p-cell f-cell" data-idx="25"></div><div class="p-cell f-cell" data-idx="26"></div><div class="p-cell f-cell" data-idx="27"><span>Y2</span></div><div class="p-cell f-cell" data-idx="28"></div><div class="p-cell f-cell" data-idx="29"></div><div class="p-cell f-cell" data-idx="30"></div></div></div><div class="track-rule">当你获得任务MVP时，在你的职能记录条上标记1格，且无需从其他记录条上移除一格。</div><div class="track-rule">每当你在职能记录条上标记一格时，将任意一项资质的"资质保证上限"提升1点，最高不超过9点。</div></div>
-<div class="track-sec"><h3 class="c-real" style="font-size:12px; margin:5px 0;">现实</h3><div class="track-row"><div class="p-grid"><div class="p-cell r-cell" data-idx="1"><span>C4</span></div><div class="p-cell r-cell" data-idx="2"></div><div class="p-cell r-cell" data-idx="3"></div><div class="p-cell r-cell" data-idx="4"><span>L11</span></div><div class="p-cell r-cell" data-idx="5"></div><div class="p-cell r-cell" data-idx="6"></div><div class="p-cell r-cell" data-idx="7"></div><div class="p-cell r-cell" data-idx="8"><span>E2</span></div><div class="p-cell r-cell" data-idx="9"></div><div class="p-cell r-cell" data-idx="10"><span>O4</span></div></div><div class="p-grid"><div class="p-cell r-cell" data-idx="11"></div><div class="p-cell r-cell" data-idx="12"><span>J3</span></div><div class="p-cell r-cell" data-idx="13"></div><div class="p-cell r-cell" data-idx="14"><span>T6</span></div><div class="p-cell r-cell" data-idx="15"></div><div class="p-cell r-cell" data-idx="16"><span>V2</span></div><div class="p-cell r-cell" data-idx="17"></div><div class="p-cell r-cell" data-idx="18"></div><div class="p-cell r-cell" data-idx="19"></div><div class="p-cell r-cell" data-idx="20"><span>X3</span></div></div><div class="p-grid"><div class="p-cell r-cell" data-idx="21"></div><div class="p-cell r-cell" data-idx="22"><span>H5</span></div><div class="p-cell r-cell" data-idx="23"></div><div class="p-cell r-cell" data-idx="24"></div><div class="p-cell r-cell" data-idx="25"></div><div class="p-cell r-cell" data-idx="26"></div><div class="p-cell r-cell" data-idx="27"><span>E3</span></div><div class="p-cell r-cell" data-idx="28"></div><div class="p-cell r-cell" data-idx="29"></div><div class="p-cell r-cell" data-idx="30"></div></div></div><div class="track-rule">当你既未获得任务MVP也未进入察看期时，你可以将你与任意一段关系的连结提升1点。</div><div class="track-rule">每当你在现实记录条上标记一格时，将你与任意一段"关系"的"连结"提升1点，然后对关系网内的每段关系重复此操作。</div></div>
+<div class="track-sec"><h3 class="c-real" style="font-size:12px; margin:5px 0;">现实</h3><div class="track-row"><div class="p-grid"><div class="p-cell r-cell" data-idx="1"><span>C4</span></div><div class="p-cell r-cell" data-idx="2"></div><div class="p-cell r-cell" data-idx="3"></div><div class="p-cell r-cell" data-idx="4"><span>L11</span></div><div class="p-cell r-cell" data-idx="5"></div><div class="p-cell r-cell" data-idx="6"></div><div class="p-cell r-cell" data-idx="7"></div><div class="p-cell r-cell" data-idx="8"><span>E2</span></div><div class="p-cell r-cell" data-idx="9"></div><div class="p-cell r-cell" data-idx="10"><span>O4</span></div></div><div class="p-grid"><div class="p-cell r-cell" data-idx="11"></div><div class="p-cell r-cell" data-idx="12"></div><div class="p-cell r-cell" data-idx="13"></div><div class="p-cell r-cell" data-idx="14"><span>T6</span></div><div class="p-cell r-cell" data-idx="15"></div><div class="p-cell r-cell" data-idx="16"><span>V2</span></div><div class="p-cell r-cell" data-idx="17"></div><div class="p-cell r-cell" data-idx="18"></div><div class="p-cell r-cell" data-idx="19"></div><div class="p-cell r-cell" data-idx="20"><span>X3</span></div></div><div class="p-grid"><div class="p-cell r-cell" data-idx="21"></div><div class="p-cell r-cell" data-idx="22"><span>H5</span></div><div class="p-cell r-cell" data-idx="23"></div><div class="p-cell r-cell" data-idx="24"></div><div class="p-cell r-cell" data-idx="25"></div><div class="p-cell r-cell" data-idx="26"><span>E3</span></div><div class="p-cell r-cell" data-idx="27"></div><div class="p-cell r-cell" data-idx="28"></div><div class="p-cell r-cell" data-idx="29"></div><div class="p-cell r-cell" data-idx="30"></div></div></div><div class="track-rule">当你既未获得任务MVP也未进入察看期时，你可以将你与任意一段关系的连结提升1点。</div><div class="track-rule">每当你在现实记录条上标记一格时，将你与任意一段"关系"的"连结"提升1点，然后对关系网内的每段关系重复此操作。</div></div>
 <div class="track-sec"><h3 class="c-anom" style="font-size:12px; margin:5px 0;">异常</h3><div class="track-row"><div class="p-grid"><div class="p-cell a-cell" data-idx="1"><span>H4</span></div><div class="p-cell a-cell" data-idx="2"><span>H3</span></div><div class="p-cell a-cell" data-idx="3"></div><div class="p-cell a-cell" data-idx="4"></div><div class="p-cell a-cell" data-idx="5"><span>U2</span></div><div class="p-cell a-cell" data-idx="6"></div><div class="p-cell a-cell" data-idx="7"><span>X2</span></div><div class="p-cell a-cell" data-idx="8"></div><div class="p-cell a-cell" data-idx="9"></div><div class="p-cell a-cell" data-idx="10"></div></div><div class="p-grid"><div class="p-cell a-cell" data-idx="11"><span>N1</span></div><div class="p-cell a-cell" data-idx="12"></div><div class="p-cell a-cell" data-idx="13"><span>Q2</span></div><div class="p-cell a-cell" data-idx="14"></div><div class="p-cell a-cell" data-idx="15"></div><div class="p-cell a-cell" data-idx="16"></div><div class="p-cell a-cell" data-idx="17"><span>L10</span></div><div class="p-cell a-cell" data-idx="18"></div><div class="p-cell a-cell" data-idx="19"><span>G8</span></div><div class="p-cell a-cell" data-idx="20"></div></div><div class="p-grid"><div class="p-cell a-cell" data-idx="21"></div><div class="p-cell a-cell" data-idx="22"></div><div class="p-cell a-cell" data-idx="23"><span>A7</span></div><div class="p-cell a-cell" data-idx="24"></div><div class="p-cell a-cell" data-idx="25"></div><div class="p-cell a-cell" data-idx="26"></div><div class="p-cell a-cell" data-idx="27"></div><div class="p-cell a-cell" data-idx="28"></div><div class="p-cell a-cell" data-idx="29"></div><div class="p-cell a-cell" data-idx="30"></div></div></div><div class="track-rule">当你进入察看期时，在你的异常记录条上标记1格，且无需从其他记录条上移除一格。</div><div class="track-rule">每当你在异常记录条上标记一格时，选择一项：<br>➤练习：在任意一项异常能力上标记"熟练"。 <br>➤广为人知：从一项异常能力中移除"熟练"标记，并向你的团队提出该能力的问题。在获得最多票数的答案轨道上做标记，然后获得所有已解锁的能力。</div></div>
 </div>
 <div class="panel"><h2><i class="fas fa-file-contract"></i> 欢迎你，特工！</h2><div style="margin-bottom:12px;"><label>1. 你是如何与异常接触的？</label><div class="rich-editor" id="q1" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>2. 公司是如何找到你的？</label><div class="rich-editor" id="q2" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>3. 你的期望年薪是多少？</label><div class="rich-editor" id="q3" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>4. 你的外貌特征是什么？</label><div class="rich-editor" id="q4" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>5. 你的异常能力是否有独特的视觉表现？</label><div class="rich-editor" id="q5" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>6. 你喜欢什么样的咖啡？</label><div class="rich-editor" id="q6" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>7. 在你的人际关系中，谁是你的主要联络人，为什么？</label><div class="rich-editor" id="q7" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>8. 在协作工作环境里，你能为团队带来什么？</label><div class="rich-editor" id="q8" contenteditable="true"></div></div></div>
@@ -4899,6 +4899,84 @@ function fillReal(div, d) {
     });
 }
 
+// 获取某个轨道的边界信息
+function getTrackBoundary(trackClass) {
+    const cells = Array.from(document.querySelectorAll(`.p-cell.${trackClass}`));
+    cells.sort((a, b) => parseInt(a.dataset.idx) - parseInt(b.dataset.idx));
+
+    // 找到最后一个active的格子的索引（用于向前填充）
+    let lastActiveIdx = 0;
+    // 从末尾往前找最后一个空白格子的索引
+    let lastEmptyIdx = 0;
+    // 从开头往后找第一个ignored格子的索引
+    let firstIgnoredIdx = 0;
+
+    for(const cell of cells) {
+        const idx = parseInt(cell.dataset.idx);
+        if(cell.classList.contains('active')) {
+            lastActiveIdx = idx;
+        }
+        // 找第一个ignored
+        if(!firstIgnoredIdx && cell.classList.contains('ignored')) {
+            firstIgnoredIdx = idx;
+        }
+    }
+
+    // 从末尾往前找最后一个空白格
+    for(let i = cells.length - 1; i >= 0; i--) {
+        const cell = cells[i];
+        if(!cell.classList.contains('active') && !cell.classList.contains('ignored')) {
+            lastEmptyIdx = parseInt(cell.dataset.idx);
+            break;
+        }
+    }
+
+    return { lastActiveIdx, lastEmptyIdx, firstIgnoredIdx, cells };
+}
+
+// 检查点击类型：'front'=向前填充, 'back'=向后取消, null=不允许点击
+function getClickType(c, trackClass) {
+    const { lastActiveIdx, lastEmptyIdx, firstIgnoredIdx } = getTrackBoundary(trackClass);
+    const idx = parseInt(c.dataset.idx);
+    const isActive = c.classList.contains('active');
+    const isIgnored = c.classList.contains('ignored');
+    const isEmpty = !isActive && !isIgnored;
+
+    console.log('getClickType:', {idx, lastActiveIdx, lastEmptyIdx, firstIgnoredIdx, isEmpty, isActive, isIgnored});
+
+    // 向前填充：点击紧跟在最后一个active格子后面的空白格子
+    // 当轨道完全空白时 lastActiveIdx=0，允许点击 idx=1
+    if(isEmpty && idx === lastActiveIdx + 1) {
+        console.log('返回 front (条件1)');
+        return 'front';
+    }
+    // 特殊情况：轨道完全空白时，确保第一个格子可以被点击
+    if(isEmpty && lastActiveIdx === 0 && idx === 1) {
+        console.log('返回 front (条件2)');
+        return 'front';
+    }
+
+    // 向后取消：
+    // 1. 点击最后一个active格子 → 变空白
+    // 2. 点击最后一个空白格（从末尾往前找）→ 变灰
+    // 3. 点击第一个灰色格（从开头往后找）→ 变空白
+    if(isActive && idx === lastActiveIdx) {
+        console.log('返回 back (active)');
+        return 'back';
+    }
+    if(isEmpty && idx === lastEmptyIdx) {
+        console.log('返回 back (empty)');
+        return 'back';
+    }
+    if(isIgnored && idx === firstIgnoredIdx) {
+        console.log('返回 back (ignored)');
+        return 'back';
+    }
+
+    console.log('返回 null');
+    return null;
+}
+
 document.querySelectorAll('.p-cell').forEach(c=>{
     c.addEventListener('click',()=>{
         if(isReadOnly)return;
@@ -4906,8 +4984,9 @@ document.querySelectorAll('.p-cell').forEach(c=>{
         const isRCell = c.classList.contains('r-cell');
         const isACell = c.classList.contains('a-cell');
         const hasManager = missionInfo.managers && missionInfo.managers.length > 0;
+        const trackClass = isFCell ? 'f-cell' : (isRCell ? 'r-cell' : 'a-cell');
 
-        // 自定义编辑模式：仅切换状态，不触发自动嘉奖和轨道变灰
+        // 自定义编辑模式（扳手模式）：可以任意点击，循环切换状态
         if(isTrackCustomMode) {
             if(c.classList.contains('active')){
                 c.classList.remove('active');
@@ -4921,27 +5000,37 @@ document.querySelectorAll('.p-cell').forEach(c=>{
             return;
         }
 
-        if(c.classList.contains('active')){
-            c.classList.remove('active');
-            c.classList.add('ignored');
-            // 职能进度从红色变灰色时，减少3嘉奖
-            if(isFCell && hasManager){
-                updateFuncProgressReward(c.dataset.idx, -3);
-            }
-        }else if(c.classList.contains('ignored')){
-            c.classList.remove('ignored');
-        }else{
+        // 正常模式：检查点击类型
+        const clickType = getClickType(c, trackClass);
+        if(!clickType) return; // 不允许点击
+
+        if(clickType === 'front') {
+            // 向前填充：空白 → 填色
             c.classList.add('active');
-            // 职能进度变红色时，增加3嘉奖
             if(isFCell && hasManager){
                 updateFuncProgressReward(c.dataset.idx, 3);
             }
-            // 有经理时，点击一个轨道使其他两个轨道的最后一格变灰
             if(hasManager) {
                 ignoreLastCellOfOtherTracks(isFCell, isRCell, isACell);
             }
+        } else {
+            // 向后取消：
+            // active → 空白
+            // 空白 ↔ 灰色 循环（不会变填色）
+            if(c.classList.contains('active')){
+                c.classList.remove('active');
+                // 职能进度取消填色时，减少嘉奖
+                if(isFCell && hasManager){
+                    updateFuncProgressReward(c.dataset.idx, -3);
+                }
+            }else if(c.classList.contains('ignored')){
+                c.classList.remove('ignored');
+            }else{
+                // 空白 → 灰色
+                c.classList.add('ignored');
+            }
         }
-        // 职能进度改变时立即保存，其他进度延迟保存
+
         if(isFCell && hasManager) {
             saveImmediately();
         } else {
@@ -4952,7 +5041,7 @@ document.querySelectorAll('.p-cell').forEach(c=>{
         e.preventDefault();
         if(isReadOnly)return;
 
-        // 自定义编辑模式：仅设为灰色，不触发嘉奖扣减
+        // 自定义编辑模式（扳手模式）：可以任意设为灰色
         if(isTrackCustomMode) {
             c.classList.remove('active');
             c.classList.add('ignored');
@@ -4961,16 +5050,22 @@ document.querySelectorAll('.p-cell').forEach(c=>{
         }
 
         const isFCell = c.classList.contains('f-cell');
+        const isRCell = c.classList.contains('r-cell');
+        const isACell = c.classList.contains('a-cell');
+        const trackClass = isFCell ? 'f-cell' : (isRCell ? 'r-cell' : 'a-cell');
         const hasManager = missionInfo.managers && missionInfo.managers.length > 0;
-        const wasActive = c.classList.contains('active');
 
-        // 如果从红色变灰色，减少嘉奖
+        // 正常模式：右键只对最后一个已填格子生效，设为灰色
+        const clickType = getClickType(c, trackClass);
+        if(clickType !== 'back') return;
+
+        const wasActive = c.classList.contains('active');
         if(wasActive && isFCell && hasManager){
             updateFuncProgressReward(c.dataset.idx, -3);
         }
         c.classList.remove('active');
         c.classList.add('ignored');
-        // 职能进度改变时立即保存，其他进度延迟保存
+
         if(wasActive && isFCell && hasManager) {
             saveImmediately();
         } else {

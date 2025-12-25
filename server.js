@@ -14,6 +14,15 @@ const PORT = 3333;
 const JWT_SECRET = process.env.JWT_SECRET || 'triangle-agency-secret-key-change-in-production';
 const BCRYPT_ROUNDS = 10;
 
+// SSO单点登录配置
+const SSO_CONFIG = {
+    enabled: process.env.SSO_ENABLED === 'true' || true,  // 是否启用SSO
+    secret: process.env.SSO_SECRET || 'your-sso-shared-secret-change-this',  // 与论坛共享的密钥
+    tokenExpiry: 5 * 60 * 1000,  // Token有效期（毫秒），默认5分钟
+    autoCreateUser: true,  // 是否自动创建不存在的用户
+    defaultRole: 0,  // 新用户默认角色（0=玩家）
+};
+
 
 // 角色常量
 const ROLE = {
@@ -59,8 +68,14 @@ db.serialize(() => {
         role INTEGER DEFAULT 0,
         email TEXT,
         email_verified INTEGER DEFAULT 0,
-        created_at INTEGER
+        created_at INTEGER,
+        forum_id TEXT
     )`);
+
+    // 为已存在的表添加forum_id列（如果不存在）
+    db.run(`ALTER TABLE users ADD COLUMN forum_id TEXT`, (err) => {
+        // 忽略"column already exists"错误
+    });
 
     // 角色表
     db.run(`CREATE TABLE IF NOT EXISTS characters (
@@ -1095,6 +1110,128 @@ app.post('/api/login', async (req, res) => {
         console.error('登录失败:', e);
         res.status(500).json({ success: false, message: '服务器错误' });
     }
+});
+
+// ==========================================
+// SSO 单点登录接口
+// ==========================================
+
+// SSO登录 - 论坛跳转过来时调用
+app.get('/auth/sso', async (req, res) => {
+    if (!SSO_CONFIG.enabled) {
+        return res.status(403).send('SSO未启用');
+    }
+
+    const { token } = req.query;
+    if (!token) {
+        return res.status(400).send('缺少token参数');
+    }
+
+    try {
+        // 验证论坛传来的token
+        const payload = jwt.verify(token, SSO_CONFIG.secret);
+
+        // 检查时间戳（防止token过期重放）
+        if (Date.now() - payload.timestamp > SSO_CONFIG.tokenExpiry) {
+            return res.status(400).send('Token已过期');
+        }
+
+        // 必须包含forum_user_id
+        if (!payload.forum_user_id) {
+            return res.status(400).send('Token缺少forum_user_id');
+        }
+
+        // 查找已关联的用户
+        let user = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM users WHERE forum_id = ?', [payload.forum_user_id], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        // 如果没有关联用户，尝试通过用户名或邮箱查找
+        if (!user && payload.username) {
+            user = await new Promise((resolve, reject) => {
+                db.get('SELECT * FROM users WHERE username = ? OR email = ?',
+                    [payload.username, payload.email || ''], (err, row) => {
+                    if (err) reject(err);
+                    else resolve(row);
+                });
+            });
+
+            // 找到了现有用户，关联forum_id
+            if (user) {
+                await new Promise((resolve, reject) => {
+                    db.run('UPDATE users SET forum_id = ? WHERE id = ?', [payload.forum_user_id, user.id], (err) => {
+                        if (err) reject(err);
+                        else resolve();
+                    });
+                });
+            }
+        }
+
+        // 如果还是没有用户，自动创建
+        if (!user && SSO_CONFIG.autoCreateUser) {
+            const username = payload.username || `forum_${payload.forum_user_id}`;
+            const displayName = payload.display_name || payload.username || '论坛用户';
+            const email = payload.email || '';
+
+            // 生成随机密码（用户通过SSO登录，不需要密码）
+            const randomPassword = require('crypto').randomBytes(16).toString('hex');
+            const passwordHash = await bcrypt.hash(randomPassword, BCRYPT_ROUNDS);
+
+            const result = await new Promise((resolve, reject) => {
+                db.run(`INSERT INTO users (username, password_hash, name, email, role, forum_id, created_at)
+                        VALUES (?, ?, ?, ?, ?, ?, datetime('now'))`,
+                    [username, passwordHash, displayName, email, SSO_CONFIG.defaultRole, payload.forum_user_id],
+                    function(err) {
+                        if (err) reject(err);
+                        else resolve({ id: this.lastID });
+                    });
+            });
+
+            user = await new Promise((resolve, reject) => {
+                db.get('SELECT * FROM users WHERE id = ?', [result.id], (err, row) => {
+                    if (err) reject(err);
+                    else resolve(row);
+                });
+            });
+        }
+
+        if (!user) {
+            return res.status(404).send('用户不存在且未启用自动创建');
+        }
+
+        // 生成TAOS的JWT token
+        const role = user.role !== undefined ? user.role : ROLE.PLAYER;
+        const taosToken = jwt.sign(
+            { userId: user.id, username: user.username, role: role },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
+        // 跳转到前端，带上token
+        const redirectUrl = payload.redirect || '/dashboard.html';
+        res.redirect(`${redirectUrl}?sso_token=${taosToken}&sso_uid=${user.id}&sso_role=${role}`);
+
+    } catch (e) {
+        console.error('SSO登录失败:', e);
+        if (e.name === 'JsonWebTokenError') {
+            return res.status(400).send('无效的Token签名');
+        }
+        if (e.name === 'TokenExpiredError') {
+            return res.status(400).send('Token已过期');
+        }
+        res.status(500).send('SSO登录失败');
+    }
+});
+
+// SSO状态检查接口（供论坛检测是否已配置）
+app.get('/api/sso/status', (req, res) => {
+    res.json({
+        enabled: SSO_CONFIG.enabled,
+        autoCreateUser: SSO_CONFIG.autoCreateUser
+    });
 });
 
 // ==========================================
@@ -2691,11 +2828,124 @@ app.get('/api/documents/read/:filename', authenticateToken, (req, res) => {
         const filePath = path.join(HIGH_SECURITY_DIR, filename);
         if (!fs.existsSync(filePath)) return res.status(404).json({ error: '文件不存在' });
 
-        fs.readFile(filePath, 'utf8', (err, data) => {
-            if (err) return res.status(500).json({ error: '读取失败' });
-            res.json({ content: data });
-        });
+        // 读取文档元数据（如果存在）
+        // 元数据文件格式: { "文件名.md": { "content_type": "markdown|image|images", "images": ["url1", "url2"] } }
+        const metaPath = path.join(HIGH_SECURITY_DIR, 'documents_meta.json');
+        let docMeta = { content_type: 'markdown' }; // 默认markdown类型
+        if (fs.existsSync(metaPath)) {
+            try {
+                const metaData = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+                if (metaData[filename]) {
+                    docMeta = { ...docMeta, ...metaData[filename] };
+                }
+            } catch (e) {
+                console.error('读取文档元数据失败:', e);
+            }
+        }
+
+        // 根据类型返回不同内容
+        if (docMeta.content_type === 'image' || docMeta.content_type === 'images') {
+            // 图片类型：直接返回元数据中的图片URL
+            res.json({
+                content_type: docMeta.content_type,
+                images: docMeta.images || [],
+                title: docMeta.title || filename.replace('.md', '')
+            });
+        } else {
+            // markdown类型：读取文件内容
+            fs.readFile(filePath, 'utf8', (err, data) => {
+                if (err) return res.status(500).json({ error: '读取失败' });
+                res.json({
+                    content_type: 'markdown',
+                    content: data
+                });
+            });
+        }
     });
+});
+
+// 2.5 (管理员) 获取文档元数据列表
+app.get('/api/admin/documents/meta', authenticateToken, requireRole(ROLE.SUPER_ADMIN), (req, res) => {
+    // 确保目录存在
+    if (!fs.existsSync(HIGH_SECURITY_DIR)) {
+        fs.mkdirSync(HIGH_SECURITY_DIR, { recursive: true });
+    }
+
+    const metaPath = path.join(HIGH_SECURITY_DIR, 'documents_meta.json');
+
+    fs.readdir(HIGH_SECURITY_DIR, (err, files) => {
+        if (err) {
+            console.error('读取高墙文件目录失败:', err);
+            return res.json([]); // 返回空数组而不是错误
+        }
+
+        const mdFiles = files.filter(f => f.endsWith('.md'));
+
+        // 读取元数据文件
+        let metaData = {};
+        if (fs.existsSync(metaPath)) {
+            try {
+                metaData = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+            } catch (e) {
+                console.error('读取文档元数据失败:', e);
+            }
+        }
+
+        // 组合返回每个文件的配置
+        const result = mdFiles.map(filename => ({
+            filename,
+            content_type: metaData[filename]?.content_type || 'markdown',
+            title: metaData[filename]?.title || '',
+            images: metaData[filename]?.images || []
+        }));
+
+        res.json(result);
+    });
+});
+
+// 2.6 (管理员) 更新单个文档的元数据
+app.put('/api/admin/documents/meta/:filename', authenticateToken, requireRole(ROLE.SUPER_ADMIN), (req, res) => {
+    const filename = req.params.filename;
+    const { content_type, title, images } = req.body;
+
+    // 安全检查
+    if (filename.includes('..') || filename.includes('/') || !filename.endsWith('.md')) {
+        return res.status(400).json({ error: '非法的文件名' });
+    }
+
+    const metaPath = path.join(HIGH_SECURITY_DIR, 'documents_meta.json');
+
+    // 读取现有元数据
+    let metaData = {};
+    if (fs.existsSync(metaPath)) {
+        try {
+            metaData = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+        } catch (e) {
+            console.error('读取文档元数据失败:', e);
+        }
+    }
+
+    // 更新或删除配置
+    if (content_type === 'markdown') {
+        // markdown类型删除配置（使用默认）
+        delete metaData[filename];
+    } else {
+        // 图片类型保存配置
+        metaData[filename] = {
+            content_type,
+            title: title || '',
+            images: images || []
+        };
+    }
+
+    // 保存元数据文件
+    try {
+        fs.writeFileSync(metaPath, JSON.stringify(metaData, null, 2), 'utf8');
+        res.json({ success: true });
+    } catch (e) {
+        console.error('保存文档元数据失败:', e);
+        res.status(500).json({ error: '保存失败' });
+    }
 });
 
 // 3. (管理员) 获取某用户的文件权限列表

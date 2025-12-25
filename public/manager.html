@@ -3921,121 +3921,143 @@
             opacity: 1;
         }
 
-        /* 移动端抽屉样式 */
+        /* 移动端Tab样式 */
         @media (max-width: 800px) {
-            .report-review-body {
-                display: flex;
-                flex-direction: column;
-                gap: 0;
-                padding: 0;
-            }
             .report-review-modal {
                 max-height: 95vh;
                 width: 95vw;
+                display: flex;
+                flex-direction: column;
             }
-            /* 抽屉区块 */
-            .review-drawer {
+
+            /* Tab导航栏 */
+            .review-tabs {
+                display: flex;
                 border-bottom: 1px solid #e0e0e0;
+                background: #f8f9fa;
+                flex-shrink: 0;
             }
-            .review-drawer:last-child {
-                border-bottom: none;
-            }
-            /* 抽屉标题 */
-            .drawer-header {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 14px 16px;
-                background: #f0f0f0;
+            .review-tab {
+                flex: 1;
+                padding: 12px 8px;
+                text-align: center;
                 cursor: pointer;
-                transition: background 0.2s;
-            }
-            .drawer-header:hover {
-                background: #e8e8e8;
-            }
-            .drawer-header h4 {
-                margin: 0;
-                font-size: 14px;
-                color: #2c3e50;
+                border: none;
+                background: transparent;
+                color: #666;
+                font-size: 12px;
+                font-weight: 500;
+                transition: all 0.2s;
                 display: flex;
+                flex-direction: column;
                 align-items: center;
-                gap: 8px;
+                gap: 4px;
+                border-bottom: 2px solid transparent;
             }
-            .drawer-header h4 i {
+            .review-tab i {
+                font-size: 16px;
+            }
+            .review-tab:hover {
+                background: #eef2f7;
+                color: #333;
+            }
+            .review-tab.active {
                 color: var(--manager-blue);
-            }
-            .drawer-toggle {
-                color: #888;
-                transition: transform 0.3s;
-            }
-            .review-drawer.open .drawer-toggle {
-                transform: rotate(180deg);
-            }
-            /* 抽屉内容 */
-            .drawer-content {
-                max-height: 0;
-                overflow: hidden;
-                transition: max-height 0.3s ease-out, overflow 0s 0.3s;
+                border-bottom-color: var(--manager-blue);
                 background: #fff;
             }
-            /* 报告内容抽屉 - drawer-content 滚动 */
-            #drawer-report.open .drawer-content {
-                max-height: 50vh;
+
+            /* Tab内容区 */
+            .report-review-body {
+                display: flex;
+                flex-direction: column;
+                flex: 1;
+                overflow: hidden;
+                min-height: 0;
+            }
+
+            /* 抽屉改为Tab面板 - 只显示当前激活的Tab */
+            .review-drawer {
+                display: none !important;
+                flex: 1;
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
             }
-            /* 评审和响应抽屉 - 内部区域滚动 */
-            #drawer-review.open .drawer-content,
-            #drawer-responses.open .drawer-content {
-                max-height: 2000px;
-                overflow: visible;
+            .review-drawer.tab-active {
+                display: flex !important;
+                flex-direction: column;
             }
-            .drawer-content-inner {
-                padding: 15px;
-            }
-            /* 隐藏桌面端的原始标题 */
-            .report-content-section > h4,
-            .report-review-section > h4:first-child {
+            /* 移动端隐藏抽屉标题（用Tab代替） */
+            .drawer-header {
                 display: none;
             }
-            .report-content-section,
+
+            /* Tab面板内容区样式 */
+            .drawer-content {
+                flex: 1;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                background: #fff;
+            }
+            .drawer-content-inner {
+                padding: 16px;
+            }
+
+            /* 报告内容区 */
+            .report-content-section {
+                padding: 0;
+            }
+            .report-content-section > h4 {
+                display: none;
+            }
+
+            /* 评审操作区 */
             .report-review-section {
                 border: none;
                 padding: 0;
-                max-height: none;
-                overflow: visible !important;
             }
-            /* 修复小屏下 h4 图标 */
+            .report-review-section > h4:first-child {
+                display: none;
+            }
             .report-review-section h4 {
-                font-size: 12px;
+                font-size: 13px;
                 padding: 10px 0;
                 margin: 15px 0 10px 0;
-                overflow: hidden;
             }
             .report-review-section h4 i {
                 flex-shrink: 0;
-                font-size: 12px;
             }
-            /* 响应状态区域 - 内部滚动 */
+
+            /* 响应状态区 */
             .agent-responses-section {
-                margin: 0 !important;
-                padding: 10px !important;
-                background: none !important;
-                border: none !important;
-                border-radius: 0 !important;
-                max-height: 200px !important;
-                overflow-y: auto !important;
-                -webkit-overflow-scrolling: touch;
+                margin: 0;
+                padding: 0;
+                background: none;
+                border: none;
             }
             .agent-responses-section > h4 {
                 display: none;
             }
+
+            /* 隐藏桌面端的Tab导航 */
+            .review-tabs {
+                display: flex;
+            }
         }
 
-        /* 桌面端隐藏抽屉标题 */
+        /* 桌面端样式 */
         @media (min-width: 801px) {
+            /* 隐藏Tab导航和抽屉标题 */
+            .review-tabs {
+                display: none !important;
+            }
             .drawer-header {
                 display: none;
+            }
+            /* 桌面端所有抽屉都显示（三列布局） */
+            .review-drawer {
+                display: flex !important;
+                flex-direction: column;
             }
             .drawer-content {
                 max-height: none !important;
@@ -4835,9 +4857,25 @@
             <button class="btn-close-modal" onclick="closeReportReview()">&times;</button>
         </div>
 
+        <!-- 移动端Tab导航 -->
+        <div class="review-tabs">
+            <button class="review-tab active" data-tab="drawer-report" onclick="switchReviewTab('drawer-report')">
+                <i class="fas fa-file-alt"></i>
+                <span>报告</span>
+            </button>
+            <button class="review-tab" data-tab="drawer-review" onclick="switchReviewTab('drawer-review')">
+                <i class="fas fa-star"></i>
+                <span>评审</span>
+            </button>
+            <button class="review-tab" data-tab="drawer-responses" onclick="switchReviewTab('drawer-responses')" id="tabResponses" style="display:none;">
+                <i class="fas fa-users"></i>
+                <span>响应</span>
+            </button>
+        </div>
+
         <div class="report-review-body">
             <!-- 抽屉1：报告内容 -->
-            <div class="review-drawer open" id="drawer-report">
+            <div class="review-drawer open tab-active" id="drawer-report">
                 <div class="drawer-header" onclick="toggleDrawer('drawer-report')">
                     <h4><i class="fas fa-file-alt"></i> 报告内容</h4>
                     <i class="fas fa-chevron-down drawer-toggle"></i>
@@ -7076,6 +7114,9 @@
         // 显示覆盖层
         document.getElementById('missionDetailOverlay').classList.add('active');
         document.body.style.overflow = 'hidden';
+
+        // 更新URL hash以支持刷新后恢复
+        history.replaceState(null, '', `#mission/${missionId}`);
     }
 
     function closeMissionDetail() {
@@ -7083,6 +7124,9 @@
         document.body.style.overflow = '';
         currentMissionDetailId = null;
         currentMissionDetailData = null;
+
+        // 清除URL hash
+        history.replaceState(null, '', window.location.pathname + window.location.search);
     }
 
     function renderMissionDetailMembers(members) {
@@ -7411,6 +7455,14 @@
         document.getElementById('drawer-report').classList.add('open');
         document.getElementById('drawer-review').classList.remove('open');
         document.getElementById('drawer-responses').classList.remove('open');
+
+        // 重置Tab状态（移动端默认选中第一个Tab）
+        document.querySelectorAll('.review-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.tab === 'drawer-report');
+        });
+        document.querySelectorAll('.review-drawer').forEach(drawer => {
+            drawer.classList.toggle('tab-active', drawer.id === 'drawer-report');
+        });
 
         document.getElementById('reportReviewOverlay').classList.add('show');
     }
@@ -7800,7 +7852,19 @@
         }
     }
 
-    // 抽屉切换函数
+    // 移动端Tab切换函数
+    function switchReviewTab(tabId) {
+        // 切换Tab按钮状态
+        document.querySelectorAll('.review-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.tab === tabId);
+        });
+        // 切换面板显示
+        document.querySelectorAll('.review-drawer').forEach(drawer => {
+            drawer.classList.toggle('tab-active', drawer.id === tabId);
+        });
+    }
+
+    // 抽屉切换函数（桌面端仍可使用）
     // 跟踪打开的抽屉顺序（小屏最多2个）
     let openDrawers = [];
 
@@ -7836,6 +7900,7 @@
         const btnFinalize = document.getElementById('btnFinalize');
         const btnAlreadySent = document.getElementById('btnAlreadySent');
         const responsesDrawer = document.getElementById('drawer-responses');
+        const tabResponses = document.getElementById('tabResponses');
         const statusBadge = document.getElementById('modalReportStatusBadge');
 
         // 隐藏所有按钮和区域
@@ -7843,6 +7908,7 @@
         btnFinalize.style.display = 'none';
         btnAlreadySent.style.display = 'none';
         responsesDrawer.style.display = 'none';
+        if (tabResponses) tabResponses.style.display = 'none';
 
         // 状态徽章
         const statusLabels = {
@@ -7876,13 +7942,15 @@
                 }
                 break;
             case 'initial':
-                // 已初评，等待特工确认/申诉：显示特工响应状态抽屉
+                // 已初评，等待特工确认/申诉：显示特工响应状态抽屉和Tab
                 responsesDrawer.style.display = 'block';
+                if (tabResponses) tabResponses.style.display = 'flex';
                 loadAgentResponses();
                 break;
             case 'appealing':
                 // 申诉中：显示特工响应状态抽屉和最终结算按钮
                 responsesDrawer.style.display = 'block';
+                if (tabResponses) tabResponses.style.display = 'flex';
                 responsesDrawer.classList.add('open'); // 申诉时默认展开
                 loadAgentResponses();
                 btnFinalize.style.display = 'inline-flex';
@@ -8718,11 +8786,68 @@
         }
     }
     
-    loadMissions();
+    // 页面初始化加载
+    loadMissions().then(() => {
+        // 检查URL hash，恢复之前的界面状态
+        restoreFromHash();
+    });
     loadInbox();
     loadMyBranch();
     checkUrlAuth();
-    
+
+    // 从URL hash恢复界面状态
+    async function restoreFromHash() {
+        const hash = window.location.hash;
+        if (!hash) return;
+
+        // 匹配 #mission/任务ID
+        const missionMatch = hash.match(/^#mission\/(.+)$/);
+        if (missionMatch) {
+            const missionId = missionMatch[1];
+            // 先在当前列表中查找
+            let mission = missionsList.find(m => m.id === missionId);
+            if (mission) {
+                openMissionDetail(missionId);
+            } else {
+                // 任务可能在另一个标签页（进行中/已归档），尝试切换并查找
+                const otherTab = currentMissionTab === 'active' ? 'archived' : 'active';
+                const prevTab = currentMissionTab;
+                currentMissionTab = otherTab;
+                await loadMissions();
+                mission = missionsList.find(m => m.id === missionId);
+                if (mission) {
+                    // 更新标签页UI
+                    document.querySelectorAll('.mission-tabs .mission-tab').forEach(tab => {
+                        tab.classList.toggle('active', tab.dataset.tab === otherTab);
+                    });
+                    openMissionDetail(missionId);
+                } else {
+                    // 任务不存在，恢复原标签页
+                    currentMissionTab = prevTab;
+                    await loadMissions();
+                    // 清除无效的hash
+                    history.replaceState(null, '', window.location.pathname + window.location.search);
+                }
+            }
+        }
+    }
+
+    // 监听浏览器前进/后退
+    window.addEventListener('popstate', () => {
+        const hash = window.location.hash;
+        if (!hash || !hash.startsWith('#mission/')) {
+            // 没有hash或不是任务详情，关闭详情页
+            if (currentMissionDetailId) {
+                document.getElementById('missionDetailOverlay').classList.remove('active');
+                document.body.style.overflow = '';
+                currentMissionDetailId = null;
+                currentMissionDetailData = null;
+            }
+        } else {
+            restoreFromHash();
+        }
+    });
+
     // 通用：点击遮罩关闭弹窗
     document.querySelectorAll('.modal-overlay').forEach(modal => {
         modal.addEventListener('click', function(e) {

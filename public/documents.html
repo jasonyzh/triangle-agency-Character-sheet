@@ -117,6 +117,70 @@
         .markdown-body code { background: #222; padding: 2px 5px; font-family: monospace; }
         .markdown-body a { color: var(--accent); }
 
+        /* 文档图片样式 */
+        .doc-image-container {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+        .doc-images-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            padding: 20px;
+            align-items: center;
+        }
+        .doc-image-item {
+            text-align: center;
+        }
+        .doc-image {
+            max-width: 100%;
+            border-radius: 4px;
+            cursor: zoom-in;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+        .doc-image:hover {
+            transform: scale(1.02);
+        }
+        .doc-image-page {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        /* 图片查看器 */
+        .image-viewer-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            cursor: zoom-out;
+        }
+        .image-viewer-overlay.show {
+            display: flex;
+        }
+        .image-viewer-overlay img {
+            max-width: 95%;
+            max-height: 95%;
+            object-fit: contain;
+        }
+        .image-viewer-close {
+            position: absolute;
+            top: 20px; right: 20px;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+        .image-viewer-close:hover {
+            opacity: 1;
+        }
+
         /* 错误提示样式 */
         .error-box {
             padding: 20px;
@@ -576,13 +640,45 @@
             if (!res.ok) throw new Error('无法读取文件');
             const data = await res.json();
 
-            // 检查 Marked 是否加载成功
-            if (typeof marked !== 'undefined') {
-                contentEl.innerHTML = marked.parse(data.content);
+            // 根据内容类型选择不同的渲染方式
+            const contentType = data.content_type || 'markdown';
+
+            if (contentType === 'image') {
+                // 单张图片
+                const images = data.images || [];
+                if (images.length > 0) {
+                    contentEl.innerHTML = `
+                        <div class="doc-image-container">
+                            <img src="${images[0]}" alt="${data.title || '文档图片'}" class="doc-image" onclick="openImageViewer(this.src)">
+                        </div>`;
+                } else {
+                    contentEl.innerHTML = '<div class="error-box">图片未配置</div>';
+                }
+            } else if (contentType === 'images') {
+                // 多张图片
+                const images = data.images || [];
+                if (images.length > 0) {
+                    contentEl.innerHTML = `
+                        <div class="doc-images-container">
+                            ${images.map((url, idx) => `
+                                <div class="doc-image-item">
+                                    <img src="${url}" alt="第${idx + 1}页" class="doc-image" onclick="openImageViewer(this.src)">
+                                    <div class="doc-image-page">第 ${idx + 1} 页 / 共 ${images.length} 页</div>
+                                </div>
+                            `).join('')}
+                        </div>`;
+                } else {
+                    contentEl.innerHTML = '<div class="error-box">图片未配置</div>';
+                }
             } else {
-                // 如果 CDN 挂了，显示纯文本，不让用户看不了
-                contentEl.innerHTML = `<pre style="white-space:pre-wrap; font-family:sans-serif;">${data.content}</pre>
-                <div style="color:orange;font-size:12px;margin-top:20px;">* Markdown 解析器加载失败，显示原始文本</div>`;
+                // markdown类型（默认）
+                if (typeof marked !== 'undefined') {
+                    contentEl.innerHTML = marked.parse(data.content);
+                } else {
+                    // 如果 CDN 挂了，显示纯文本，不让用户看不了
+                    contentEl.innerHTML = `<pre style="white-space:pre-wrap; font-family:sans-serif;">${data.content}</pre>
+                    <div style="color:orange;font-size:12px;margin-top:20px;">* Markdown 解析器加载失败，显示原始文本</div>`;
+                }
             }
 
         } catch (e) {
@@ -897,6 +993,28 @@
         }
     }
     init();
+
+    // 图片查看器函数
+    function openImageViewer(src) {
+        const viewer = document.getElementById('imageViewer');
+        const img = document.getElementById('viewerImage');
+        img.src = src;
+        viewer.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeImageViewer() {
+        const viewer = document.getElementById('imageViewer');
+        viewer.classList.remove('show');
+        document.body.style.overflow = '';
+    }
 </script>
+
+<!-- 图片查看器 -->
+<div class="image-viewer-overlay" id="imageViewer" onclick="closeImageViewer()">
+    <span class="image-viewer-close">&times;</span>
+    <img id="viewerImage" src="" alt="查看大图">
+</div>
+
 </body>
 </html>
