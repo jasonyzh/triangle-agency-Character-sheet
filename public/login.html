@@ -375,6 +375,9 @@
                     <div class="register-link" id="regLink" style="display:none;">
                         <a href="register.html" style="color:var(--text-gray);font-size:11px;text-decoration:none;">没有账号？<span style="color:var(--agency-red);font-weight:bold;">申请入职</span></a>
                     </div>
+                    <div style="margin-top:8px;">
+                        <a href="reset-password.html" style="color:var(--text-gray);font-size:10px;text-decoration:none;">忘记密码？<span style="color:var(--agency-red);">重置密钥</span></a>
+                    </div>
                 </div>
 
                 <div class="footer-scan">
@@ -545,6 +548,8 @@
                     localStorage.setItem('ta_uid', data.userId);
                     localStorage.setItem('ta_token', data.token);
                     localStorage.setItem('ta_role', data.role);
+                    localStorage.setItem('ta_username', data.username);
+                    localStorage.setItem('ta_name', data.name || '新职员');
                     if (data.isAdmin) localStorage.setItem('ta_is_admin', 'true');
                     else localStorage.removeItem('ta_is_admin');
                     if (data.isManager) localStorage.setItem('ta_is_manager', 'true');

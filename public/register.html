@@ -492,6 +492,12 @@
         let invitationRequired = false;
         let countdown = 0;
 
+        // 从URL参数获取邀请码
+        function getUrlParam(name) {
+            const params = new URLSearchParams(window.location.search);
+            return params.get(name);
+        }
+
         // 检查注册状态
         async function checkStatus() {
             try {
@@ -519,6 +525,12 @@
                     invitationRequired = true;
                     document.getElementById('invitationSection').classList.add('show');
                     document.getElementById('badgeContainer').classList.add('invitation-mode');
+
+                    // 如果URL中有邀请码参数，自动填充
+                    const codeFromUrl = getUrlParam('code');
+                    if (codeFromUrl) {
+                        document.getElementById('invitationCode').value = codeFromUrl;
+                    }
                 }
             } catch (e) {
                 console.error(e);

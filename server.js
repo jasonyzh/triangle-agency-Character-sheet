@@ -113,6 +113,18 @@ db.serialize(() => {
         used INTEGER DEFAULT 0
     )`);
 
+    // 密码重置token表
+    db.run(`CREATE TABLE IF NOT EXISTS password_reset_tokens (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        email TEXT,
+        token TEXT UNIQUE,
+        expires_at INTEGER,
+        used INTEGER DEFAULT 0,
+        created_at INTEGER,
+        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    )`);
+
     // 角色授权表
     db.run(`CREATE TABLE IF NOT EXISTS character_authorizations (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -858,40 +870,197 @@ async function sendVerificationEmail(email, code, type = 'register') {
             .replace(/{{CODE}}/g, code)
             .replace(/{{TYPE}}/g, type === 'register' ? '注册' : '密码重置');
     } else {
-        // 默认邮件模板
+        // 三角机构风格邮件模板
+        const isRegister = type === 'register';
+        const welcomeText = isRegister ? '欢迎来到你余生的第一份工作' : '身份验证程序已启动';
+        const actionText = isRegister ? '入职验证码' : '重置验证码';
+
         html = `
-        <div style="background:#1a252f;padding:40px;font-family:Arial,sans-serif;">
-            <div style="max-width:500px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;">
-                <div style="background:#c0392b;padding:20px;text-align:center;">
-                    <h1 style="margin:0;color:#fff;font-size:24px;letter-spacing:2px;">TRIANGLE AGENCY</h1>
-                    <p style="margin:5px 0 0;color:rgba(255,255,255,0.8);font-size:12px;">三角机构</p>
-                </div>
-                <div style="padding:30px;text-align:center;">
-                    <p style="color:#333;font-size:16px;margin-bottom:20px;">您的${type === 'register' ? '注册' : '密码重置'}验证码是：</p>
-                    <div style="background:#f8f9fa;border:2px dashed #c0392b;border-radius:8px;padding:20px;margin:20px 0;">
-                        <span style="font-size:36px;font-weight:bold;letter-spacing:8px;color:#c0392b;">${code}</span>
+        <!DOCTYPE html>
+        <html>
+        <head><meta charset="utf-8"></head>
+        <body style="margin:0;padding:0;background:#0a0a0a;font-family:'Segoe UI',Arial,sans-serif;">
+            <div style="max-width:600px;margin:0 auto;background:#0a0a0a;">
+                <!-- 顶部装饰线 -->
+                <div style="height:4px;background:linear-gradient(90deg,transparent,#d50000,transparent);"></div>
+
+                <!-- 主体容器 -->
+                <div style="padding:40px 30px;background:linear-gradient(180deg,#0f1419 0%,#0a0a0a 100%);">
+
+                    <!-- 三角形Logo区域 -->
+                    <div style="text-align:center;margin-bottom:30px;">
+                        <div style="display:inline-block;width:0;height:0;border-left:40px solid transparent;border-right:40px solid transparent;border-bottom:70px solid #d50000;"></div>
                     </div>
-                    <p style="color:#666;font-size:14px;">验证码有效期为 <strong>5分钟</strong></p>
-                    <p style="color:#999;font-size:12px;margin-top:20px;">如果这不是您的操作，请忽略此邮件。</p>
+
+                    <!-- 机构名称 -->
+                    <div style="text-align:center;margin-bottom:10px;">
+                        <span style="font-size:28px;font-weight:900;letter-spacing:6px;color:#ffffff;text-transform:uppercase;">TRIANGLE</span>
+                    </div>
+                    <div style="text-align:center;margin-bottom:30px;">
+                        <span style="font-size:28px;font-weight:900;letter-spacing:6px;color:#d50000;text-transform:uppercase;">AGENCY</span>
+                    </div>
+
+                    <!-- 欢迎语 -->
+                    <div style="text-align:center;margin-bottom:40px;">
+                        <p style="margin:0;color:#666;font-size:11px;letter-spacing:4px;text-transform:uppercase;">// CLASSIFIED //</p>
+                        <p style="margin:15px 0 0;color:#e0e0e0;font-size:16px;font-weight:500;">${welcomeText}</p>
+                    </div>
+
+                    <!-- 验证码区域 -->
+                    <div style="background:#111;border:1px solid #222;border-left:3px solid #d50000;padding:25px;margin:0 0 30px;position:relative;">
+                        <div style="position:absolute;top:-1px;right:-1px;width:20px;height:20px;border-top:2px solid #d50000;border-right:2px solid #d50000;"></div>
+                        <div style="position:absolute;bottom:-1px;left:-1px;width:20px;height:20px;border-bottom:2px solid #d50000;border-left:2px solid #d50000;"></div>
+
+                        <p style="margin:0 0 15px;color:#888;font-size:12px;letter-spacing:2px;text-transform:uppercase;">${actionText}</p>
+                        <div style="text-align:center;padding:15px 0;">
+                            <span style="font-family:'Courier New',monospace;font-size:42px;font-weight:bold;letter-spacing:12px;color:#d50000;text-shadow:0 0 20px rgba(213,0,0,0.5);">${code}</span>
+                        </div>
+                        <p style="margin:15px 0 0;color:#666;font-size:12px;text-align:center;">
+                            <span style="display:inline-block;width:8px;height:8px;background:#d50000;border-radius:50%;margin-right:8px;animation:blink 1s infinite;"></span>
+                            有效期 <strong style="color:#d50000;">300</strong> 秒
+                        </p>
+                    </div>
+
+                    <!-- 警告信息 -->
+                    <div style="text-align:center;padding:20px;border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a;">
+                        <p style="margin:0;color:#444;font-size:11px;letter-spacing:1px;">
+                            ▲ 如非本人操作，请立即忽略此消息 ▲
+                        </p>
+                    </div>
+
+                    <!-- 底部装饰 -->
+                    <div style="margin-top:40px;text-align:center;">
+                        <div style="display:inline-block;width:60px;height:1px;background:#333;vertical-align:middle;"></div>
+                        <span style="display:inline-block;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:10px solid #d50000;margin:0 15px;vertical-align:middle;"></span>
+                        <div style="display:inline-block;width:60px;height:1px;background:#333;vertical-align:middle;"></div>
+                    </div>
+
+                    <p style="text-align:center;margin:20px 0 0;color:#333;font-size:10px;letter-spacing:2px;">
+                        TRIANGLE AGENCY © CLASSIFIED COMMUNICATIONS
+                    </p>
                 </div>
-                <div style="background:#f8f9fa;padding:15px;text-align:center;border-top:1px solid #eee;">
-                    <p style="margin:0;color:#999;font-size:11px;">© Triangle Agency - 此邮件由系统自动发送</p>
-                </div>
+
+                <!-- 底部装饰线 -->
+                <div style="height:4px;background:linear-gradient(90deg,transparent,#d50000,transparent);"></div>
             </div>
-        </div>`;
+        </body>
+        </html>`;
     }
 
     // 处理发件人格式 - 确保格式正确
-    let fromAddress = config.smtp_from || config.smtp_user;
-    // 如果没有尖括号格式，添加名称
-    if (!fromAddress.includes('<')) {
-        fromAddress = `"Triangle Agency" <${config.smtp_user}>`;
+    let fromAddress;
+    if (config.smtp_from && config.smtp_from.includes('<')) {
+        // 用户配置了完整格式，如 "名称 <email>"
+        fromAddress = config.smtp_from;
+    } else if (config.smtp_from) {
+        // 用户只配置了显示名称，组合成完整格式
+        fromAddress = `"${config.smtp_from}" <${config.smtp_user}>`;
+    } else {
+        // 没有配置，使用默认
+        fromAddress = config.smtp_user;
     }
 
     await transporter.sendMail({
         from: fromAddress,
         to: email,
         subject: subject,
+        html: html
+    });
+}
+
+// 发送密码重置链接邮件
+async function sendPasswordResetEmail(email, resetLink) {
+    const transporter = await createMailTransporter();
+    const config = await getAllConfig();
+
+    const html = `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"></head>
+    <body style="margin:0;padding:0;background:#0a0a0a;font-family:'Segoe UI',Arial,sans-serif;">
+        <div style="max-width:600px;margin:0 auto;background:#0a0a0a;">
+            <!-- 顶部装饰线 -->
+            <div style="height:4px;background:linear-gradient(90deg,transparent,#d50000,transparent);"></div>
+
+            <!-- 主体容器 -->
+            <div style="padding:40px 30px;background:linear-gradient(180deg,#0f1419 0%,#0a0a0a 100%);">
+
+                <!-- 三角形Logo区域 -->
+                <div style="text-align:center;margin-bottom:30px;">
+                    <div style="display:inline-block;width:0;height:0;border-left:40px solid transparent;border-right:40px solid transparent;border-bottom:70px solid #d50000;"></div>
+                </div>
+
+                <!-- 机构名称 -->
+                <div style="text-align:center;margin-bottom:10px;">
+                    <span style="font-size:28px;font-weight:900;letter-spacing:6px;color:#ffffff;text-transform:uppercase;">TRIANGLE</span>
+                </div>
+                <div style="text-align:center;margin-bottom:30px;">
+                    <span style="font-size:28px;font-weight:900;letter-spacing:6px;color:#d50000;text-transform:uppercase;">AGENCY</span>
+                </div>
+
+                <!-- 标题 -->
+                <div style="text-align:center;margin-bottom:40px;">
+                    <p style="margin:0;color:#666;font-size:11px;letter-spacing:4px;text-transform:uppercase;">// SECURITY PROTOCOL //</p>
+                    <p style="margin:15px 0 0;color:#e0e0e0;font-size:16px;font-weight:500;">密钥重置程序已启动</p>
+                </div>
+
+                <!-- 重置链接区域 -->
+                <div style="background:#111;border:1px solid #222;border-left:3px solid #d50000;padding:25px;margin:0 0 30px;position:relative;">
+                    <div style="position:absolute;top:-1px;right:-1px;width:20px;height:20px;border-top:2px solid #d50000;border-right:2px solid #d50000;"></div>
+                    <div style="position:absolute;bottom:-1px;left:-1px;width:20px;height:20px;border-bottom:2px solid #d50000;border-left:2px solid #d50000;"></div>
+
+                    <p style="margin:0 0 20px;color:#888;font-size:12px;letter-spacing:2px;text-transform:uppercase;">身份重置入口</p>
+                    <div style="text-align:center;padding:15px 0;">
+                        <a href="${resetLink}" style="display:inline-block;background:#d50000;color:#fff;text-decoration:none;padding:15px 40px;font-size:14px;font-weight:bold;letter-spacing:2px;border-radius:4px;text-transform:uppercase;">重置密钥</a>
+                    </div>
+                    <p style="margin:20px 0 0;color:#666;font-size:11px;text-align:center;word-break:break-all;">
+                        或复制链接: <span style="color:#888;">${resetLink}</span>
+                    </p>
+                    <p style="margin:15px 0 0;color:#666;font-size:12px;text-align:center;">
+                        <span style="display:inline-block;width:8px;height:8px;background:#d50000;border-radius:50%;margin-right:8px;"></span>
+                        链接有效期 <strong style="color:#d50000;">30</strong> 分钟
+                    </p>
+                </div>
+
+                <!-- 警告信息 -->
+                <div style="text-align:center;padding:20px;border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a;">
+                    <p style="margin:0;color:#444;font-size:11px;letter-spacing:1px;">
+                        ▲ 如非本人操作，请立即忽略此消息并检查账户安全 ▲
+                    </p>
+                </div>
+
+                <!-- 底部装饰 -->
+                <div style="margin-top:40px;text-align:center;">
+                    <div style="display:inline-block;width:60px;height:1px;background:#333;vertical-align:middle;"></div>
+                    <span style="display:inline-block;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:10px solid #d50000;margin:0 15px;vertical-align:middle;"></span>
+                    <div style="display:inline-block;width:60px;height:1px;background:#333;vertical-align:middle;"></div>
+                </div>
+
+                <p style="text-align:center;margin:20px 0 0;color:#333;font-size:10px;letter-spacing:2px;">
+                    TRIANGLE AGENCY © CLASSIFIED COMMUNICATIONS
+                </p>
+            </div>
+
+            <!-- 底部装饰线 -->
+            <div style="height:4px;background:linear-gradient(90deg,transparent,#d50000,transparent);"></div>
+        </div>
+    </body>
+    </html>`;
+
+    // 处理发件人格式
+    let fromAddress;
+    if (config.smtp_from && config.smtp_from.includes('<')) {
+        fromAddress = config.smtp_from;
+    } else if (config.smtp_from) {
+        fromAddress = `"${config.smtp_from}" <${config.smtp_user}>`;
+    } else {
+        fromAddress = config.smtp_user;
+    }
+
+    await transporter.sendMail({
+        from: fromAddress,
+        to: email,
+        subject: '三角机构 - 密钥重置',
         html: html
     });
 }
@@ -1165,6 +1334,153 @@ app.post('/api/register/verify', async (req, res) => {
 });
 
 // ==========================================
+// 密码重置接口
+// ==========================================
+
+// 请求发送重置密码链接
+app.post('/api/password/request-reset', async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ success: false, message: '请输入邮箱地址' });
+        }
+
+        // 查找用户
+        const user = await new Promise((resolve, reject) => {
+            db.get('SELECT id, username, email FROM users WHERE email = ?', [email], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        // 即使用户不存在也返回成功（防止邮箱枚举攻击）
+        if (!user) {
+            return res.json({ success: true, message: '如果该邮箱已注册，您将收到重置链接' });
+        }
+
+        // 生成重置token
+        const token = uuidv4() + '-' + uuidv4();
+        const expiresAt = Date.now() + 30 * 60 * 1000; // 30分钟有效期
+
+        // 使之前的token失效
+        await new Promise((resolve, reject) => {
+            db.run('UPDATE password_reset_tokens SET used = 1 WHERE user_id = ? AND used = 0', [user.id], (err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
+
+        // 保存新token
+        await new Promise((resolve, reject) => {
+            db.run('INSERT INTO password_reset_tokens (user_id, email, token, expires_at, created_at) VALUES (?, ?, ?, ?, ?)',
+                [user.id, email, token, expiresAt, Date.now()], (err) => {
+                    if (err) reject(err);
+                    else resolve();
+                });
+        });
+
+        // 生成重置链接
+        const resetLink = `${req.protocol}://${req.get('host')}/reset-password.html?token=${token}`;
+
+        // 发送邮件
+        await sendPasswordResetEmail(email, resetLink);
+
+        res.json({ success: true, message: '重置链接已发送到您的邮箱' });
+    } catch (e) {
+        console.error('请求密码重置失败:', e);
+        res.status(500).json({ success: false, message: '发送失败，请稍后重试' });
+    }
+});
+
+// 验证重置token
+app.get('/api/password/verify-token', async (req, res) => {
+    try {
+        const { token } = req.query;
+
+        if (!token) {
+            return res.status(400).json({ success: false, message: '无效的链接' });
+        }
+
+        const resetToken = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM password_reset_tokens WHERE token = ? AND used = 0 AND expires_at > ?',
+                [token, Date.now()], (err, row) => {
+                    if (err) reject(err);
+                    else resolve(row);
+                });
+        });
+
+        if (!resetToken) {
+            return res.status(400).json({ success: false, message: '链接已失效或已使用' });
+        }
+
+        // 获取用户信息
+        const user = await new Promise((resolve, reject) => {
+            db.get('SELECT username FROM users WHERE id = ?', [resetToken.user_id], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        res.json({ success: true, username: user ? user.username : '用户' });
+    } catch (e) {
+        console.error('验证token失败:', e);
+        res.status(500).json({ success: false, message: '验证失败' });
+    }
+});
+
+// 重置密码
+app.post('/api/password/reset', async (req, res) => {
+    try {
+        const { token, password } = req.body;
+
+        if (!token || !password) {
+            return res.status(400).json({ success: false, message: '参数不完整' });
+        }
+
+        if (password.length < 3) {
+            return res.status(400).json({ success: false, message: '密码至少3位' });
+        }
+
+        // 验证token
+        const resetToken = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM password_reset_tokens WHERE token = ? AND used = 0 AND expires_at > ?',
+                [token, Date.now()], (err, row) => {
+                    if (err) reject(err);
+                    else resolve(row);
+                });
+        });
+
+        if (!resetToken) {
+            return res.status(400).json({ success: false, message: '链接已失效或已使用' });
+        }
+
+        // 更新密码
+        const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+        await new Promise((resolve, reject) => {
+            db.run('UPDATE users SET password_hash = ?, password = NULL WHERE id = ?',
+                [passwordHash, resetToken.user_id], (err) => {
+                    if (err) reject(err);
+                    else resolve();
+                });
+        });
+
+        // 标记token已使用
+        await new Promise((resolve, reject) => {
+            db.run('UPDATE password_reset_tokens SET used = 1 WHERE id = ?', [resetToken.id], (err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
+
+        res.json({ success: true, message: '密码重置成功' });
+    } catch (e) {
+        console.error('重置密码失败:', e);
+        res.status(500).json({ success: false, message: '重置失败，请稍后重试' });
+    }
+});
+
+// ==========================================
 // 登录接口
 // ==========================================
 app.post('/api/login', async (req, res) => {
@@ -1211,6 +1527,8 @@ app.post('/api/login', async (req, res) => {
         res.json({
             success: true,
             userId: user.id,
+            username: user.username,
+            name: user.name || '新职员',
             isAdmin: role >= ROLE.SUPER_ADMIN,
             isManager: role >= ROLE.MANAGER,
             role: role,
@@ -1218,6 +1536,67 @@ app.post('/api/login', async (req, res) => {
         });
     } catch (e) {
         console.error('登录失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// ==========================================
+// 用户资料接口
+// ==========================================
+
+// 获取当前用户资料
+app.get('/api/user/profile', authenticateToken, async (req, res) => {
+    try {
+        const user = await new Promise((resolve, reject) => {
+            db.get('SELECT id, username, name, email, role FROM users WHERE id = ?', [req.user.userId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: '用户不存在' });
+        }
+
+        res.json({
+            success: true,
+            user: {
+                id: user.id,
+                username: user.username,
+                name: user.name || '新职员',
+                email: user.email,
+                role: user.role
+            }
+        });
+    } catch (e) {
+        console.error('获取用户资料失败:', e);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// 修改昵称
+app.put('/api/user/name', authenticateToken, async (req, res) => {
+    try {
+        const { name } = req.body;
+
+        if (!name || name.trim().length === 0) {
+            return res.status(400).json({ success: false, message: '昵称不能为空' });
+        }
+
+        if (name.length > 20) {
+            return res.status(400).json({ success: false, message: '昵称不能超过20个字符' });
+        }
+
+        await new Promise((resolve, reject) => {
+            db.run('UPDATE users SET name = ? WHERE id = ?', [name.trim(), req.user.userId], (err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
+
+        res.json({ success: true, name: name.trim(), message: '昵称修改成功' });
+    } catch (e) {
+        console.error('修改昵称失败:', e);
         res.status(500).json({ success: false, message: '服务器错误' });
     }
 });
@@ -2062,9 +2441,9 @@ app.get('/api/manager/invitation-codes', authenticateToken, requireRole(ROLE.MAN
         }
 
         // 获取配置
-        const quota = parseInt(await getConfig('manager_invite_quota')) || 5;
+        const agentInviteMaxUses = parseInt(await getConfig('agent_invite_max_uses')) || 5;
         const threshold = parseInt(await getConfig('manager_reward_threshold')) || 3;
-        const rewardAmount = parseInt(await getConfig('manager_reward_amount')) || 1;
+        const managerInviteMaxUses = parseInt(await getConfig('manager_invite_max_uses')) || 1;
 
         // 获取或创建经理配额记录
         const quotaRecord = await new Promise((resolve, reject) => {
@@ -2112,20 +2491,23 @@ app.get('/api/manager/invitation-codes', authenticateToken, requireRole(ROLE.MAN
             });
         }
 
+        // 查找经理的特工邀请码（每个经理只能有1个）
+        const agentCode = codes.find(c => c.grant_role === 0);
+        const hasAgentCode = !!agentCode;
+
         res.json({
             success: true,
             enabled: true,
             quota: {
-                agentQuota: quota,
-                agentQuotaUsed: quotaRecord.agent_quota_used,
-                agentQuotaRemaining: quota - quotaRecord.agent_quota_used,
+                agentInviteMaxUses: agentInviteMaxUses,
+                hasAgentCode: hasAgentCode,
                 managerCodesEarned: quotaRecord.manager_codes_earned,
                 managerCodesUsed: quotaRecord.manager_codes_used,
                 managerCodesRemaining: quotaRecord.manager_codes_earned - quotaRecord.manager_codes_used,
+                managerInviteMaxUses: managerInviteMaxUses,
                 totalInvitesUsed: quotaRecord.total_invites_used,
                 rewardClaimed: quotaRecord.reward_claimed === 1,
-                rewardThreshold: threshold,
-                rewardAmount: rewardAmount
+                rewardThreshold: threshold
             },
             codes: codes
         });
@@ -2135,11 +2517,10 @@ app.get('/api/manager/invitation-codes', authenticateToken, requireRole(ROLE.MAN
     }
 });
 
-// 经理生成特工邀请码
+// 经理生成特工邀请码（每个经理只能生成1个）
 app.post('/api/manager/invitation-codes', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
     try {
         const managerId = req.user.userId;
-        const { maxUses } = req.body;
 
         // 检查邀请码注册是否开启
         const invitationRequired = await getConfig('invitation_required');
@@ -2147,27 +2528,20 @@ app.post('/api/manager/invitation-codes', authenticateToken, requireRole(ROLE.MA
             return res.status(400).json({ success: false, message: '邀请码注册未开启' });
         }
 
-        // 获取配额
-        const quota = parseInt(await getConfig('manager_invite_quota')) || 5;
-
-        // 获取经理配额记录
-        const quotaRecord = await new Promise((resolve, reject) => {
-            db.get('SELECT * FROM manager_invite_quota WHERE manager_id = ?', [managerId], (err, row) => {
+        // 检查经理是否已有特工邀请码（grant_role=0 表示特工邀请码）
+        const existingCode = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM invitation_codes WHERE created_by = ? AND grant_role = 0', [managerId], (err, row) => {
                 if (err) reject(err);
-                else if (row) resolve(row);
-                else {
-                    db.run('INSERT INTO manager_invite_quota (manager_id) VALUES (?)', [managerId], function(err) {
-                        if (err) reject(err);
-                        else resolve({ agent_quota_used: 0 });
-                    });
-                }
+                else resolve(row);
             });
         });
 
-        // 检查配额
-        if (quotaRecord.agent_quota_used >= quota) {
-            return res.status(400).json({ success: false, message: '特工邀请码配额已用完' });
+        if (existingCode) {
+            return res.status(400).json({ success: false, message: '您已经有一个邀请链接了' });
         }
+
+        // 从配置获取邀请码可使用次数
+        const maxUses = parseInt(await getConfig('agent_invite_max_uses')) || 5;
 
         // 生成邀请码
         const code = generateShortCode(8);
@@ -2176,25 +2550,24 @@ app.post('/api/manager/invitation-codes', authenticateToken, requireRole(ROLE.MA
         await new Promise((resolve, reject) => {
             db.run(`INSERT INTO invitation_codes (code, created_by, max_uses, used_count, is_active, expires_at, created_at, grant_role)
                     VALUES (?, ?, ?, 0, 1, NULL, ?, 0)`,
-                [code, managerId, maxUses || 1, now], function(err) {
+                [code, managerId, maxUses, now], function(err) {
                     if (err) reject(err);
                     else resolve(this.lastID);
                 });
         });
 
-        // 更新配额使用
+        // 确保经理配额记录存在
         await new Promise((resolve, reject) => {
-            db.run('UPDATE manager_invite_quota SET agent_quota_used = agent_quota_used + 1 WHERE manager_id = ?',
-                [managerId], (err) => {
-                    if (err) reject(err);
-                    else resolve();
-                });
+            db.run('INSERT OR IGNORE INTO manager_invite_quota (manager_id) VALUES (?)', [managerId], (err) => {
+                if (err) reject(err);
+                else resolve();
+            });
         });
 
         res.json({
             success: true,
             code: code,
-            message: '特工邀请码创建成功'
+            message: '邀请链接创建成功'
         });
     } catch (err) {
         console.error('创建特工邀请码失败:', err);
@@ -2206,7 +2579,6 @@ app.post('/api/manager/invitation-codes', authenticateToken, requireRole(ROLE.MA
 app.post('/api/manager/manager-codes', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
     try {
         const managerId = req.user.userId;
-        const { maxUses } = req.body;
 
         // 检查邀请码注册是否开启
         const invitationRequired = await getConfig('invitation_required');
@@ -2231,6 +2603,9 @@ app.post('/api/manager/manager-codes', authenticateToken, requireRole(ROLE.MANAG
             return res.status(400).json({ success: false, message: '经理邀请码配额已用完' });
         }
 
+        // 从配置获取经理邀请码可使用次数
+        const maxUses = parseInt(await getConfig('manager_invite_max_uses')) || 1;
+
         // 生成经理邀请码
         const code = generateShortCode(8);
         const now = Date.now();
@@ -2238,7 +2613,7 @@ app.post('/api/manager/manager-codes', authenticateToken, requireRole(ROLE.MANAG
         await new Promise((resolve, reject) => {
             db.run(`INSERT INTO invitation_codes (code, created_by, max_uses, used_count, is_active, expires_at, created_at, grant_role)
                     VALUES (?, ?, ?, 0, 1, NULL, ?, 1)`,
-                [code, managerId, maxUses || 1, now], function(err) {
+                [code, managerId, maxUses, now], function(err) {
                     if (err) reject(err);
                     else resolve(this.lastID);
                 });

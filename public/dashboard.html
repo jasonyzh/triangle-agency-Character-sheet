@@ -105,6 +105,67 @@
 
 		.btn-logout { background: #fff; color: #555; border: 1px solid #eee; }
         .btn-logout:hover { background: #f8f9fa; color: var(--signal-red); transform: translateY(-2px); }
+
+        /* 用户信息区域 - 匹配按钮风格 */
+        .user-info {
+            height: 38px;
+            padding: 0 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.15);
+            transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+        }
+        .user-info::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 60%;
+            background: var(--signal-red);
+            border-radius: 0 2px 2px 0;
+            opacity: 0.8;
+        }
+        .user-info:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(255,255,255,0.25);
+            transform: translateY(-2px);
+        }
+        .user-info .user-label {
+            font-size: 9px;
+            font-weight: 800;
+            color: rgba(255,255,255,0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .user-info .user-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            max-width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            letter-spacing: 0.5px;
+        }
+        .user-info .edit-icon {
+            font-size: 9px;
+            color: rgba(255,255,255,0.3);
+            transition: all 0.2s;
+        }
+        .user-info:hover .edit-icon {
+            color: var(--signal-red);
+        }
+        /* 移动端隐藏header中的用户信息 */
+        @media (max-width: 768px) {
+            .user-info { display: none; }
+        }
         .btn-console { background: #E06B56; color: white; }
         .btn-console:hover { 
             background: #cf5d48; /* 稍微调深一点作为悬停色 */
@@ -685,6 +746,13 @@
             </div>
             <!-- FIXED: 清理并整合了所有按钮 -->
 			<div class="btn-group">
+                <!-- 用户信息 -->
+                <div class="user-info" onclick="openNameModal()" title="点击修改昵称">
+                    <span class="user-label">特工</span>
+                    <span class="user-name" id="userName">新职员</span>
+                    <i class="fas fa-pen edit-icon"></i>
+                </div>
+
                 <!-- 1. 新建 -->
                 <button class="btn btn-new" onclick="createNew()" title="新建档案">
                     <i class="fas fa-plus"></i> <span>新建</span>
@@ -737,6 +805,12 @@
             </button>
         </div>
 		<div class="side-menu-content">
+            <!-- 用户信息 (移动端显示) -->
+            <div class="menu-item user" onclick="closeSideMenu(); openNameModal();" style="border-left: 3px solid var(--signal-red);">
+                <i class="fas fa-user"></i>
+                <span id="userNameMobile">新职员</span>
+                <i class="fas fa-pen" style="margin-left:auto;font-size:10px;opacity:0.5;"></i>
+            </div>
             <!-- 新建 (这个样式是原本就对的) -->
             <div class="menu-item primary" onclick="closeSideMenu(); createNew();">
                 <i class="fas fa-plus"></i> 新建档案
@@ -772,6 +846,27 @@
             <div style="display:flex;gap:10px;">
                 <button style="flex:1;padding:10px;border:none;background:#ecf0f1;cursor:pointer;" onclick="document.getElementById('authModal').classList.remove('show')">关闭</button>
                 <button style="flex:1;padding:10px;border:none;background:var(--signal-red);color:white;cursor:pointer;" onclick="copyAuthCode()">复制</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 修改昵称模态框 -->
+    <div class="modal-overlay" id="nameModal">
+        <div class="modal" style="background:linear-gradient(180deg, #1a252f 0%, #0f172a 100%);border:1px solid rgba(255,255,255,0.1);box-shadow:0 25px 80px rgba(0,0,0,0.5);">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:15px;border-bottom:1px solid rgba(255,255,255,0.1);">
+                <div style="width:40px;height:40px;background:var(--signal-red);border-radius:4px;display:flex;align-items:center;justify-content:center;">
+                    <i class="fas fa-user-edit" style="color:white;font-size:16px;"></i>
+                </div>
+                <div>
+                    <div style="color:white;font-size:16px;font-weight:800;letter-spacing:0.5px;">修改昵称</div>
+                    <div style="color:rgba(255,255,255,0.4);font-size:10px;text-transform:uppercase;letter-spacing:1px;">Edit Callsign</div>
+                </div>
+            </div>
+            <input type="text" id="nameInput" placeholder="输入新昵称" maxlength="20"
+                style="width:100%;padding:14px;border:1px solid rgba(255,255,255,0.15);border-radius:4px;font-size:14px;box-sizing:border-box;margin-bottom:20px;background:rgba(0,0,0,0.3);color:white;font-weight:600;">
+            <div style="display:flex;gap:12px;">
+                <button style="flex:1;padding:14px;border:1px solid rgba(255,255,255,0.15);background:transparent;cursor:pointer;border-radius:4px;font-weight:bold;color:rgba(255,255,255,0.7);text-transform:uppercase;font-size:12px;letter-spacing:1px;transition:all 0.2s;" onclick="closeNameModal()" onmouseover="this.style.background='rgba(255,255,255,0.05)';this.style.color='white'" onmouseout="this.style.background='transparent';this.style.color='rgba(255,255,255,0.7)'">取消</button>
+                <button style="flex:1;padding:14px;border:none;background:var(--signal-red);color:white;cursor:pointer;border-radius:4px;font-weight:bold;text-transform:uppercase;font-size:12px;letter-spacing:1px;transition:all 0.2s;" onclick="saveName()" onmouseover="this.style.background='#e74c3c'" onmouseout="this.style.background='var(--signal-red)'">保存</button>
             </div>
         </div>
     </div>
@@ -1153,6 +1248,63 @@
                 showToast("销毁失败");
             }
         }
+
+        // 初始化显示用户昵称
+        (function initUserName() {
+            const name = localStorage.getItem('ta_name') || '新职员';
+            document.getElementById('userName').textContent = name;
+            document.getElementById('userNameMobile').textContent = name;
+        })();
+
+        // 打开修改昵称模态框
+        function openNameModal() {
+            const currentName = localStorage.getItem('ta_name') || '';
+            document.getElementById('nameInput').value = currentName === '新职员' ? '' : currentName;
+            document.getElementById('nameModal').classList.add('show');
+            document.getElementById('nameInput').focus();
+        }
+
+        // 关闭修改昵称模态框
+        function closeNameModal() {
+            document.getElementById('nameModal').classList.remove('show');
+        }
+
+        // 保存昵称
+        async function saveName() {
+            const newName = document.getElementById('nameInput').value.trim();
+            if (!newName) {
+                showToast('请输入昵称');
+                return;
+            }
+            try {
+                const res = await fetch('/api/user/name', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ name: newName })
+                });
+                if (res.status === 401) { logout(); return; }
+                const data = await res.json();
+                if (data.success) {
+                    localStorage.setItem('ta_name', newName);
+                    document.getElementById('userName').textContent = newName;
+                    document.getElementById('userNameMobile').textContent = newName;
+                    closeNameModal();
+                    showToast('昵称已更新', true);
+                } else {
+                    showToast(data.error || '更新失败');
+                }
+            } catch (e) {
+                showToast('网络错误');
+            }
+        }
+
+        // 按Enter键保存昵称
+        document.getElementById('nameInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') saveName();
+        });
 
         loadList();
     </script>

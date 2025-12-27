@@ -1118,27 +1118,27 @@
 
             <div class="config-section" id="managerInviteSection">
                 <h3><i class="fas fa-user-tie"></i> 经理邀请码设置</h3>
-                <div class="desc" style="margin-bottom: 15px;">开启邀请码注册后，经理可以自行生成邀请码</div>
+                <div class="desc" style="margin-bottom: 15px;">开启邀请码注册后，每个经理可生成1个邀请链接</div>
                 <div class="config-row">
                     <div>
-                        <label>经理可生成的特工邀请码数量</label>
-                        <div class="desc">每个经理最多可生成多少个特工邀请码</div>
+                        <label>特工邀请码可邀请人数</label>
+                        <div class="desc">每个经理的邀请链接最多可邀请多少人</div>
                     </div>
-                    <input type="number" id="cfg_manager_invite_quota" min="0" value="5" style="width: 80px; text-align: center;">
+                    <input type="number" id="cfg_agent_invite_max_uses" min="1" value="5" style="width: 80px; text-align: center;">
                 </div>
                 <div class="config-row">
                     <div>
-                        <label>触发奖励的使用次数</label>
-                        <div class="desc">经理的邀请码被使用多少次后获得奖励</div>
+                        <label>触发奖励的邀请人数</label>
+                        <div class="desc">邀请满多少人后获得经理邀请码奖励</div>
                     </div>
                     <input type="number" id="cfg_manager_reward_threshold" min="1" value="3" style="width: 80px; text-align: center;">
                 </div>
                 <div class="config-row">
                     <div>
-                        <label>奖励的经理邀请码数量</label>
-                        <div class="desc">达到使用次数后一次性奖励的经理邀请码数量</div>
+                        <label>经理邀请码可邀请人数</label>
+                        <div class="desc">奖励的经理邀请码最多可邀请多少人</div>
                     </div>
-                    <input type="number" id="cfg_manager_reward_amount" min="1" value="1" style="width: 80px; text-align: center;">
+                    <input type="number" id="cfg_manager_invite_max_uses" min="1" value="1" style="width: 80px; text-align: center;">
                 </div>
             </div>
 
@@ -1471,9 +1471,9 @@
             document.getElementById('cfg_reg_enabled').checked = config.registration_enabled === 'true';
             document.getElementById('cfg_email_enabled').checked = config.email_registration_enabled === 'true';
             document.getElementById('cfg_invitation_required').checked = config.invitation_required === 'true';
-            document.getElementById('cfg_manager_invite_quota').value = config.manager_invite_quota || '5';
+            document.getElementById('cfg_agent_invite_max_uses').value = config.agent_invite_max_uses || '5';
             document.getElementById('cfg_manager_reward_threshold').value = config.manager_reward_threshold || '3';
-            document.getElementById('cfg_manager_reward_amount').value = config.manager_reward_amount || '1';
+            document.getElementById('cfg_manager_invite_max_uses').value = config.manager_invite_max_uses || '1';
             document.getElementById('cfg_smtp_host').value = config.smtp_host || '';
             document.getElementById('cfg_smtp_port').value = config.smtp_port || '587';
             document.getElementById('cfg_smtp_user').value = config.smtp_user || '';
@@ -1492,9 +1492,9 @@
                 registration_enabled: document.getElementById('cfg_reg_enabled').checked ? 'true' : 'false',
                 email_registration_enabled: document.getElementById('cfg_email_enabled').checked ? 'true' : 'false',
                 invitation_required: document.getElementById('cfg_invitation_required').checked ? 'true' : 'false',
-                manager_invite_quota: document.getElementById('cfg_manager_invite_quota').value,
+                agent_invite_max_uses: document.getElementById('cfg_agent_invite_max_uses').value,
                 manager_reward_threshold: document.getElementById('cfg_manager_reward_threshold').value,
-                manager_reward_amount: document.getElementById('cfg_manager_reward_amount').value,
+                manager_invite_max_uses: document.getElementById('cfg_manager_invite_max_uses').value,
                 smtp_host: document.getElementById('cfg_smtp_host').value,
                 smtp_port: document.getElementById('cfg_smtp_port').value,
                 smtp_user: document.getElementById('cfg_smtp_user').value,
@@ -1868,6 +1868,9 @@
                 ? '<span style="background:#9b59b6;color:#fff;padding:2px 8px;border-radius:10px;font-size:10px;margin-left:8px;"><i class="fas fa-user-tie"></i> 经理</span>'
                 : '<span style="background:#3498db;color:#fff;padding:2px 8px;border-radius:10px;font-size:10px;margin-left:8px;"><i class="fas fa-user"></i> 特工</span>';
 
+            // 生成邀请链接
+            const inviteLink = `${window.location.origin}/register.html?code=${inv.code}`;
+
             return `
                 <div class="invitation-card ${statusClass}" style="${isManagerCode ? 'border-left:3px solid #9b59b6;' : ''}">
                     <div class="inv-header">
@@ -1877,13 +1880,17 @@
                             ${isActive && !isExpired && !isUsedUp ? '有效' : (isExpired ? '已过期' : (isUsedUp ? '已用完' : '已禁用'))}
                         </span>
                     </div>
+                    <div class="inv-link" style="margin:8px 0;padding:8px;background:#f8f9fa;border-radius:4px;font-size:12px;word-break:break-all;color:#3498db;">
+                        <i class="fas fa-link" style="margin-right:5px;"></i>${inviteLink}
+                    </div>
                     <div class="inv-meta">
                         <span><i class="fas fa-clock"></i> ${expiresText}</span>
                         <span><i class="fas fa-users"></i> ${usesText}</span>
                         <span><i class="fas fa-calendar"></i> ${new Date(inv.created_at).toLocaleDateString()} 创建</span>
                     </div>
                     <div class="inv-actions">
-                        <button class="btn-inv btn-inv-copy" onclick="copyInvCode('${inv.code}')"><i class="fas fa-copy"></i> 复制</button>
+                        <button class="btn-inv btn-inv-copy" onclick="copyInvLink('${inv.code}')" style="background:#3498db;color:#fff;"><i class="fas fa-link"></i> 复制链接</button>
+                        <button class="btn-inv btn-inv-copy" onclick="copyInvCode('${inv.code}')"><i class="fas fa-copy"></i> 复制码</button>
                         <button class="btn-inv btn-inv-uses" onclick="showUses(${inv.id})"><i class="fas fa-history"></i> 记录 (${inv.used_count})</button>
                         <button class="btn-inv btn-inv-toggle" onclick="toggleInvitation(${inv.id})">${isActive ? '禁用' : '启用'}</button>
                         <button class="btn-inv btn-inv-delete" onclick="deleteInvitation(${inv.id})"><i class="fas fa-trash"></i></button>
@@ -1895,7 +1902,14 @@
 
     function copyInvCode(code) {
         if (navigator.clipboard) {
-            navigator.clipboard.writeText(code).then(() => showToast('已复制', true));
+            navigator.clipboard.writeText(code).then(() => showToast('邀请码已复制', true));
+        }
+    }
+
+    function copyInvLink(code) {
+        const link = `${window.location.origin}/register.html?code=${code}`;
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(link).then(() => showToast('邀请链接已复制', true));
         }
     }
 

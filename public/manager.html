@@ -2693,7 +2693,68 @@
     .btn-nav.logout { background: #fff; color: #555; border: 1px solid #eee; }
     .btn-nav.messaging-toggle { background: #27ae60; } /* 私信开启 - 绿色 */
     .btn-nav.messaging-toggle.disabled { background: #e74c3c; } /* 私信关闭 - 红色 */
-    
+
+    /* 用户信息区域 - 匹配按钮风格 */
+    .user-info {
+        height: 36px;
+        padding: 0 14px;
+        border-radius: 4px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: transparent;
+        border: 1px solid rgba(255,255,255,0.15);
+        transition: all 0.2s;
+        position: relative;
+    }
+    .user-info::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 3px;
+        height: 60%;
+        background: var(--manager-blue);
+        border-radius: 0 2px 2px 0;
+        opacity: 0.8;
+    }
+    .user-info:hover {
+        background: rgba(255,255,255,0.05);
+        border-color: rgba(255,255,255,0.25);
+        transform: translateY(-2px);
+    }
+    .user-info .user-label {
+        font-size: 9px;
+        font-weight: 800;
+        color: rgba(255,255,255,0.4);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .user-info .user-name {
+        font-size: 13px;
+        font-weight: 700;
+        color: #fff;
+        max-width: 80px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        letter-spacing: 0.5px;
+    }
+    .user-info .edit-icon {
+        font-size: 9px;
+        color: rgba(255,255,255,0.3);
+        transition: all 0.2s;
+    }
+    .user-info:hover .edit-icon {
+        color: var(--manager-blue);
+    }
+    /* 移动端隐藏header中的用户信息 */
+    @media (max-width: 768px) {
+        .user-info { display: none; }
+    }
+
     /* 2. 移动端菜单触发器 */
     /* =========================================
            【统一】手机端菜单按钮样式 (Unified Menu Button)
@@ -4782,6 +4843,74 @@
             color: #e74c3c;
         }
 
+        /* 邀请链接区域样式 */
+        .invite-link-section {
+            background: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .invite-link-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .invite-link-box {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .invite-link-box input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 2px solid #3498db;
+            border-radius: 6px;
+            font-size: 13px;
+            background: #f8f9fa;
+            color: #2c3e50;
+            cursor: pointer;
+        }
+        .invite-link-box input:focus {
+            outline: none;
+            background: #fff;
+        }
+        .btn-copy-link {
+            padding: 10px 16px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .btn-copy-link:hover {
+            background: #2980b9;
+        }
+        .invite-progress-info {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #7f8c8d;
+        }
+        .invite-progress-info strong {
+            color: #3498db;
+        }
+        .invite-create-box {
+            text-align: center;
+            padding: 30px 20px;
+            background: #fff;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .invite-create-box p {
+            color: #7f8c8d;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
         /* 生成邀请码模态框 */
         .invite-modal-content {
             padding: 20px;
@@ -4829,6 +4958,13 @@
         
         <!-- 桌面端按钮组 -->
         <div class="btn-group">
+            <!-- 用户信息 -->
+            <div class="user-info" onclick="openNameModal()" title="点击修改昵称">
+                <span class="user-label">经理</span>
+                <span class="user-name" id="userName">新职员</span>
+                <i class="fas fa-pen edit-icon"></i>
+            </div>
+
             <!-- 分部信息 (仅桌面端显示) -->
             <div class="branch-info" id="branchInfo" style="display:none;">
                 <span class="branch-name"><i class="fas fa-building"></i> <span id="branchNameDisplay">--</span></span>
@@ -4883,6 +5019,13 @@
             <button class="side-menu-close" onclick="closeSideMenu()">&times;</button>
         </div>
         <div class="side-menu-content">
+            <!-- 用户信息 (移动端显示) -->
+            <div class="menu-item user" onclick="closeSideMenu(); openNameModal();" style="border-left: 3px solid var(--manager-blue);">
+                <i class="fas fa-user"></i>
+                <span id="userNameMobile">新职员</span>
+                <i class="fas fa-pen" style="margin-left:auto;font-size:10px;opacity:0.5;"></i>
+            </div>
+
             <!-- 管理台 (Role 2) -->
             <div class="menu-item admin" id="mobBtnAdmin" onclick="closeSideMenu(); goAdmin();" style="display:none;">
                 <i class="fas fa-shield-alt"></i> 管理台
@@ -5029,47 +5172,61 @@
     <div class="tab-content" id="tabInvitations">
         <div class="requisition-panel">
             <div class="requisition-header">
-                <h3><i class="fas fa-ticket-alt"></i> 邀请码管理</h3>
+                <h3><i class="fas fa-link"></i> 邀请链接</h3>
             </div>
 
-            <!-- 配额信息 -->
+            <!-- 邀请链接区域 -->
             <div class="invite-quota-panel" id="inviteQuotaPanel">
-                <div class="invite-quota-row">
-                    <div class="invite-quota-item">
-                        <div class="invite-quota-label">特工邀请码</div>
-                        <div class="invite-quota-value">
-                            <span id="agentQuotaUsed">0</span> / <span id="agentQuotaTotal">5</span>
+                <!-- 特工邀请链接 -->
+                <div id="agentInviteSection">
+                    <div class="invite-link-section" id="agentInviteLinkSection" style="display:none;">
+                        <div class="invite-link-label">我的邀请链接</div>
+                        <div class="invite-link-box">
+                            <input type="text" id="agentInviteLink" readonly onclick="this.select()">
+                            <button class="btn-copy-link" onclick="copyAgentInviteLink()">
+                                <i class="fas fa-copy"></i> 复制
+                            </button>
                         </div>
-                        <button class="btn-create-invite" onclick="createAgentInvite()">
-                            <i class="fas fa-plus"></i> 生成特工邀请码
-                        </button>
+                        <div class="invite-progress-info">
+                            <span>已邀请 <strong id="agentInviteUsed">0</strong> / <strong id="agentInviteMax">5</strong> 人</span>
+                        </div>
                     </div>
-                    <div class="invite-quota-item">
-                        <div class="invite-quota-label">经理邀请码奖励</div>
-                        <div class="invite-quota-value">
-                            <span id="managerCodesRemaining">0</span> 可用
+                    <div id="agentInviteCreateSection" style="display:none;">
+                        <div class="invite-create-box">
+                            <p>您还没有邀请链接，点击下方按钮生成</p>
+                            <button class="btn-create-invite" onclick="createAgentInvite()">
+                                <i class="fas fa-link"></i> 生成邀请链接
+                            </button>
                         </div>
-                        <button class="btn-create-invite manager" onclick="createManagerInvite()" id="btnCreateManagerInvite" disabled>
-                            <i class="fas fa-plus"></i> 生成经理邀请码
-                        </button>
                     </div>
                 </div>
+
+                <!-- 奖励进度 -->
                 <div class="invite-reward-info" id="inviteRewardInfo">
                     <i class="fas fa-gift"></i>
-                    <span>邀请码被使用 <strong id="rewardThreshold">3</strong> 次后可获得 <strong id="rewardAmount">1</strong> 个经理邀请码</span>
+                    <span>邀请满 <strong id="rewardThreshold">3</strong> 人可获得经理邀请码</span>
                     <span class="reward-progress">当前进度: <span id="rewardProgress">0</span>/<span id="rewardThreshold2">3</span></span>
+                </div>
+
+                <!-- 经理邀请码奖励 -->
+                <div id="managerInviteSection" style="display:none;margin-top:20px;padding-top:20px;border-top:1px solid #e0e0e0;">
+                    <div class="invite-quota-label" style="margin-bottom:10px;">
+                        <i class="fas fa-crown" style="color:#f39c12;"></i> 经理邀请码奖励
+                        <span style="font-weight:normal;color:#7f8c8d;margin-left:10px;">
+                            可用: <strong id="managerCodesRemaining">0</strong> 个
+                        </span>
+                    </div>
+                    <button class="btn-create-invite manager" onclick="createManagerInvite()" id="btnCreateManagerInvite" disabled>
+                        <i class="fas fa-plus"></i> 生成经理邀请码
+                    </button>
                 </div>
             </div>
 
-            <!-- 邀请码列表 -->
-            <div class="invite-list-header">
-                <h4><i class="fas fa-list"></i> 我的邀请码</h4>
+            <!-- 经理邀请码列表 -->
+            <div class="invite-list-header" id="managerCodeListHeader" style="display:none;">
+                <h4><i class="fas fa-crown"></i> 我的经理邀请码</h4>
             </div>
             <div id="inviteCodeList" class="invite-code-list">
-                <div class="requisition-empty">
-                    <i class="fas fa-ticket-alt" style="font-size:32px;margin-bottom:15px;opacity:0.3;"></i>
-                    <p>暂无邀请码</p>
-                </div>
             </div>
         </div>
     </div>
@@ -5312,6 +5469,27 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- 修改昵称模态框 -->
+<div class="modal-overlay" id="nameModal">
+    <div class="modal-box" style="background:linear-gradient(180deg, #1a252f 0%, #0f172a 100%);border:1px solid rgba(255,255,255,0.1);box-shadow:0 25px 80px rgba(0,0,0,0.5);max-width:400px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:15px;border-bottom:1px solid rgba(255,255,255,0.1);">
+            <div style="width:40px;height:40px;background:var(--manager-blue);border-radius:4px;display:flex;align-items:center;justify-content:center;">
+                <i class="fas fa-user-edit" style="color:white;font-size:16px;"></i>
+            </div>
+            <div>
+                <div style="color:white;font-size:16px;font-weight:800;letter-spacing:0.5px;">修改昵称</div>
+                <div style="color:rgba(255,255,255,0.4);font-size:10px;text-transform:uppercase;letter-spacing:1px;">Edit Callsign</div>
+            </div>
+        </div>
+        <input type="text" id="nameInput" placeholder="输入新昵称" maxlength="20"
+            style="width:100%;padding:14px;border:1px solid rgba(255,255,255,0.15);border-radius:4px;font-size:14px;box-sizing:border-box;margin-bottom:20px;background:rgba(0,0,0,0.3);color:white;font-weight:600;">
+        <div style="display:flex;gap:12px;">
+            <button style="flex:1;padding:14px;border:1px solid rgba(255,255,255,0.15);background:transparent;cursor:pointer;border-radius:4px;font-weight:bold;color:rgba(255,255,255,0.7);text-transform:uppercase;font-size:12px;letter-spacing:1px;transition:all 0.2s;" onclick="closeNameModal()" onmouseover="this.style.background='rgba(255,255,255,0.05)';this.style.color='white'" onmouseout="this.style.background='transparent';this.style.color='rgba(255,255,255,0.7)'">取消</button>
+            <button style="flex:1;padding:14px;border:none;background:var(--manager-blue);color:white;cursor:pointer;border-radius:4px;font-weight:bold;text-transform:uppercase;font-size:12px;letter-spacing:1px;transition:all 0.2s;" onclick="saveName()" onmouseover="this.style.background='var(--manager-blue-dark)'" onmouseout="this.style.background='var(--manager-blue)'">保存</button>
+        </div>
+    </div>
+</div>
 
 <!-- 槽位管理弹窗 -->
 <div class="modal-overlay" id="slotModal">
@@ -6073,6 +6251,66 @@
         localStorage.clear();
         window.location.href = 'login.html';
     }
+
+    // === 用户昵称管理 ===
+    // 初始化显示用户昵称
+    (function initUserName() {
+        const name = localStorage.getItem('ta_name') || '新职员';
+        const userNameEl = document.getElementById('userName');
+        const userNameMobileEl = document.getElementById('userNameMobile');
+        if (userNameEl) userNameEl.textContent = name;
+        if (userNameMobileEl) userNameMobileEl.textContent = name;
+    })();
+
+    // 打开修改昵称模态框
+    function openNameModal() {
+        const currentName = localStorage.getItem('ta_name') || '';
+        document.getElementById('nameInput').value = currentName === '新职员' ? '' : currentName;
+        document.getElementById('nameModal').classList.add('show');
+        document.getElementById('nameInput').focus();
+    }
+
+    // 关闭修改昵称模态框
+    function closeNameModal() {
+        document.getElementById('nameModal').classList.remove('show');
+    }
+
+    // 保存昵称
+    async function saveName() {
+        const newName = document.getElementById('nameInput').value.trim();
+        if (!newName) {
+            showToast('请输入昵称');
+            return;
+        }
+        try {
+            const res = await fetch('/api/user/name', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ name: newName })
+            });
+            if (res.status === 401) { logout(); return; }
+            const data = await res.json();
+            if (data.success) {
+                localStorage.setItem('ta_name', newName);
+                document.getElementById('userName').textContent = newName;
+                document.getElementById('userNameMobile').textContent = newName;
+                closeNameModal();
+                showToast('昵称已更新', true);
+            } else {
+                showToast(data.error || '更新失败');
+            }
+        } catch (e) {
+            showToast('网络错误');
+        }
+    }
+
+    // 按Enter键保存昵称
+    document.getElementById('nameInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') saveName();
+    });
 
     // 移除授权
     async function removeAuthorization(authId, charName) {
@@ -10072,43 +10310,55 @@
                 return;
             }
 
-            // 更新配额显示
             const q = data.quota;
-            document.getElementById('agentQuotaUsed').textContent = q.agentQuotaUsed;
-            document.getElementById('agentQuotaTotal').textContent = q.agentQuota;
-            document.getElementById('managerCodesRemaining').textContent = q.managerCodesRemaining;
+            const codes = data.codes || [];
+
+            // 查找特工邀请码（每个经理只能有1个）
+            const agentCode = codes.find(c => c.grant_role === 0);
+            // 经理邀请码列表
+            const managerCodes = codes.filter(c => c.grant_role === 1);
+
+            // 更新特工邀请链接区域
+            if (agentCode) {
+                document.getElementById('agentInviteLinkSection').style.display = 'block';
+                document.getElementById('agentInviteCreateSection').style.display = 'none';
+
+                // 生成邀请链接
+                const inviteUrl = `${window.location.origin}/register.html?code=${agentCode.code}`;
+                document.getElementById('agentInviteLink').value = inviteUrl;
+                document.getElementById('agentInviteUsed').textContent = agentCode.used_count;
+                document.getElementById('agentInviteMax').textContent = agentCode.max_uses;
+            } else {
+                document.getElementById('agentInviteLinkSection').style.display = 'none';
+                document.getElementById('agentInviteCreateSection').style.display = 'block';
+            }
+
+            // 更新奖励进度
             document.getElementById('rewardThreshold').textContent = q.rewardThreshold;
             document.getElementById('rewardThreshold2').textContent = q.rewardThreshold;
-            document.getElementById('rewardAmount').textContent = q.rewardAmount;
             document.getElementById('rewardProgress').textContent = q.totalInvitesUsed;
 
-            // 更新按钮状态
-            const btnAgent = document.querySelector('.btn-create-invite:not(.manager)');
-            const btnManager = document.getElementById('btnCreateManagerInvite');
-
-            if (q.agentQuotaRemaining <= 0) {
-                btnAgent.disabled = true;
-            } else {
-                btnAgent.disabled = false;
-            }
-
-            if (q.managerCodesRemaining > 0) {
-                btnManager.disabled = false;
-            } else {
-                btnManager.disabled = true;
-            }
-
-            // 如果已获得奖励，更新显示
+            // 如果已获得奖励
             if (q.rewardClaimed) {
                 document.getElementById('inviteRewardInfo').innerHTML = `
                     <i class="fas fa-check-circle" style="color:#27ae60;"></i>
-                    <span>已获得 <strong>${q.rewardAmount}</strong> 个经理邀请码奖励</span>
-                    <span class="reward-progress" style="color:#27ae60;">已领取</span>
+                    <span>已获得经理邀请码奖励</span>
+                    <span class="reward-progress" style="color:#27ae60;">已达成</span>
                 `;
             }
 
-            // 渲染邀请码列表
-            renderInvitationCodes(data.codes);
+            // 更新经理邀请码区域
+            const btnManager = document.getElementById('btnCreateManagerInvite');
+            if (q.managerCodesRemaining > 0 || managerCodes.length > 0) {
+                document.getElementById('managerInviteSection').style.display = 'block';
+                document.getElementById('managerCodesRemaining').textContent = q.managerCodesRemaining;
+                btnManager.disabled = q.managerCodesRemaining <= 0;
+            } else {
+                document.getElementById('managerInviteSection').style.display = 'none';
+            }
+
+            // 渲染经理邀请码列表
+            renderManagerCodes(managerCodes);
 
         } catch (e) {
             console.error('加载邀请码失败:', e);
@@ -10116,48 +10366,40 @@
         }
     }
 
-    function renderInvitationCodes(codes) {
+    function renderManagerCodes(codes) {
         const container = document.getElementById('inviteCodeList');
+        const header = document.getElementById('managerCodeListHeader');
 
         if (!codes || codes.length === 0) {
-            container.innerHTML = `
-                <div class="requisition-empty">
-                    <i class="fas fa-ticket-alt" style="font-size:32px;margin-bottom:15px;opacity:0.3;"></i>
-                    <p>暂无邀请码</p>
-                </div>
-            `;
+            container.innerHTML = '';
+            header.style.display = 'none';
             return;
         }
 
+        header.style.display = 'block';
         container.innerHTML = codes.map(code => {
-            const isManager = code.grant_role === 1;
             const isExpired = code.expires_at && code.expires_at < Date.now();
             const isUsedUp = code.max_uses > 0 && code.used_count >= code.max_uses;
             const isDisabled = !code.is_active || isExpired || isUsedUp;
-            const typeClass = isManager ? 'manager-type' : 'agent-type';
-            const typeLabel = isManager ? '经理' : '特工';
-            const typeBadgeClass = isManager ? 'manager' : 'agent';
 
             let statusText = '';
             if (!code.is_active) statusText = '已禁用';
             else if (isExpired) statusText = '已过期';
             else if (isUsedUp) statusText = '已用完';
-            else statusText = `${code.used_count}/${code.max_uses || '∞'} 次`;
+            else statusText = `${code.used_count}/${code.max_uses} 次`;
+
+            const inviteUrl = `${window.location.origin}/register.html?code=${code.code}`;
 
             return `
-                <div class="invite-code-card ${typeClass} ${isDisabled ? 'disabled' : ''}">
-                    <div class="invite-code-main">${code.code}</div>
+                <div class="invite-code-card manager-type ${isDisabled ? 'disabled' : ''}">
+                    <div class="invite-code-main" style="font-size:12px;word-break:break-all;">${inviteUrl}</div>
                     <div class="invite-code-info">
-                        <span class="invite-code-type ${typeBadgeClass}">${typeLabel}</span>
+                        <span class="invite-code-type manager">经理</span>
                         <span>使用: ${statusText}</span>
-                        <span style="margin-left:10px;">创建于: ${formatDate(code.created_at)}</span>
                     </div>
                     <div class="invite-code-actions">
-                        <button class="btn-copy" onclick="copyInviteCode('${code.code}')">
-                            <i class="fas fa-copy"></i> 复制
-                        </button>
-                        <button class="btn-delete" onclick="deleteInviteCode(${code.id})">
-                            <i class="fas fa-trash"></i>
+                        <button class="btn-copy" onclick="copyToClipboard('${inviteUrl}')">
+                            <i class="fas fa-copy"></i> 复制链接
                         </button>
                     </div>
                 </div>
@@ -10171,37 +10413,38 @@
         return `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
     }
 
-    function copyInviteCode(code) {
+    function copyToClipboard(text) {
         if (navigator.clipboard) {
-            navigator.clipboard.writeText(code).then(() => {
-                showToast('邀请码已复制', true);
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('已复制到剪贴板', true);
             });
         } else {
-            // 降级方案
             const input = document.createElement('input');
-            input.value = code;
+            input.value = text;
             document.body.appendChild(input);
             input.select();
             document.execCommand('copy');
             document.body.removeChild(input);
-            showToast('邀请码已复制', true);
+            showToast('已复制到剪贴板', true);
         }
     }
 
-    async function createAgentInvite() {
-        const maxUses = prompt('请输入邀请码可使用次数（留空为1次）:', '1');
-        if (maxUses === null) return;
+    function copyAgentInviteLink() {
+        const link = document.getElementById('agentInviteLink').value;
+        copyToClipboard(link);
+    }
 
+    async function createAgentInvite() {
         try {
             const res = await fetch('/api/manager/invitation-codes', {
                 method: 'POST',
                 headers: getAuthHeaders(),
-                body: JSON.stringify({ maxUses: parseInt(maxUses) || 1 })
+                body: JSON.stringify({})
             });
             const data = await res.json();
 
             if (data.success) {
-                showToast('特工邀请码创建成功: ' + data.code, true);
+                showToast('邀请链接创建成功', true);
                 loadInvitationCodes();
             } else {
                 showToast(data.message || '创建失败');
@@ -10212,46 +10455,22 @@
     }
 
     async function createManagerInvite() {
-        const maxUses = prompt('请输入邀请码可使用次数（留空为1次）:', '1');
-        if (maxUses === null) return;
-
         try {
             const res = await fetch('/api/manager/manager-codes', {
                 method: 'POST',
                 headers: getAuthHeaders(),
-                body: JSON.stringify({ maxUses: parseInt(maxUses) || 1 })
+                body: JSON.stringify({})
             });
             const data = await res.json();
 
             if (data.success) {
-                showToast('经理邀请码创建成功: ' + data.code, true);
+                showToast('经理邀请码创建成功', true);
                 loadInvitationCodes();
             } else {
                 showToast(data.message || '创建失败');
             }
         } catch (e) {
             showToast('创建失败');
-        }
-    }
-
-    async function deleteInviteCode(id) {
-        if (!confirm('确定要删除这个邀请码吗？')) return;
-
-        try {
-            const res = await fetch('/api/manager/invitation-codes/' + id, {
-                method: 'DELETE',
-                headers: getAuthHeaders()
-            });
-            const data = await res.json();
-
-            if (data.success) {
-                showToast('邀请码已删除', true);
-                loadInvitationCodes();
-            } else {
-                showToast(data.message || '删除失败');
-            }
-        } catch (e) {
-            showToast('删除失败');
         }
     }
 
