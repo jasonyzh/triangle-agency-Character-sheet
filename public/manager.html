@@ -4617,6 +4617,193 @@
                 width: 100%;
             }
         }
+
+        /* ========== 邀请码管理样式 ========== */
+        .invite-quota-panel {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .invite-quota-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .invite-quota-item {
+            flex: 1;
+            min-width: 200px;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .invite-quota-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .invite-quota-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 12px;
+        }
+        .btn-create-invite {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        .btn-create-invite:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(52,152,219,0.3);
+        }
+        .btn-create-invite:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .btn-create-invite.manager {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        }
+        .btn-create-invite.manager:hover:not(:disabled) {
+            box-shadow: 0 4px 12px rgba(155,89,182,0.3);
+        }
+        .invite-reward-info {
+            margin-top: 15px;
+            padding: 12px;
+            background: rgba(241,196,15,0.1);
+            border-radius: 8px;
+            font-size: 13px;
+            color: #7f8c8d;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .invite-reward-info i {
+            color: #f1c40f;
+        }
+        .invite-reward-info strong {
+            color: #e67e22;
+        }
+        .reward-progress {
+            margin-left: auto;
+            background: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+            color: #27ae60;
+        }
+        .invite-list-header {
+            margin: 20px 0 15px;
+        }
+        .invite-list-header h4 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+        .invite-code-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .invite-code-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .invite-code-card.disabled {
+            opacity: 0.5;
+        }
+        .invite-code-card.manager-type {
+            border-left: 4px solid #9b59b6;
+        }
+        .invite-code-card.agent-type {
+            border-left: 4px solid #3498db;
+        }
+        .invite-code-main {
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            font-weight: 700;
+            color: #2c3e50;
+            letter-spacing: 2px;
+        }
+        .invite-code-info {
+            flex: 1;
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+        .invite-code-type {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+        .invite-code-type.agent {
+            background: rgba(52,152,219,0.1);
+            color: #3498db;
+        }
+        .invite-code-type.manager {
+            background: rgba(155,89,182,0.1);
+            color: #9b59b6;
+        }
+        .invite-code-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .invite-code-actions button {
+            background: #f0f0f0;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .invite-code-actions button:hover {
+            background: #e0e0e0;
+        }
+        .invite-code-actions .btn-copy {
+            color: #3498db;
+        }
+        .invite-code-actions .btn-delete {
+            color: #e74c3c;
+        }
+
+        /* 生成邀请码模态框 */
+        .invite-modal-content {
+            padding: 20px;
+        }
+        .invite-modal-content label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .invite-modal-content input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .invite-modal-content .desc {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
 	</style>
 </head>
 <body>
@@ -4737,6 +4924,9 @@
         <button class="main-tab" onclick="switchMainTab('publicpool')" data-tab="publicpool">
             <i class="fas fa-store"></i> 公共申领物池
         </button>
+        <button class="main-tab" onclick="switchMainTab('invitations')" data-tab="invitations" id="tabBtnInvitations" style="display:none;">
+            <i class="fas fa-ticket-alt"></i> 邀请码
+        </button>
     </div>
 
     <!-- ========== 页面1: 已授权角色档案 ========== -->
@@ -4830,6 +5020,55 @@
                 <div class="requisition-empty">
                     <i class="fas fa-circle-notch fa-spin" style="font-size:32px;margin-bottom:15px;"></i>
                     <p>加载中...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 页面5: 邀请码管理 ========== -->
+    <div class="tab-content" id="tabInvitations">
+        <div class="requisition-panel">
+            <div class="requisition-header">
+                <h3><i class="fas fa-ticket-alt"></i> 邀请码管理</h3>
+            </div>
+
+            <!-- 配额信息 -->
+            <div class="invite-quota-panel" id="inviteQuotaPanel">
+                <div class="invite-quota-row">
+                    <div class="invite-quota-item">
+                        <div class="invite-quota-label">特工邀请码</div>
+                        <div class="invite-quota-value">
+                            <span id="agentQuotaUsed">0</span> / <span id="agentQuotaTotal">5</span>
+                        </div>
+                        <button class="btn-create-invite" onclick="createAgentInvite()">
+                            <i class="fas fa-plus"></i> 生成特工邀请码
+                        </button>
+                    </div>
+                    <div class="invite-quota-item">
+                        <div class="invite-quota-label">经理邀请码奖励</div>
+                        <div class="invite-quota-value">
+                            <span id="managerCodesRemaining">0</span> 可用
+                        </div>
+                        <button class="btn-create-invite manager" onclick="createManagerInvite()" id="btnCreateManagerInvite" disabled>
+                            <i class="fas fa-plus"></i> 生成经理邀请码
+                        </button>
+                    </div>
+                </div>
+                <div class="invite-reward-info" id="inviteRewardInfo">
+                    <i class="fas fa-gift"></i>
+                    <span>邀请码被使用 <strong id="rewardThreshold">3</strong> 次后可获得 <strong id="rewardAmount">1</strong> 个经理邀请码</span>
+                    <span class="reward-progress">当前进度: <span id="rewardProgress">0</span>/<span id="rewardThreshold2">3</span></span>
+                </div>
+            </div>
+
+            <!-- 邀请码列表 -->
+            <div class="invite-list-header">
+                <h4><i class="fas fa-list"></i> 我的邀请码</h4>
+            </div>
+            <div id="inviteCodeList" class="invite-code-list">
+                <div class="requisition-empty">
+                    <i class="fas fa-ticket-alt" style="font-size:32px;margin-bottom:15px;opacity:0.3;"></i>
+                    <p>暂无邀请码</p>
                 </div>
             </div>
         </div>
@@ -7369,7 +7608,8 @@
             'characters': 'tabCharacters',
             'missions': 'tabMissions',
             'requisitions': 'tabRequisitions',
-            'publicpool': 'tabPublicpool'
+            'publicpool': 'tabPublicpool',
+            'invitations': 'tabInvitations'
         };
 
         const targetTab = document.getElementById(tabMap[tabName]);
@@ -7390,6 +7630,11 @@
         // 切换到公共池页时加载公共池物品
         if (tabName === 'publicpool') {
             loadPublicPool();
+        }
+
+        // 切换到邀请码页时加载邀请码
+        if (tabName === 'invitations') {
+            loadInvitationCodes();
         }
     }
 
@@ -9796,6 +10041,239 @@
             showToast('删除失败');
         }
     }
+
+    // ==========================================
+    // 邀请码管理
+    // ==========================================
+
+    let invitationData = null;
+
+    async function loadInvitationCodes() {
+        try {
+            const res = await fetch('/api/manager/invitation-codes', { headers: getAuthHeaders() });
+            const data = await res.json();
+
+            if (!data.success) {
+                showToast(data.message || '加载失败');
+                return;
+            }
+
+            invitationData = data;
+
+            // 如果邀请码功能未开启，隐藏标签页
+            if (!data.enabled) {
+                document.getElementById('tabBtnInvitations').style.display = 'none';
+                document.getElementById('inviteQuotaPanel').innerHTML = `
+                    <div style="text-align:center;padding:40px;color:#7f8c8d;">
+                        <i class="fas fa-info-circle" style="font-size:32px;margin-bottom:15px;"></i>
+                        <p>邀请码注册功能未开启</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // 更新配额显示
+            const q = data.quota;
+            document.getElementById('agentQuotaUsed').textContent = q.agentQuotaUsed;
+            document.getElementById('agentQuotaTotal').textContent = q.agentQuota;
+            document.getElementById('managerCodesRemaining').textContent = q.managerCodesRemaining;
+            document.getElementById('rewardThreshold').textContent = q.rewardThreshold;
+            document.getElementById('rewardThreshold2').textContent = q.rewardThreshold;
+            document.getElementById('rewardAmount').textContent = q.rewardAmount;
+            document.getElementById('rewardProgress').textContent = q.totalInvitesUsed;
+
+            // 更新按钮状态
+            const btnAgent = document.querySelector('.btn-create-invite:not(.manager)');
+            const btnManager = document.getElementById('btnCreateManagerInvite');
+
+            if (q.agentQuotaRemaining <= 0) {
+                btnAgent.disabled = true;
+            } else {
+                btnAgent.disabled = false;
+            }
+
+            if (q.managerCodesRemaining > 0) {
+                btnManager.disabled = false;
+            } else {
+                btnManager.disabled = true;
+            }
+
+            // 如果已获得奖励，更新显示
+            if (q.rewardClaimed) {
+                document.getElementById('inviteRewardInfo').innerHTML = `
+                    <i class="fas fa-check-circle" style="color:#27ae60;"></i>
+                    <span>已获得 <strong>${q.rewardAmount}</strong> 个经理邀请码奖励</span>
+                    <span class="reward-progress" style="color:#27ae60;">已领取</span>
+                `;
+            }
+
+            // 渲染邀请码列表
+            renderInvitationCodes(data.codes);
+
+        } catch (e) {
+            console.error('加载邀请码失败:', e);
+            showToast('加载邀请码失败');
+        }
+    }
+
+    function renderInvitationCodes(codes) {
+        const container = document.getElementById('inviteCodeList');
+
+        if (!codes || codes.length === 0) {
+            container.innerHTML = `
+                <div class="requisition-empty">
+                    <i class="fas fa-ticket-alt" style="font-size:32px;margin-bottom:15px;opacity:0.3;"></i>
+                    <p>暂无邀请码</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = codes.map(code => {
+            const isManager = code.grant_role === 1;
+            const isExpired = code.expires_at && code.expires_at < Date.now();
+            const isUsedUp = code.max_uses > 0 && code.used_count >= code.max_uses;
+            const isDisabled = !code.is_active || isExpired || isUsedUp;
+            const typeClass = isManager ? 'manager-type' : 'agent-type';
+            const typeLabel = isManager ? '经理' : '特工';
+            const typeBadgeClass = isManager ? 'manager' : 'agent';
+
+            let statusText = '';
+            if (!code.is_active) statusText = '已禁用';
+            else if (isExpired) statusText = '已过期';
+            else if (isUsedUp) statusText = '已用完';
+            else statusText = `${code.used_count}/${code.max_uses || '∞'} 次`;
+
+            return `
+                <div class="invite-code-card ${typeClass} ${isDisabled ? 'disabled' : ''}">
+                    <div class="invite-code-main">${code.code}</div>
+                    <div class="invite-code-info">
+                        <span class="invite-code-type ${typeBadgeClass}">${typeLabel}</span>
+                        <span>使用: ${statusText}</span>
+                        <span style="margin-left:10px;">创建于: ${formatDate(code.created_at)}</span>
+                    </div>
+                    <div class="invite-code-actions">
+                        <button class="btn-copy" onclick="copyInviteCode('${code.code}')">
+                            <i class="fas fa-copy"></i> 复制
+                        </button>
+                        <button class="btn-delete" onclick="deleteInviteCode(${code.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function formatDate(timestamp) {
+        if (!timestamp) return '-';
+        const d = new Date(timestamp);
+        return `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+    }
+
+    function copyInviteCode(code) {
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(code).then(() => {
+                showToast('邀请码已复制', true);
+            });
+        } else {
+            // 降级方案
+            const input = document.createElement('input');
+            input.value = code;
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand('copy');
+            document.body.removeChild(input);
+            showToast('邀请码已复制', true);
+        }
+    }
+
+    async function createAgentInvite() {
+        const maxUses = prompt('请输入邀请码可使用次数（留空为1次）:', '1');
+        if (maxUses === null) return;
+
+        try {
+            const res = await fetch('/api/manager/invitation-codes', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ maxUses: parseInt(maxUses) || 1 })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                showToast('特工邀请码创建成功: ' + data.code, true);
+                loadInvitationCodes();
+            } else {
+                showToast(data.message || '创建失败');
+            }
+        } catch (e) {
+            showToast('创建失败');
+        }
+    }
+
+    async function createManagerInvite() {
+        const maxUses = prompt('请输入邀请码可使用次数（留空为1次）:', '1');
+        if (maxUses === null) return;
+
+        try {
+            const res = await fetch('/api/manager/manager-codes', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ maxUses: parseInt(maxUses) || 1 })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                showToast('经理邀请码创建成功: ' + data.code, true);
+                loadInvitationCodes();
+            } else {
+                showToast(data.message || '创建失败');
+            }
+        } catch (e) {
+            showToast('创建失败');
+        }
+    }
+
+    async function deleteInviteCode(id) {
+        if (!confirm('确定要删除这个邀请码吗？')) return;
+
+        try {
+            const res = await fetch('/api/manager/invitation-codes/' + id, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                showToast('邀请码已删除', true);
+                loadInvitationCodes();
+            } else {
+                showToast(data.message || '删除失败');
+            }
+        } catch (e) {
+            showToast('删除失败');
+        }
+    }
+
+    // 页面加载时检查邀请码功能是否可用
+    async function checkInvitationFeature() {
+        try {
+            const res = await fetch('/api/manager/invitation-codes', { headers: getAuthHeaders() });
+            const data = await res.json();
+
+            if (data.success && data.enabled) {
+                document.getElementById('tabBtnInvitations').style.display = '';
+            }
+        } catch (e) {
+            // 忽略错误
+        }
+    }
+
+    // 在页面加载时调用
+    document.addEventListener('DOMContentLoaded', function() {
+        // 延迟检查邀请码功能
+        setTimeout(checkInvitationFeature, 500);
+    });
 </script>
 </body>
 </html>

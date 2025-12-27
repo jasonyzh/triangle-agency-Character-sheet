@@ -422,6 +422,17 @@ db.serialize(() => {
         }
     });
 
+    // 经理邀请码配额表
+    db.run(`CREATE TABLE IF NOT EXISTS manager_invite_quota (
+        manager_id INTEGER PRIMARY KEY,
+        agent_quota_used INTEGER DEFAULT 0,
+        manager_codes_earned INTEGER DEFAULT 0,
+        manager_codes_used INTEGER DEFAULT 0,
+        total_invites_used INTEGER DEFAULT 0,
+        reward_claimed INTEGER DEFAULT 0,
+        FOREIGN KEY(manager_id) REFERENCES users(id) ON DELETE CASCADE
+    )`);
+
     // ==========================================
     // 公共申领物池系统表
     // ==========================================
@@ -603,7 +614,10 @@ db.serialize(() => {
         ['smtp_user', ''],
         ['smtp_pass', ''],
         ['smtp_from', ''],
-        ['smtp_secure', 'false']
+        ['smtp_secure', 'false'],
+        ['manager_invite_quota', '5'],        // 每个经理可生成的特工邀请码数量
+        ['manager_reward_threshold', '3'],    // 触发奖励的邀请码使用次数
+        ['manager_reward_amount', '1']        // 奖励的经理邀请码数量
     ];
 
     defaultConfigs.forEach(([key, value]) => {
@@ -741,6 +755,70 @@ function generateShortCode(length = 8) {
         result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return result;
+}
+
+// 检查并发放经理邀请码奖励（一次性）
+async function checkAndGrantManagerReward(creatorId) {
+    try {
+        // 检查创建者是否是经理
+        const creator = await new Promise((resolve, reject) => {
+            db.get('SELECT role FROM users WHERE id = ?', [creatorId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!creator || creator.role < ROLE.MANAGER) {
+            return; // 不是经理，不处理奖励
+        }
+
+        // 获取配置
+        const threshold = parseInt(await getConfig('manager_reward_threshold')) || 3;
+        const rewardAmount = parseInt(await getConfig('manager_reward_amount')) || 1;
+
+        // 获取或创建配额记录
+        let quotaRecord = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM manager_invite_quota WHERE manager_id = ?', [creatorId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!quotaRecord) {
+            await new Promise((resolve, reject) => {
+                db.run('INSERT INTO manager_invite_quota (manager_id, total_invites_used) VALUES (?, 1)',
+                    [creatorId], (err) => {
+                        if (err) reject(err);
+                        else resolve();
+                    });
+            });
+            quotaRecord = { total_invites_used: 1, reward_claimed: 0 };
+        } else {
+            // 更新使用次数
+            await new Promise((resolve, reject) => {
+                db.run('UPDATE manager_invite_quota SET total_invites_used = total_invites_used + 1 WHERE manager_id = ?',
+                    [creatorId], (err) => {
+                        if (err) reject(err);
+                        else resolve();
+                    });
+            });
+            quotaRecord.total_invites_used += 1;
+        }
+
+        // 检查是否达到奖励阈值且未领取过奖励
+        if (quotaRecord.total_invites_used >= threshold && quotaRecord.reward_claimed === 0) {
+            await new Promise((resolve, reject) => {
+                db.run('UPDATE manager_invite_quota SET manager_codes_earned = ?, reward_claimed = 1 WHERE manager_id = ?',
+                    [rewardAmount, creatorId], (err) => {
+                        if (err) reject(err);
+                        else resolve();
+                    });
+            });
+            console.log(`经理 ${creatorId} 获得了 ${rewardAmount} 个经理邀请码奖励`);
+        }
+    } catch (err) {
+        console.error('检查经理奖励失败:', err);
+    }
 }
 
 // 生成6位数字验证码
@@ -1073,6 +1151,9 @@ app.post('/api/register/verify', async (req, res) => {
                     db.run('UPDATE invitation_codes SET used_count = used_count + 1 WHERE id = ?', [validInvitation.id]);
                     db.run('INSERT INTO invitation_uses (code_id, used_by, used_at) VALUES (?, ?, ?)',
                         [validInvitation.id, userId, Date.now()]);
+
+                    // 检查并发放经理邀请码奖励
+                    checkAndGrantManagerReward(validInvitation.created_by);
                 }
 
                 res.json({ success: true, message: '注册成功' });
@@ -1959,6 +2040,261 @@ app.post('/api/auth/claim', authenticateToken, requireRole(ROLE.MANAGER), (req, 
                 });
             });
     });
+});
+
+// ==========================================
+// 经理邀请码管理API
+// ==========================================
+
+// 获取经理的邀请码列表和配额信息
+app.get('/api/manager/invitation-codes', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    try {
+        const managerId = req.user.userId;
+
+        // 检查邀请码注册是否开启
+        const invitationRequired = await getConfig('invitation_required');
+        if (invitationRequired !== 'true') {
+            return res.json({
+                success: true,
+                enabled: false,
+                message: '邀请码注册未开启'
+            });
+        }
+
+        // 获取配置
+        const quota = parseInt(await getConfig('manager_invite_quota')) || 5;
+        const threshold = parseInt(await getConfig('manager_reward_threshold')) || 3;
+        const rewardAmount = parseInt(await getConfig('manager_reward_amount')) || 1;
+
+        // 获取或创建经理配额记录
+        const quotaRecord = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM manager_invite_quota WHERE manager_id = ?', [managerId], (err, row) => {
+                if (err) reject(err);
+                else if (row) resolve(row);
+                else {
+                    db.run('INSERT INTO manager_invite_quota (manager_id) VALUES (?)', [managerId], function(err) {
+                        if (err) reject(err);
+                        else resolve({
+                            manager_id: managerId,
+                            agent_quota_used: 0,
+                            manager_codes_earned: 0,
+                            manager_codes_used: 0,
+                            total_invites_used: 0,
+                            reward_claimed: 0
+                        });
+                    });
+                }
+            });
+        });
+
+        // 获取经理创建的邀请码列表
+        const codes = await new Promise((resolve, reject) => {
+            db.all(`SELECT ic.*, u.username as created_by_username, u.name as created_by_name
+                    FROM invitation_codes ic
+                    LEFT JOIN users u ON ic.created_by = u.id
+                    WHERE ic.created_by = ?
+                    ORDER BY ic.created_at DESC`, [managerId], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
+            });
+        });
+
+        // 获取每个邀请码的使用记录
+        for (let code of codes) {
+            code.uses = await new Promise((resolve, reject) => {
+                db.all(`SELECT iu.*, u.username, u.name
+                        FROM invitation_uses iu
+                        LEFT JOIN users u ON iu.used_by = u.id
+                        WHERE iu.code_id = ?`, [code.id], (err, rows) => {
+                    if (err) reject(err);
+                    else resolve(rows || []);
+                });
+            });
+        }
+
+        res.json({
+            success: true,
+            enabled: true,
+            quota: {
+                agentQuota: quota,
+                agentQuotaUsed: quotaRecord.agent_quota_used,
+                agentQuotaRemaining: quota - quotaRecord.agent_quota_used,
+                managerCodesEarned: quotaRecord.manager_codes_earned,
+                managerCodesUsed: quotaRecord.manager_codes_used,
+                managerCodesRemaining: quotaRecord.manager_codes_earned - quotaRecord.manager_codes_used,
+                totalInvitesUsed: quotaRecord.total_invites_used,
+                rewardClaimed: quotaRecord.reward_claimed === 1,
+                rewardThreshold: threshold,
+                rewardAmount: rewardAmount
+            },
+            codes: codes
+        });
+    } catch (err) {
+        console.error('获取经理邀请码失败:', err);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// 经理生成特工邀请码
+app.post('/api/manager/invitation-codes', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    try {
+        const managerId = req.user.userId;
+        const { maxUses } = req.body;
+
+        // 检查邀请码注册是否开启
+        const invitationRequired = await getConfig('invitation_required');
+        if (invitationRequired !== 'true') {
+            return res.status(400).json({ success: false, message: '邀请码注册未开启' });
+        }
+
+        // 获取配额
+        const quota = parseInt(await getConfig('manager_invite_quota')) || 5;
+
+        // 获取经理配额记录
+        const quotaRecord = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM manager_invite_quota WHERE manager_id = ?', [managerId], (err, row) => {
+                if (err) reject(err);
+                else if (row) resolve(row);
+                else {
+                    db.run('INSERT INTO manager_invite_quota (manager_id) VALUES (?)', [managerId], function(err) {
+                        if (err) reject(err);
+                        else resolve({ agent_quota_used: 0 });
+                    });
+                }
+            });
+        });
+
+        // 检查配额
+        if (quotaRecord.agent_quota_used >= quota) {
+            return res.status(400).json({ success: false, message: '特工邀请码配额已用完' });
+        }
+
+        // 生成邀请码
+        const code = generateShortCode(8);
+        const now = Date.now();
+
+        await new Promise((resolve, reject) => {
+            db.run(`INSERT INTO invitation_codes (code, created_by, max_uses, used_count, is_active, expires_at, created_at, grant_role)
+                    VALUES (?, ?, ?, 0, 1, NULL, ?, 0)`,
+                [code, managerId, maxUses || 1, now], function(err) {
+                    if (err) reject(err);
+                    else resolve(this.lastID);
+                });
+        });
+
+        // 更新配额使用
+        await new Promise((resolve, reject) => {
+            db.run('UPDATE manager_invite_quota SET agent_quota_used = agent_quota_used + 1 WHERE manager_id = ?',
+                [managerId], (err) => {
+                    if (err) reject(err);
+                    else resolve();
+                });
+        });
+
+        res.json({
+            success: true,
+            code: code,
+            message: '特工邀请码创建成功'
+        });
+    } catch (err) {
+        console.error('创建特工邀请码失败:', err);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// 经理生成经理邀请码（使用奖励配额）
+app.post('/api/manager/manager-codes', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    try {
+        const managerId = req.user.userId;
+        const { maxUses } = req.body;
+
+        // 检查邀请码注册是否开启
+        const invitationRequired = await getConfig('invitation_required');
+        if (invitationRequired !== 'true') {
+            return res.status(400).json({ success: false, message: '邀请码注册未开启' });
+        }
+
+        // 获取经理配额记录
+        const quotaRecord = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM manager_invite_quota WHERE manager_id = ?', [managerId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!quotaRecord) {
+            return res.status(400).json({ success: false, message: '没有可用的经理邀请码配额' });
+        }
+
+        const remaining = quotaRecord.manager_codes_earned - quotaRecord.manager_codes_used;
+        if (remaining <= 0) {
+            return res.status(400).json({ success: false, message: '经理邀请码配额已用完' });
+        }
+
+        // 生成经理邀请码
+        const code = generateShortCode(8);
+        const now = Date.now();
+
+        await new Promise((resolve, reject) => {
+            db.run(`INSERT INTO invitation_codes (code, created_by, max_uses, used_count, is_active, expires_at, created_at, grant_role)
+                    VALUES (?, ?, ?, 0, 1, NULL, ?, 1)`,
+                [code, managerId, maxUses || 1, now], function(err) {
+                    if (err) reject(err);
+                    else resolve(this.lastID);
+                });
+        });
+
+        // 更新经理邀请码使用数
+        await new Promise((resolve, reject) => {
+            db.run('UPDATE manager_invite_quota SET manager_codes_used = manager_codes_used + 1 WHERE manager_id = ?',
+                [managerId], (err) => {
+                    if (err) reject(err);
+                    else resolve();
+                });
+        });
+
+        res.json({
+            success: true,
+            code: code,
+            message: '经理邀请码创建成功'
+        });
+    } catch (err) {
+        console.error('创建经理邀请码失败:', err);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
+});
+
+// 经理删除自己的邀请码
+app.delete('/api/manager/invitation-codes/:id', authenticateToken, requireRole(ROLE.MANAGER), async (req, res) => {
+    try {
+        const managerId = req.user.userId;
+        const codeId = req.params.id;
+
+        // 检查邀请码是否属于该经理
+        const code = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM invitation_codes WHERE id = ? AND created_by = ?', [codeId, managerId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!code) {
+            return res.status(404).json({ success: false, message: '邀请码不存在或无权删除' });
+        }
+
+        // 删除邀请码
+        await new Promise((resolve, reject) => {
+            db.run('DELETE FROM invitation_codes WHERE id = ?', [codeId], (err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
+
+        res.json({ success: true, message: '邀请码已删除' });
+    } catch (err) {
+        console.error('删除邀请码失败:', err);
+        res.status(500).json({ success: false, message: '服务器错误' });
+    }
 });
 
 // 经理获取已授权的角色列表

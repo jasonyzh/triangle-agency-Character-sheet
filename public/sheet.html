@@ -428,7 +428,7 @@
     .name-section label { display: block; margin-bottom: 4px; }
     .name-section input { margin-bottom: 10px; }
     .portrait-section { flex-shrink: 0; align-self: stretch; display: flex; }
-    .portrait-preview { width: 115px; height: 100%; min-height: 130px; border: 2px dashed #ccc; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; background: #f9f9f9; overflow: hidden; }
+    .portrait-preview { width: 170px; height: 100%; min-height: 130px; border: 2px dashed #ccc; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; background: #f9f9f9; overflow: hidden; }
     .portrait-preview:hover { border-color: var(--signal-red); background: #fff; }
     .portrait-preview i { font-size: 32px; color: #bdc3c7; margin-bottom: 6px; }
     .portrait-preview span { font-size: 11px; color: #999; text-align: center; line-height: 1.3; }
@@ -2173,8 +2173,10 @@
     <div class="name-section">
         <label>玩家姓名</label>
         <input type="text" id="pName" placeholder="输入姓名">
-        <label>人称代词</label>
-        <input type="text" id="pPronouns" placeholder="如: 他/她/they">
+        <label>代号</label>
+        <input type="text" id="pPronouns" placeholder="输入代号">
+        <label>性别代称</label>
+        <input type="text" id="pGenderPronoun" placeholder="如: 他/她/they">
     </div>
     <div class="portrait-section">
         <div class="portrait-preview" id="portraitPreview" onclick="openPortraitUpload()">
@@ -5622,7 +5624,7 @@ function populateData(d){
     isPopulating = true; // 防止加载数据时触发自动保存
     SLOT_LIMITS.anomSlots = d.anomSlots || 3;
     SLOT_LIMITS.realSlots = d.realSlots || 3;
-    ['pName','pPronouns','pTrig1','pTrig2','pTrig3','perm1','perm2','perm3','pComm','pRep'].forEach(id=>{const e=document.getElementById(id);if(d[id]&&e){if(e.tagName==='DIV')e.innerHTML=d[id];else e.value=d[id];}});
+    ['pName','pPronouns','pGenderPronoun','pTrig1','pTrig2','pTrig3','perm1','perm2','perm3','pComm','pRep'].forEach(id=>{const e=document.getElementById(id);if(d[id]&&e){if(e.tagName==='DIV')e.innerHTML=d[id];else e.value=d[id];}});
     // 加载立绘
     if(d.pPortrait){
         document.getElementById('pPortrait').value = d.pPortrait;
@@ -5724,6 +5726,7 @@ function gatherData(){
     const d={
         pName:document.getElementById('pName').value,
         pPronouns:document.getElementById('pPronouns').value,
+        pGenderPronoun:document.getElementById('pGenderPronoun').value,
         pPortrait:document.getElementById('pPortrait').value,
         pAnom:document.getElementById('pAnom').value,
         pReal:document.getElementById('pReal').value,

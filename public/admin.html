@@ -1116,6 +1116,32 @@
                 </div>
             </div>
 
+            <div class="config-section" id="managerInviteSection">
+                <h3><i class="fas fa-user-tie"></i> 经理邀请码设置</h3>
+                <div class="desc" style="margin-bottom: 15px;">开启邀请码注册后，经理可以自行生成邀请码</div>
+                <div class="config-row">
+                    <div>
+                        <label>经理可生成的特工邀请码数量</label>
+                        <div class="desc">每个经理最多可生成多少个特工邀请码</div>
+                    </div>
+                    <input type="number" id="cfg_manager_invite_quota" min="0" value="5" style="width: 80px; text-align: center;">
+                </div>
+                <div class="config-row">
+                    <div>
+                        <label>触发奖励的使用次数</label>
+                        <div class="desc">经理的邀请码被使用多少次后获得奖励</div>
+                    </div>
+                    <input type="number" id="cfg_manager_reward_threshold" min="1" value="3" style="width: 80px; text-align: center;">
+                </div>
+                <div class="config-row">
+                    <div>
+                        <label>奖励的经理邀请码数量</label>
+                        <div class="desc">达到使用次数后一次性奖励的经理邀请码数量</div>
+                    </div>
+                    <input type="number" id="cfg_manager_reward_amount" min="1" value="1" style="width: 80px; text-align: center;">
+                </div>
+            </div>
+
             <div class="config-section">
                 <h3><i class="fas fa-envelope"></i> SMTP 邮件配置</h3>
                 <div class="smtp-grid">
@@ -1445,6 +1471,9 @@
             document.getElementById('cfg_reg_enabled').checked = config.registration_enabled === 'true';
             document.getElementById('cfg_email_enabled').checked = config.email_registration_enabled === 'true';
             document.getElementById('cfg_invitation_required').checked = config.invitation_required === 'true';
+            document.getElementById('cfg_manager_invite_quota').value = config.manager_invite_quota || '5';
+            document.getElementById('cfg_manager_reward_threshold').value = config.manager_reward_threshold || '3';
+            document.getElementById('cfg_manager_reward_amount').value = config.manager_reward_amount || '1';
             document.getElementById('cfg_smtp_host').value = config.smtp_host || '';
             document.getElementById('cfg_smtp_port').value = config.smtp_port || '587';
             document.getElementById('cfg_smtp_user').value = config.smtp_user || '';
@@ -1463,6 +1492,9 @@
                 registration_enabled: document.getElementById('cfg_reg_enabled').checked ? 'true' : 'false',
                 email_registration_enabled: document.getElementById('cfg_email_enabled').checked ? 'true' : 'false',
                 invitation_required: document.getElementById('cfg_invitation_required').checked ? 'true' : 'false',
+                manager_invite_quota: document.getElementById('cfg_manager_invite_quota').value,
+                manager_reward_threshold: document.getElementById('cfg_manager_reward_threshold').value,
+                manager_reward_amount: document.getElementById('cfg_manager_reward_amount').value,
                 smtp_host: document.getElementById('cfg_smtp_host').value,
                 smtp_port: document.getElementById('cfg_smtp_port').value,
                 smtp_user: document.getElementById('cfg_smtp_user').value,
