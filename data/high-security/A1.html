@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Triangle Agency - 任务报告</title>
+    <style>
+        :root {
+            --primary-red: #D20A2E;
+            --header-bg: #EAE6F0;
+            --border-color: #CBD5E1;
+            --text-color: #333;
+            --bg-color: #f0f2f5;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: "Helvetica Neue", Helvetica, Arial, "Microsoft Yahei", sans-serif;
+            background-color: var(--bg-color); /* 电脑端背景色 */
+            margin: 0;
+            padding: 20px;
+            color: var(--text-color);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* === 核心容器：电脑端是张纸，手机端铺满 === */
+        .page-container {
+            max-width: 900px; /* 电脑端宽度限制 */
+            background: white;
+            margin: 0 auto;
+            padding: 40px;
+            padding-top: 50px; /* 给A1标签留位 */
+            box-shadow: 0 0 15px rgba(0,0,0,0.1); /* 电脑端阴影 */
+            position: relative; /* 关键：让A1标签吸附在这里 */
+            border-radius: 4px;
+        }
+
+        /* A1 标签样式 */
+        .tag-a1 {
+            background-color: var(--primary-red);
+            color: white;
+            font-weight: 900;
+            font-size: 24px;
+            padding: 5px 30px 5px 20px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
+            z-index: 10;
+        }
+
+        /* 头部样式 */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 25px;
+            border-bottom: 3px solid var(--primary-red);
+            padding-bottom: 10px;
+        }
+
+        .title-section h1 { margin: 0; font-size: 36px; color: #2c2c54; line-height: 1.2; }
+        .title-section span { font-weight: bold; color: #555; display: block; margin-top: 5px; }
+        
+        .logo { 
+            font-weight: 900; color: var(--primary-red); text-align: right; 
+            font-size: 22px; line-height: 1; 
+        }
+        .logo span { display: block; font-size: 12px; color: #333; margin-top: 3px; font-weight: normal; }
+
+        /* === 布局系统 === */
+        
+        /* 电脑端双列布局 */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2.2fr 1fr; /* 左宽右窄 */
+            gap: 25px;
+        }
+
+        .left-col, .right-col { display: flex; flex-direction: column; gap: 20px; }
+
+        /* 输入框通用样式 */
+        input[type="text"], input[type="number"], textarea {
+            border: 1px solid transparent; /* 默认透明边框 */
+            background: transparent;
+            font-size: 14px;
+            width: 100%;
+            font-family: inherit;
+            outline: none;
+            padding: 5px;
+            transition: background 0.2s;
+        }
+        input[type="text"]:focus, textarea:focus, input[type="number"]:focus {
+            background-color: #fefce8; /* 聚焦高亮 */
+            border-bottom: 1px dashed #ccc;
+        }
+        textarea { resize: vertical; }
+
+        h3 {
+            font-size: 16px; margin: 0 0 5px 0; color: #2c2c54;
+            border-bottom: 2px solid #eee; padding-bottom: 5px;
+        }
+
+        /* === 左侧组件 === */
+
+        /* 状态勾选框 */
+        .status-box {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .status-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 5px; border-bottom: 1px solid #f9f9f9;
+        }
+        .status-content { display: flex; align-items: center; gap: 10px; flex: 1; }
+        .status-icon { font-size: 24px; }
+        .status-text h4 { margin: 0; font-size: 14px; }
+        .status-text p { margin: 0; font-size: 10px; color: #888; }
+        input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; accent-color: var(--primary-red); }
+
+        /* 异常分析表格 */
+        .analysis-table { border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; }
+        .analysis-row { display: flex; border-bottom: 1px solid #eee; }
+        .analysis-row:last-child { border-bottom: none; }
+        .analysis-label {
+            background-color: var(--header-bg); width: 80px; padding: 10px;
+            font-weight: bold; font-size: 14px; display: flex; align-items: center; justify-content: center;
+        }
+        .analysis-input { flex-grow: 1; display: flex; }
+        .analysis-input input { padding: 10px; }
+
+        /* 通用表格 (散逸端 & 可选目标) */
+        .table-container { 
+            width: 100%; 
+            border: 1px solid var(--border-color); 
+            border-radius: 8px; 
+            overflow: hidden; 
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th { background-color: var(--header-bg); padding: 8px; text-align: left; font-size: 14px; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+        td { border-bottom: 1px solid #eee; padding: 0; }
+        td input { padding: 8px; }
+
+        /* === 右侧组件 === */
+
+        /* 最终评级 */
+        .rating-box {
+            display: flex; border: 1px solid #F8BBD0; border-radius: 8px; overflow: hidden;
+        }
+        .rating-label {
+            background-color: #FCE4EC; color: var(--primary-red); padding: 15px; font-weight: bold;
+            width: 40%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-size: 14px;
+        }
+        .rating-input { width: 60%; }
+        .rating-input input { height: 100%; text-align: center; font-size: 18px; font-weight: bold; }
+
+        /* 混沌池 */
+        .chaos-pool {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 15px; background-color: #E3F2FD; border-radius: 50px; border: 1px solid #90CAF9;
+        }
+
+        /* 侧边卡片 */
+        .side-card { border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; }
+        .side-header { padding: 5px 10px; font-weight: bold; display: flex; justify-content: space-between; font-size: 13px; }
+        .bg-red { background: #FCE4EC; color: #D20A2E; }
+        .bg-purple { background: var(--header-bg); color: #4527a0; }
+        .side-content textarea { min-height: 60px; padding: 8px; }
+
+        /* 底部 */
+        .footer-note { font-size: 10px; color: #888; margin-top: 20px; line-height: 1.5; }
+
+        /* =========================================
+           📱 手机端适配逻辑 (Vertical Scroll)
+           ========================================= */
+        @media (max-width: 768px) {
+            body {
+                padding: 0;
+                background-color: #fff; /* 手机端背景纯白 */
+            }
+
+            .page-container {
+                padding: 15px;
+                padding-top: 50px;
+                box-shadow: none; /* 去掉阴影 */
+                width: 100%;
+                border-radius: 0;
+            }
+
+            /* 头部调整 */
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .logo { text-align: left; margin-top: 5px; width: 100%; }
+
+            /* 核心布局：改为单列，垂直排列 */
+            .main-grid {
+                grid-template-columns: 1fr; /* 强制一列 */
+                gap: 30px;
+            }
+
+            /* 字体和点击区域优化 */
+            input[type="text"], input[type="number"], textarea {
+                font-size: 16px; /* 防止 iOS 自动放大 */
+                padding: 12px 5px; /* 更大的点击区域 */
+            }
+
+            /* 表格横向滚动处理 */
+            .table-container {
+                overflow-x: auto; /* 允许横向滚动 */
+            }
+            table {
+                min-width: 400px; /* 强制表格最小宽度，触发滚动 */
+            }
+
+            /* 右侧栏在手机上改为平铺 */
+            .right-col {
+                gap: 15px;
+            }
+            
+            /* 调整侧边卡片高度，手机上宽一点 */
+            .side-content textarea { min-height: 80px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="page-container">
+    <div class="tag-a1">A1</div>
+
+    <header class="header">
+        <div class="title-section">
+            <h1>任务报告</h1>
+            <span>异常状态</span>
+        </div>
+        <div class="logo">
+            TRIANGLE AGENCY<br>
+            <span>CONFIDENTIAL REPORT</span>
+        </div>
+    </header>
+
+    <div class="main-grid">
+        
+        <div class="left-col">
+            
+            <div class="status-box">
+                <div class="status-item">
+                    <div class="status-content">
+                        <span class="status-icon">🔫</span>
+                        <div class="status-text">
+                            <h4>已中和</h4>
+                            <p>无影响</p>
+                        </div>
+                    </div>
+                    <input type="checkbox">
+                </div>
+                <div class="status-item">
+                    <div class="status-content">
+                        <span class="status-icon">💼</span>
+                        <div class="status-text">
+                            <h4>已捕获</h4>
+                            <p>+3 嘉奖</p>
+                        </div>
+                    </div>
+                    <input type="checkbox">
+                </div>
+                <div class="status-item">
+                    <div class="status-content">
+                        <span class="status-icon">🚪</span>
+                        <div class="status-text">
+                            <h4>已逃脱</h4>
+                            <p>+3 申诫</p>
+                        </div>
+                    </div>
+                    <input type="checkbox">
+                </div>
+                <div class="status-item">
+                    <div class="status-content" style="flex-direction: column; align-items: flex-start;">
+                        <h4 style="margin-bottom:2px;">其他:</h4>
+                        <input type="text" placeholder="..." style="border-bottom:1px solid #ddd; padding:0; height:20px;">
+                    </div>
+                    <input type="checkbox">
+                </div>
+            </div>
+
+            <div>
+                <h3>异常分析</h3>
+                <div class="analysis-table">
+                    <div class="analysis-row">
+                        <div class="analysis-label">代号</div>
+                        <div class="analysis-input"><input type="text"></div>
+                    </div>
+                    <div class="analysis-row">
+                        <div class="analysis-label">行为</div>
+                        <div class="analysis-input"><input type="text"></div>
+                    </div>
+                    <div class="analysis-row">
+                        <div class="analysis-label">焦点</div>
+                        <div class="analysis-input"><input type="text"></div>
+                    </div>
+                    <div class="analysis-row">
+                        <div class="analysis-label">领域</div>
+                        <div class="analysis-input"><input type="text"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3>散逸端</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 30%">姓名</th>
+                                <th style="width: 20%">数量</th>
+                                <th style="width: 50%">备注</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                            <tr><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                            <tr><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-col">
+            
+            <div class="rating-box">
+                <div class="rating-label">
+                    最终评级<br>
+                    <span style="font-size: 9px; font-weight: normal; margin-top:5px;">仅供GM使用</span>
+                </div>
+                <div class="rating-input">
+                    <input type="text" placeholder="">
+                </div>
+            </div>
+
+            <div class="chaos-pool">
+                <span style="color: #1565C0; font-weight: bold;">混沌池</span>
+                <span style="font-size: 20px;">🌀</span>
+                <input type="number" value="-2" style="width: 50px; text-align: right; background:transparent; border:none; font-weight:bold; font-size:18px;">
+            </div>
+
+            <div style="text-align: center; font-weight: bold; margin-top: 5px;">评优</div>
+
+            <div class="side-card">
+                <div class="side-header bg-red">MVP <span>🏆</span></div>
+                <div class="side-content"><textarea rows="2"></textarea></div>
+            </div>
+
+            <div class="side-card">
+                <div class="side-header bg-purple">察看期 <span>🏛️</span></div>
+                <div class="side-content"><textarea rows="2"></textarea></div>
+            </div>
+
+            <div class="side-card" style="flex-grow: 1;">
+                <div class="side-header bg-purple">参与者 <span>👤</span></div>
+                <div class="side-content"><textarea rows="5"></textarea></div>
+            </div>
+
+        </div>
+    </div>
+
+    <div style="margin-top: 30px;">
+        <h3>可选目标</h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 40%">目标</th>
+                        <th style="width: 30%">奖励</th>
+                        <th style="width: 30%">按特工</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                    <tr><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                    <tr><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="footer-note">
+        一份完成的任务报告可为团队中的每名成员赢得 3 点嘉奖。<br>
+        一份详尽的任务报告可为团队中的每名成员赢得 6 点嘉奖。
+    </div>
+
+</div>
+
+</body>
+</html>

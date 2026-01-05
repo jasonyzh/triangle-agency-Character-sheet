@@ -626,9 +626,28 @@
         const contentEl = document.getElementById('docContent');
         contentEl.innerHTML = '<div style="text-align:center;padding:50px;"><i class="fas fa-circle-notch fa-spin"></i><br>正在解密...</div>';
 
-        // 特殊处理 A1.md - 显示只读的任务报告模板（不可编辑，白色背景）
+        // 特殊处理 A1.md - 使用iframe展示 A1.html 文件
         if (filename.toLowerCase() === 'a1.md') {
-            renderReportReadOnly(contentEl);
+            try {
+                const res = await fetch('/api/documents/html/A1.html', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('无法读取A1文件');
+                const htmlContent = await res.text();
+                contentEl.innerHTML = `
+                    <div style="width:100%; height:calc(100vh - 150px); display:flex; flex-direction:column;">
+                        <iframe
+                            id="a1Frame"
+                            style="flex:1; width:100%; border:none; border-radius:8px; background:#fff;"
+                            sandbox="allow-same-origin"
+                        ></iframe>
+                    </div>
+                `;
+                // 使用srcdoc展示HTML内容
+                document.getElementById('a1Frame').srcdoc = htmlContent;
+            } catch (e) {
+                contentEl.innerHTML = `<div class="error-box">读取A1文件失败: ${e.message}</div>`;
+            }
             return;
         }
 
