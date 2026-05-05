@@ -1,0 +1,19 @@
+{
+  "name": "triangle-agency",
+  "version": "2.0.0",
+  "description": "三角机构跑团管理平台：角色档案、分部系统、任务管理、申领物、虹吸商店",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^6.9.7",
+    "sqlite3": "^5.1.7",
+    "uuid": "^9.0.0"
+  }
+}

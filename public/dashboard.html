@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>档案库 // TRIANGLE AGENCY</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+    
+    <div id="transition-overlay">
+        <div class="loader-content">
+            <i class="fas fa-circle-notch fa-spin loader-icon"></i>
+            <div class="loader-text">访问终端中<span class="dots"></span></div>
+        </div>
+    </div>
+
+    <div id="hw-overlay">
+        <div class="hw-normal-content" id="hw-content">
+            <i class="fas fa-circle-notch fa-spin loader-icon" id="hw-icon"></i>
+            <div class="loader-text" id="hw-text">访问高墙文件<span class="dots"></span></div>
+        </div>
+        <div class="hw-scanlines" id="hw-scanlines"></div>
+        <div class="hw-eye-layer" id="hw-eye-layer">
+            <svg class="hw-eye-svg" id="hw-eye-icon" viewBox="0 0 100 90">
+                <path d="M5 45 Q 50 5 95 45 Q 50 85 5 45 Z" fill="#000" stroke="#00f3ff" stroke-width="3"/>
+                <circle cx="50" cy="45" r="16" fill="#00f3ff" opacity="0.8" />
+                <path d="M50 30 Q 54 45 50 60 Q 46 45 50 30 Z" fill="#fff" />
+            </svg>
+        </div>
+        <div class="hw-tentacles-layer" id="hw-tentacles"></div>
+        <div id="hw-blackout"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <div class="brand-logo">
+                <span class="top">TRIANGLE</span>
+                <span class="btm">AGENCY</span>
+            </div>
+            <div class="btn-group">
+                <button class="btn-icon accent" onclick="createNew()" title="新建档案">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <button class="btn-icon" onclick="showBranchApplication()" title="加入分部">
+                    <i class="fas fa-building"></i>
+                </button>
+                <button class="btn-icon" onclick="goItems()" title="申领物">
+                    <i class="fas fa-gift"></i>
+                </button>
+                <button class="btn-icon" onclick="enterHighWall()" title="高墙文件">
+                    <i class="fas fa-file-shield"></i>
+                </button>
+                <button class="btn-icon" id="btnManager" style="display:none;" onclick="goManager()" title="经理台">
+                    <i class="fas fa-user-tie"></i>
+                </button>
+                <button class="btn-icon" id="btnConsole" style="display:none;" onclick="goConsole()" title="管理控制台">
+                    <i class="fas fa-shield-alt"></i>
+                </button>
+                <button class="btn-icon danger" onclick="logout()" title="登出">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+            <button class="menu-toggle" onclick="toggleSideMenu()">
+                <span>菜单</span>
+                <div class="tri-icon">
+                    <div class="tri t1"></div>
+                    <div class="tri t2"></div>
+                    <div class="tri t3"></div>
+                </div>
+            </button>
+        </header>
+
+        <div id="list" class="grid"></div>
+    </div>
+
+    <div class="side-menu-overlay" id="sideMenuOverlay" onclick="closeSideMenu()"></div>
+    <div class="side-menu" id="sideMenu">
+        <div class="side-menu-header">
+            <div class="brand-sm">
+                <span class="t">TRIANGLE</span>
+                <span class="a">AGENCY</span>
+            </div>
+            <button class="side-menu-close" onclick="closeSideMenu()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="side-menu-content">
+            <div class="menu-item primary" onclick="closeSideMenu(); createNew();">
+                <i class="fas fa-plus"></i> 新建档案
+            </div>
+            <div class="menu-item" onclick="closeSideMenu(); showBranchApplication();">
+                <i class="fas fa-building"></i> 加入分部
+            </div>
+            <div class="menu-item" onclick="closeSideMenu(); goItems();">
+                <i class="fas fa-gift"></i> 申领物
+            </div>
+            <div class="menu-item" id="menuConsole" style="display:none;" onclick="closeSideMenu(); goConsole();">
+                <i class="fas fa-shield-alt"></i> 控制台
+            </div>
+            <div class="menu-item" id="menuManager" style="display:none;" onclick="closeSideMenu(); goManager();">
+                <i class="fas fa-user-tie"></i> 经理台
+            </div>
+            <div class="menu-item" onclick="closeSideMenu(); enterHighWall();">
+                <i class="fas fa-file-shield"></i> 高墙文件
+            </div>
+            <div class="menu-item logout" onclick="closeSideMenu(); logout();">
+                <i class="fas fa-sign-out-alt"></i> 退出登录
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="js/common.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
