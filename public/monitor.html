@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全局监控 // TRIANGLE AGENCY</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+	.doc-list {
+			max-height: 300px;
+			overflow-y: auto;
+			border: 1px solid #eee;
+			border-radius: 4px;
+			margin-top: 10px;
+		}
+		.doc-item {
+			display: flex;
+			align-items: center;
+			padding: 8px 10px;
+			border-bottom: 1px solid #f8f9fa;
+			cursor: pointer;
+		}
+		.doc-item:hover { background: #f0f2f5; }
+		.doc-item:last-child { border-bottom: none; }
+		.doc-item input { margin-right: 10px; }
+		.doc-item span { font-size: 13px; color: var(--text-dark); flex: 1; }
+		.doc-search {
+			width: 100%;
+			padding: 8px;
+			border: 1px solid #ddd;
+			border-radius: 4px;
+			font-size: 12px;
+			box-sizing: border-box;
+		}
+		.ug-btn-group { display: flex; gap: 5px; }
+		.btn-auth-doc {
+			background: #34495e; color: white; border: none; 
+			padding: 4px 8px; border-radius: 3px; font-size: 10px; cursor: pointer;
+		}
+		.btn-auth-doc:hover { background: #2c3e50; }
+
+        :root {
+            --manager-blue: #3498db;
+        }
+
+        header { 
+            margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--signal-red); 
+        }
+
+        .brand-logo { display: flex; flex-direction: column; line-height: 0.9; font-weight: 900; text-transform: uppercase; font-style: normal; }
+        .brand-logo .top { font-size: 18px; letter-spacing: 2px; color: white; }
+        .brand-logo .btm { font-size: 12px; letter-spacing: 3px; color: var(--signal-red); margin-left: 0; }
+        .monitor-title { font-family: monospace; color: var(--signal-red); margin-top: 5px; }
+
+        .btn-back { 
+            background: rgba(255,255,255,0.1); color: #aaa; border: 1px solid rgba(255,255,255,0.2);
+            padding: 8px 16px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px; text-decoration: none; font-size: 12px; text-transform: uppercase;
+        }
+        .btn-back:hover { background: rgba(255,255,255,0.2); color: white; }
+
+        .search-container {
+            margin-bottom: 25px;
+            background: rgba(0,0,0,0.2);
+            padding: 10px 15px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid #34495e;
+        }
+        .search-container i { color: var(--signal-red); font-size: 14px; }
+        .search-input {
+            background: transparent;
+            border: none;
+            color: var(--pure-white);
+            font-family: "Roboto Mono", monospace;
+            font-size: 14px;
+            width: 100%;
+            outline: none;
+        }
+        .search-input::placeholder { color: #576574; font-style: italic; }
+
+        .user-group {
+            background: var(--pure-white);
+            color: var(--text-dark);
+            border-radius: 4px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--signal-red);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .ug-header {
+            display: flex; align-items: center; gap: 15px;
+            margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;
+        }
+        .ug-avatar { 
+            width: 36px; height: 36px; background: var(--signal-red);
+            color: white; 
+            border-radius: 4px; display: flex; align-items: center; justify-content: center; 
+            font-weight: bold; font-size: 16px;
+        }
+        .ug-info h3 { margin: 0; font-size: 16px; letter-spacing: 1px; color: #000; }
+        .ug-info span { font-size: 11px; color: #7f8c8d; font-family: monospace; }
+        .admin-badge { background: #f39c12; color: #fff; font-size: 9px; padding: 2px 5px; border-radius: 2px; margin-left: 5px; vertical-align: middle; }
+
+        .char-list {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px;
+        }
+        
+        .char-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: stretch;
+            color: var(--text-dark);
+            overflow: hidden;
+        }
+        
+        .char-item:hover {
+            background: #fff;
+            border-color: var(--signal-red);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .char-link {
+            flex: 1;
+            padding: 10px 15px;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .char-action {
+            width: 40px;
+            background: #eee;
+            border: none;
+            border-left: 1px solid #e0e0e0;
+            cursor: pointer;
+            color: #7f8c8d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+        .char-action:hover {
+            background: var(--signal-red);
+            color: white;
+        }
+        
+        .ci-name { display: block; font-weight: bold; font-size: 14px; margin-bottom: 4px; }
+        .ci-func { display: block; font-size: 10px; color: #95a5a6; font-family: monospace; text-transform: uppercase; }
+
+        .empty-files { font-size: 12px; color: #bdc3c7; font-style: italic; font-family: monospace; padding-left: 10px; }
+        
+        .no-result { text-align: center; color: #7f8c8d; padding: 20px; font-family: monospace; }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .modal-overlay.show { display: flex; }
+
+        .modal-box {
+            background: var(--pure-white);
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            border-top: 4px solid var(--signal-red);
+            animation: modalIn 0.3s ease;
+        }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+
+        .modal-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+        }
+        .modal-header h3 { margin: 0; font-size: 16px; color: var(--text-dark); }
+        .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: #999; }
+        .modal-body { padding: 20px; color: var(--text-dark); }
+        .modal-desc { font-size: 13px; color: #7f8c8d; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+        
+        .slot-group { margin-bottom: 20px; }
+        .slot-group label { display: block; font-size: 12px; color: #7f8c8d; text-transform: uppercase; margin-bottom: 10px; font-weight: bold; }
+        .slot-controls { display: flex; align-items: center; gap: 15px; }
+        .slot-btn { width: 32px; height: 32px; border: 2px solid var(--signal-red); background: white; color: var(--signal-red); border-radius: 50%; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .slot-btn:hover { background: var(--signal-red); color: white; }
+        .slot-value { font-size: 24px; font-weight: bold; color: var(--text-dark); min-width: 40px; text-align: center; }
+        .slot-info { font-size: 11px; color: #95a5a6; margin-top: 5px; }
+
+        .modal-footer { padding: 15px 20px; background: #f8f9fa; display: flex; justify-content: flex-end; gap: 10px; }
+        
+        .btn-modal { padding: 8px 20px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; border: none; }
+        .btn-cancel { background: #ecf0f1; color: #7f8c8d; }
+        .btn-confirm { background: var(--signal-red); color: white; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <div class="brand-logo">
+                <span class="top">TRIANGLE</span>
+                <span class="btm">AGENCY</span>
+            </div>
+            <div class="monitor-title">// 监视_终端</div>
+        </div>
+        <a href="admin.html" class="btn-back"><i class="fas fa-chevron-left"></i> 控制台</a>
+    </header>
+
+    <div class="search-container">
+        <i class="fas fa-search"></i>
+        <input type="text" id="user-search" class="search-input" placeholder="SEARCH... [输入姓名进行检索]..." autocomplete="off">
+    </div>
+
+    <div id="monitor-content">
+        <div style="text-align:center; color:#7f8c8d; margin-top:50px; font-family:monospace;">
+            <i class="fas fa-circle-notch fa-spin"></i> FETCHING DATA...
+        </div>
+    </div>
+</div>
+
+<div id="accessDeniedModal" class="modal-overlay" style="display:none; background:rgba(0,0,0,0.9);">
+    <div class="modal-box" style="text-align:center; padding:30px;">
+        <i class="fas fa-shield-alt" style="font-size:48px; color:var(--signal-red); margin-bottom:15px;"></i>
+        <h3>权限拒绝</h3>
+        <p>仅限管理员访问此页面</p>
+        <button class="btn-modal btn-confirm" onclick="window.location.href='login.html'">返回登录</button>
+    </div>
+</div>
+
+<div id="slotModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3><i class="fas fa-unlock-alt"></i> 槽位管理</h3>
+            <button class="modal-close" onclick="closeSlotModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p class="modal-desc">为 <strong id="modalCharName">角色名</strong> 调整最大槽位限制</p>
+
+            <div class="slot-group">
+                <label>异常能力槽位 (ANOMALY)</label>
+                <div class="slot-controls">
+                    <button class="slot-btn" onclick="adjustSlot('anom', -1)"><i class="fas fa-minus"></i></button>
+                    <span class="slot-value" id="anomSlotValue">3</span>
+                    <button class="slot-btn" onclick="adjustSlot('anom', 1)"><i class="fas fa-plus"></i></button>
+                </div>
+                <div class="slot-info">当前已使用: <span id="anomUsed">0</span> 个</div>
+            </div>
+
+            <div class="slot-group">
+                <label>关系网槽位 (REALITY)</label>
+                <div class="slot-controls">
+                    <button class="slot-btn" onclick="adjustSlot('real', -1)"><i class="fas fa-minus"></i></button>
+                    <span class="slot-value" id="realSlotValue">3</span>
+                    <button class="slot-btn" onclick="adjustSlot('real', 1)"><i class="fas fa-plus"></i></button>
+                </div>
+                <div class="slot-info">当前已使用: <span id="realUsed">0</span> 个</div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-modal btn-cancel" onclick="closeSlotModal()">取消</button>
+            <button class="btn-modal btn-confirm" onclick="saveSlots()">保存更改</button>
+        </div>
+    </div>
+</div>
+
+<div id="docAuthModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3><i class="fas fa-file-shield"></i> 高墙文件授权</h3>
+            <button class="modal-close" onclick="closeDocModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p class="modal-desc">管理 <strong id="docAuthUserName"></strong> 的阅览权限</p>
+            
+            <input type="text" class="doc-search" id="docSearch" placeholder="搜索文件..." onkeyup="filterDocs()">
+            
+            <div class="doc-list" id="docAuthList">
+                <div style="padding:20px;text-align:center;"><i class="fas fa-circle-notch fa-spin"></i></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-modal btn-cancel" onclick="closeDocModal()">取消</button>
+            <button class="btn-modal btn-confirm" onclick="saveDocPermissions()">保存更改</button>
+        </div>
+    </div>
+</div>
+
+<script src="js/common.js"></script>
+<script>
+
+    const isAdmin = localStorage.getItem('ta_is_admin');
+    if (isAdmin !== 'true') {
+        document.getElementById('accessDeniedModal').style.display = 'flex';
+        document.querySelector('.container').style.display = 'none';
+    }
+
+    let allUsersData = [];
+    let currentSlotCharId = null;
+    let currentSlotData = { anomSlots: 10, realSlots: 10, currentAnoms: 0, currentReals: 0 };
+
+    function renderUsers(users) {
+        console.log(">>> [Frontend] 开始渲染用户列表, 数量:", users.length);
+        const container = document.getElementById('monitor-content');
+        container.innerHTML = '';
+
+        if (!Array.isArray(users)) {
+            container.innerHTML = `<div style="color:red;text-align:center;">数据格式错误: 期望数组，收到 ${typeof users}</div>`;
+            return;
+        }
+
+        if (users.length === 0) {
+            container.innerHTML = `<div class="no-result">NO_MATCHING_OPERATORS_FOUND</div>`;
+            return;
+        }
+
+        users.forEach(u => {
+            const group = document.createElement('div');
+            group.className = 'user-group';
+            
+            let charsHtml = '';
+            if (Array.isArray(u.characters) && u.characters.length > 0) {
+                charsHtml = `<div class="char-list">` + 
+                u.characters.map(c => {
+                    const charName = (c.name || '未命名').replace(/'/g, "\\'");
+                    return `
+                    <div class="char-item">
+                        <a href="sheet.html?id=${c.id}&readonly=true" class="char-link">
+                            <span class="ci-name">${c.name || '未命名'}</span>
+                            <span class="ci-func">${c.func || '---'}</span>
+                        </a>
+                        <button class="char-action" onclick="openSlotModal('${c.id}', '${charName}')" title="管理槽位">
+                            <i class="fas fa-unlock-alt"></i>
+                        </button>
+                    </div>
+                `}).join('') + 
+                `</div>`;
+            } else {
+                charsHtml = `<div class="empty-files">NO_ACTIVE_FILES</div>`;
+            }
+
+            const displayName = u.userName || '未知用户';
+            const initial = displayName.charAt(0).toUpperCase();
+
+			group.innerHTML = `
+				<div class="ug-header">
+					<div class="ug-avatar">${initial}</div>
+					<div class="ug-info">
+						<h3>${displayName} ${u.isAdmin ? '<span class="admin-badge">ADMIN</span>' : ''}</h3>
+						<span>ID: ${u.userAccount || '---'}</span>
+					</div>
+					<div class="ug-btn-group">
+						<button class="btn-auth-doc" onclick="openDocModal(${u.userId}, '${displayName}')">
+							<i class="fas fa-file-contract"></i> 高墙授权
+						</button>
+					</div>
+				</div>
+				${charsHtml}
+			`;
+            container.appendChild(group);
+        });
+    }
+
+    document.getElementById('user-search').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        
+        if (!searchTerm) {
+            renderUsers(allUsersData);
+            return;
+        }
+
+        const filtered = allUsersData.filter(u => 
+            (u.userName && u.userName.toLowerCase().includes(searchTerm)) || 
+            (u.userAccount && u.userAccount.toLowerCase().includes(searchTerm))
+        );
+
+        renderUsers(filtered);
+    });
+
+    async function loadMonitorData() {
+        const container = document.getElementById('monitor-content');
+        
+        try {
+            const token = localStorage.getItem('ta_token');
+            if (!token) throw new Error("本地未找到 Token (请重新登录)");
+
+            const res = await fetch('/api/admin/monitor', {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!res.ok) {
+                if (res.status === 401 || res.status === 403) throw new Error("权限不足或会话已过期");
+                const errText = await res.text();
+                throw new Error(`服务器错误 (${res.status}): ${errText}`);
+            }
+
+            const data = await res.json();
+            allUsersData = data;
+            renderUsers(allUsersData);
+
+        } catch(e) {
+            console.error("!!! [Frontend Error]:", e);
+            container.innerHTML = 
+                `<div style="text-align:center; color:#c0392b; margin-top:50px;">
+                    <i class="fas fa-exclamation-triangle" style="font-size:48px; margin-bottom:20px;"></i>
+                    <div style="font-weight:bold; font-size:18px;">加载失败</div>
+                    <div style="font-size:12px; margin-top:10px; opacity:0.8;">${e.message}</div>
+                    <button onclick="window.location.href='login.html'" 
+                            style="margin-top:20px; padding:8px 16px; background:#c0392b; color:white; border:none; border-radius:4px; cursor:pointer;">
+                        返回登录
+                    </button>
+                </div>`;
+        }
+    }
+
+    async function openSlotModal(charId, charName) {
+        currentSlotCharId = charId;
+        document.getElementById('modalCharName').textContent = charName;
+        const token = localStorage.getItem('ta_token');
+
+        try {
+            const res = await fetch(`/api/character/${charId}/slots`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (res.ok) {
+                currentSlotData = await res.json();
+            } else {
+                currentSlotData = { anomSlots: 10, realSlots: 10, currentAnoms: 0, currentReals: 0 };
+            }
+        } catch (e) {
+            currentSlotData = { anomSlots: 10, realSlots: 10, currentAnoms: 0, currentReals: 0 };
+        }
+
+        document.getElementById('anomSlotValue').textContent = currentSlotData.anomSlots;
+        document.getElementById('realSlotValue').textContent = currentSlotData.realSlots;
+        document.getElementById('anomUsed').textContent = currentSlotData.currentAnoms;
+        document.getElementById('realUsed').textContent = currentSlotData.currentReals;
+
+        document.getElementById('slotModal').classList.add('show');
+    }
+
+    function closeSlotModal() {
+        document.getElementById('slotModal').classList.remove('show');
+        currentSlotCharId = null;
+    }
+
+    function adjustSlot(type, delta) {
+        const valueEl = document.getElementById(type + 'SlotValue');
+        const usedEl = document.getElementById(type + 'Used');
+        let current = parseInt(valueEl.textContent);
+        const used = parseInt(usedEl.textContent);
+
+        current += delta;
+
+        const minValue = Math.max(3, used);
+        if (current < minValue) current = minValue;
+
+        if (current > 50) current = 50;
+
+        valueEl.textContent = current;
+    }
+
+    async function saveSlots() {
+        if (!currentSlotCharId) return;
+
+        const token = localStorage.getItem('ta_token');
+        const anomSlots = parseInt(document.getElementById('anomSlotValue').textContent);
+        const realSlots = parseInt(document.getElementById('realSlotValue').textContent);
+
+        try {
+            const res = await fetch(`/api/character/${currentSlotCharId}/slots`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ anomSlots, realSlots })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                showToast('槽位设置已保存', 'success');
+                closeSlotModal();
+            } else {
+                showToast(data.message || '保存失败');
+            }
+        } catch (e) {
+            showToast('保存失败');
+        }
+    }
+
+    document.getElementById('slotModal').addEventListener('click', function(e) {
+        if (e.target === this) closeSlotModal();
+    });
+
+    loadMonitorData();
+	
+    let currentDocUserId = null;
+    let allDocFiles = [];
+
+    async function openDocModal(userId, userName) {
+        currentDocUserId = userId;
+        document.getElementById('docAuthUserName').textContent = userName;
+        document.getElementById('docSearch').value = '';
+        
+        const listContainer = document.getElementById('docAuthList');
+        listContainer.innerHTML = '<div style="padding:20px;text-align:center;"><i class="fas fa-circle-notch fa-spin"></i> 加载中...</div>';
+        document.getElementById('docAuthModal').classList.add('show');
+
+        try {
+            const token = localStorage.getItem('ta_token');
+            const res = await fetch(`/api/admin/user/${userId}/permissions`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            allDocFiles = await res.json();
+            renderDocList(allDocFiles);
+        } catch (e) {
+            listContainer.innerHTML = '<div style="color:red;text-align:center;">加载失败</div>';
+        }
+    }
+
+    function renderDocList(files) {
+        const container = document.getElementById('docAuthList');
+        if (files.length === 0) {
+            container.innerHTML = '<div style="padding:10px;text-align:center;color:#999;">无高墙文件</div>';
+            return;
+        }
+
+        container.innerHTML = files.map(f => `
+            <label class="doc-item">
+                <input type="checkbox" value="${f.filename}" ${f.hasPerm ? 'checked' : ''}>
+                <span>${f.filename.replace('.md', '')}</span>
+            </label>
+        `).join('');
+    }
+
+    function filterDocs() {
+        const term = document.getElementById('docSearch').value.toLowerCase();
+        const items = document.querySelectorAll('.doc-item');
+        
+        items.forEach(item => {
+            const text = item.querySelector('span').textContent.toLowerCase();
+            item.style.display = text.includes(term) ? 'flex' : 'none';
+        });
+    }
+
+    function closeDocModal() {
+        document.getElementById('docAuthModal').classList.remove('show');
+        currentDocUserId = null;
+    }
+
+    async function saveDocPermissions() {
+        if (!currentDocUserId) return;
+
+        const checkboxes = document.querySelectorAll('#docAuthList input[type="checkbox"]:checked');
+        const selectedFiles = Array.from(checkboxes).map(cb => cb.value);
+        const token = localStorage.getItem('ta_token');
+
+        const btn = document.querySelector('#docAuthModal .btn-confirm');
+        const originalText = btn.textContent;
+        btn.textContent = '保存中...';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch(`/api/admin/user/${currentDocUserId}/permissions`, {
+                method: 'PUT',
+                headers: { 
+                    'Authorization': 'Bearer ' + token,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ permissions: selectedFiles })
+            });
+            
+            const data = await res.json();
+            if (data.success) {
+                showToast('权限已更新', 'success');
+                closeDocModal();
+            } else {
+                showToast('更新失败');
+            }
+        } catch (e) {
+            showToast('网络错误');
+        } finally {
+            btn.textContent = originalText;
+            btn.disabled = false;
+        }
+    }
+
+    document.getElementById('docAuthModal').addEventListener('click', function(e) {
+        if (e.target === this) closeDocModal();
+    });
+	
+</script>
+
+</body>
+</html>

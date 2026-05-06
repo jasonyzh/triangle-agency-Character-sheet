@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统管理 // TRIANGLE AGENCY</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+<div id="transition-overlay">
+    <div class="loader-content">
+        <i class="fas fa-circle-notch fa-spin loader-icon"></i>
+        <div class="loader-text">系统处理中<span class="dots"></span></div>
+    </div>
+</div>
+
+<div class="container">
+    <header>
+        <div class="brand-logo">
+            <span class="top">TRIANGLE</span>
+            <span class="btm">AGENCY</span>
+            <div class="page-title" style="margin-top:2px; font-size:10px;">// SYSTEM ADMIN</div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn-icon" id="deskBtnManager" onclick="goManager()" style="display:none;" title="经理台">
+                <i class="fas fa-user-tie"></i>
+            </button>
+            <button class="btn-icon" onclick="goDashboard()" title="档案库">
+                <i class="fas fa-folder"></i>
+            </button>
+            <button class="btn-icon danger" onclick="logout()" title="登出">
+                <i class="fas fa-power-off"></i>
+            </button>
+        </div>
+
+        <button class="menu-toggle" onclick="toggleSideMenu()">
+            <span>菜单</span>
+            <div class="tri-icon">
+                <div class="tri t1"></div>
+                <div class="tri t2"></div>
+                <div class="tri t3"></div>
+            </div>
+        </button>
+    </header>
+
+    <div class="side-menu-overlay" id="sideMenuOverlay" onclick="closeSideMenu()"></div>
+    <div class="side-menu" id="sideMenu">
+        <div class="side-menu-header">
+            <div class="brand-sm">TRIANGLE AGENCY</div>
+            <button class="side-menu-close" onclick="closeSideMenu()">&times;</button>
+        </div>
+        <div class="side-menu-content">
+            <div class="menu-item" id="mobBtnManager" onclick="closeSideMenu(); goManager();" style="display:none;">
+                <i class="fas fa-user-tie"></i> 经理台
+            </div>
+            <div class="menu-item" onclick="closeSideMenu(); goDashboard();">
+                <i class="fas fa-folder"></i> 档案库
+            </div>
+            <div class="menu-item logout" onclick="closeSideMenu(); logout();">
+                <i class="fas fa-sign-out-alt"></i> 退出登录
+            </div>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('users')"><i class="fas fa-users"></i> 人员管理</button>
+        <button class="tab-btn" onclick="switchTab('branches')"><i class="fas fa-building"></i> 分部管理</button>
+        <button class="tab-btn" onclick="switchTab('config')"><i class="fas fa-cog"></i> 系统设置</button>
+    </div>
+
+    <div id="tab-users" class="tab-content active">
+        <div class="add-panel">
+            <input type="text" id="newName" placeholder="职员姓名">
+            <input type="text" id="newUser" placeholder="登录账号">
+            <input type="text" id="newPass" placeholder="登录密码">
+            <select id="newRole">
+                <option value="0">玩家</option>
+                <option value="1">经理</option>
+                <option value="2">超级管理员</option>
+            </select>
+            <button class="btn-add" onclick="addUser()"><i class="fas fa-plus"></i> 入职登记</button>
+        </div>
+
+        <div class="filter-row">
+            <button class="filter-btn active" data-role="all" onclick="filterByRole('all', this)">全部</button>
+            <button class="filter-btn" data-role="0" onclick="filterByRole(0, this)">玩家</button>
+            <button class="filter-btn" data-role="1" onclick="filterByRole(1, this)">经理</button>
+            <button class="filter-btn" data-role="2" onclick="filterByRole(2, this)">超管</button>
+        </div>
+
+        <div class="search-wrapper">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" class="search-input" placeholder="SEARCH... [输入姓名进行检索]" autocomplete="off">
+        </div>
+
+        <div id="list" class="user-list"></div>
+    </div>
+
+    <div id="tab-branches" class="tab-content">
+        <div class="add-panel">
+            <input type="text" id="newBranchName" placeholder="分部名称">
+            <input type="text" id="newBranchDesc" placeholder="分部描述（可选）">
+            <button class="btn-add" onclick="addBranch()"><i class="fas fa-plus"></i> 创建分部</button>
+        </div>
+        <div id="branchList" class="user-list"></div>
+    </div>
+
+    <div id="tab-config" class="tab-content">
+        <div class="config-panel">
+            <div class="config-section">
+                <h3><i class="fas fa-user-plus"></i> 注册设置</h3>
+                <div class="config-row">
+                    <div><label>开放注册</label><div class="desc">允许新用户自行注册账号</div></div>
+                    <label class="switch"><input type="checkbox" id="cfg_reg_enabled"><span class="slider"></span></label>
+                </div>
+                <div class="config-row">
+                    <div><label>邮箱验证</label><div class="desc">注册时需要验证邮箱（需配置SMTP）</div></div>
+                    <label class="switch"><input type="checkbox" id="cfg_email_enabled"><span class="slider"></span></label>
+                </div>
+            </div>
+            <div class="config-section">
+                <h3><i class="fas fa-envelope"></i> SMTP 邮件配置</h3>
+                <div class="smtp-grid">
+                    <div class="form-field"><label>SMTP 服务器</label><input type="text" id="cfg_smtp_host" placeholder="smtp.example.com"></div>
+                    <div class="form-field"><label>端口</label><input type="text" id="cfg_smtp_port" placeholder="587"></div>
+                    <div class="form-field"><label>用户名</label><input type="text" id="cfg_smtp_user" placeholder="your@email.com"></div>
+                    <div class="form-field"><label>密码</label><input type="password" id="cfg_smtp_pass" placeholder="••••••••"></div>
+                    <div class="form-field full"><label>发件人地址</label><input type="text" id="cfg_smtp_from" placeholder="Triangle Agency <noreply@example.com>"></div>
+                    <div class="config-row full" style="background:transparent;padding:0;">
+                        <div><label>使用 SSL/TLS</label><div class="desc">端口465通常需要开启</div></div>
+                        <label class="switch"><input type="checkbox" id="cfg_smtp_secure"><span class="slider"></span></label>
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn-test" onclick="testSmtp()"><i class="fas fa-plug"></i> 测试连接</button>
+                    <button class="btn-save" onclick="saveConfig()"><i class="fas fa-save"></i> 保存配置</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="roleModal">
+    <div class="modal">
+        <h3><i class="fas fa-user-tag"></i> 修改用户角色</h3>
+        <p style="margin-bottom:15px;font-size:13px;color:#7f8c8d;">用户: <strong id="modalUserName"></strong></p>
+        <select class="role-select" id="modalRoleSelect">
+            <option value="0">玩家 - 普通用户，只能管理自己的角色卡</option>
+            <option value="1">经理 - 可以查看/编辑已授权的角色卡</option>
+            <option value="2">超级管理员 - 拥有全部权限</option>
+        </select>
+        <div class="modal-btns">
+            <button class="btn-cancel" onclick="closeRoleModal()">取消</button>
+            <button class="btn-confirm" onclick="confirmRoleChange()">确认修改</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="passwordModal">
+    <div class="modal">
+        <h3><i class="fas fa-key"></i> 重置密码</h3>
+        <p style="margin-bottom:15px;font-size:13px;color:#7f8c8d;">用户: <strong id="pwdModalUserName"></strong></p>
+        <div class="form-field"><label>新密码</label><input type="password" id="newPasswordInput" placeholder="输入新密码"></div>
+        <div class="form-field" style="margin-top:10px;"><label>确认密码</label><input type="password" id="confirmPasswordInput" placeholder="再次输入新密码"></div>
+        <div class="modal-btns">
+            <button class="btn-cancel" onclick="closePasswordModal()">取消</button>
+            <button class="btn-confirm" onclick="confirmPasswordChange()">确认重置</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="branchModal">
+    <div class="modal" style="max-width:600px;">
+        <h3><i class="fas fa-building"></i> 分部详情</h3>
+        <div class="form-field"><label>分部名称</label><input type="text" id="branchEditName"></div>
+        <div class="form-field" style="margin-top:10px;"><label>分部描述</label><input type="text" id="branchEditDesc"></div>
+        <div class="modal-btns" style="margin-top:15px;">
+            <button class="btn-cancel" onclick="closeBranchModal()">取消</button>
+            <button class="btn-confirm" onclick="saveBranchEdit()">保存</button>
+        </div>
+        <hr style="margin:20px 0;border:none;border-top:1px solid #eee;">
+        <h4 style="margin-bottom:10px;"><i class="fas fa-users"></i> 分部成员</h4>
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+            <select id="branchAddUser" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;">
+                <option value="">选择用户添加...</option>
+            </select>
+            <button class="btn-confirm" onclick="addUserToBranch()" style="padding:8px 16px;">添加</button>
+        </div>
+        <div id="branchMemberList" style="max-height:200px;overflow-y:auto;"></div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/common.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>
