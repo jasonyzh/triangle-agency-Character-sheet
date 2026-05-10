@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>任务面板</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/mission-panel.css">
+</head>
+<body>
+    <div class="mp-container">
+        <header class="mp-header">
+            <div class="mp-header-left">
+                <button class="mp-back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> 返回</button>
+                <div class="mp-title-group">
+                    <h1 class="mp-title" id="mpMissionName">任务名称</h1>
+                    <span class="mp-status" id="mpMissionStatus">进行中</span>
+                </div>
+            </div>
+            <div class="mp-header-right">
+                <button class="mp-action-btn" onclick="goManagerEdit()" title="编辑任务"><i class="fas fa-edit"></i> 编辑</button>
+                <button class="mp-action-btn" onclick="goBack()"><i class="fas fa-times"></i> 关闭</button>
+            </div>
+        </header>
+
+        <div class="mp-counters">
+            <div class="mp-counter weather">
+                <span class="mp-counter-label"><i class="fas fa-cloud-sun"></i> 天气</span>
+                <span class="mp-counter-value" style="color:#888;">暂未实现</span>
+            </div>
+            <div class="mp-counter chaos">
+                <span class="mp-counter-label"><i class="fas fa-random"></i> 混沌</span>
+                <button class="mp-ctr-btn" onclick="adjustCounter('chaos', -1)">−</button>
+                <span class="mp-counter-num" id="mpChaosValue">0</span>
+                <button class="mp-ctr-btn" onclick="adjustCounter('chaos', 1)">+</button>
+            </div>
+            <div class="mp-counter scatter">
+                <span class="mp-counter-label"><i class="fas fa-wave-square"></i> 逸散端</span>
+                <button class="mp-ctr-btn" onclick="adjustCounter('scatter', -1)">−</button>
+                <span class="mp-counter-num" id="mpScatterValue">0</span>
+                <button class="mp-ctr-btn" onclick="adjustCounter('scatter', 1)">+</button>
+            </div>
+        </div>
+
+        <div class="mp-tabs">
+            <button class="mp-tab active" onclick="switchPanelTab('overview')">总览</button>
+            <button class="mp-tab" onclick="switchPanelTab('board')">NPC / 地图</button>
+        </div>
+
+        <div class="mp-tab-content active" id="mpTabOverview">
+            <div class="mp-agents" id="mpAgents">
+                <div class="mp-loading"><i class="fas fa-circle-notch fa-spin"></i> 加载中...</div>
+            </div>
+        </div>
+
+        <div class="mp-tab-content" id="mpTabBoard">
+            <div class="board-layout">
+                <div class="board-library">
+                    <div class="lib-cat-tabs">
+                        <button class="lib-cat-btn active" data-cat="npc" onclick="switchLibCategory('npc')">NPC</button>
+                        <button class="lib-cat-btn" data-cat="map" onclick="switchLibCategory('map')">地图</button>
+                    </div>
+                    <div class="lib-folder-row">
+                        <select id="libFolderSelect" onchange="switchLibFolder()" style="flex:1;padding:2px 4px;border:1px solid #d0d5dd;border-radius:3px;font-size:10px;background:#fff;color:#333;">
+                            <option value="">全部</option>
+                        </select>
+                        <button onclick="createLibFolder()" style="padding:2px 6px;border:1px solid #d0d5dd;border-radius:3px;background:#fafafa;cursor:pointer;font-size:10px;color:#666;" title="新建文件夹">+</button>
+                    </div>
+                    <div class="library-list" id="imageLibList">
+                        <div class="lib-empty">加载中...</div>
+                    </div>
+                    <div class="lib-footer">
+                        <label class="lib-footer-btn" title="上传图片">
+                            <i class="fas fa-upload"></i> 上传
+                            <input type="file" accept="image/*" onchange="uploadImageToLib(event)" style="display:none">
+                        </label>
+                        <button class="lib-footer-btn" onclick="toggleConnectMode()" id="btnConnectMode"><i class="fas fa-project-diagram"></i> 连线</button>
+                        <button class="lib-footer-btn" onclick="toggleConnections()" id="btnToggleConn"><i class="fas fa-link"></i> 隐藏</button>
+                    </div>
+                </div>
+                <div class="board-canvas" id="boardCanvas"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/board-core.js"></script>
+    <script src="js/mission-panel.js"></script>
+</body>
+</html>
