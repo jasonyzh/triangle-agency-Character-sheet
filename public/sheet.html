@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>职员档案 // TRIANGLE AGENCY</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="css/sheet.css">
+</head>
+<body>
+<div id="status-msg"><i class="fas fa-save"></i> DATA_SAVED</div>
+<div class="container">
+<div class="top-nav">
+    <button class="btn-back" onclick="goBack()"><i class="fas fa-chevron-left"></i> 返回</button>
+    <div class="brand-logo-sm"><span>TRIANGLE</span><span>AGENCY</span></div>
+    <div class="header-right">
+        <!-- 顶部邮箱按钮 -->
+        <div class="top-mail-btn" onclick="openMailModal()" title="邮箱">
+            <i class="fas fa-envelope"></i>
+            <span class="mail-badge" id="topMailBadge">0</span>
+        </div>
+        <h1>职员档案 <span class="sub"><span class="offline-tag">OFFLINE</span><span class="readonly-tag">READ-ONLY</span></span></h1>
+    </div>
+</div>
+<div id="char-side-left" class="char-side-panel"></div>
+<div id="char-side-right" class="char-side-panel"></div>
+<div class="swiper-container" id="swiperContainer">
+<div class="swiper-wrapper" id="swiperWrapper">
+<div id="view-char" class="tab-view">
+<div class="char-hidden-fields"><input type="text" id="pName"><div class="hybrid-input-wrapper" id="grp-pAnom"><select id="sel-pAnom" onchange="handlePresetChange('pAnom', this.value)"></select><input type="text" id="pAnom"><button class="btn-reset-list" onclick="resetToDropdown('pAnom')"><i class="fas fa-list"></i></button></div><div class="hybrid-input-wrapper" id="grp-pReal"><select id="sel-pReal" onchange="handlePresetChange('pReal', this.value)"></select><input type="text" id="pReal"><button class="btn-reset-list" onclick="resetToDropdown('pReal')"><i class="fas fa-list"></i></button></div><div class="hybrid-input-wrapper" id="grp-pFunc"><select id="sel-pFunc" onchange="handlePresetChange('pFunc', this.value)"></select><input type="text" id="pFunc"><button class="btn-reset-list" onclick="resetToDropdown('pFunc')"><i class="fas fa-list"></i></button></div><div id="pTrig1"></div><div id="pTrig2"></div><div class="derivative-progress"><div class="progress-cell" data-idx="1"></div><div class="progress-cell" data-idx="2"></div><div class="progress-cell" data-idx="3"></div><div class="progress-cell" data-idx="4"></div></div><div id="pTrig3"></div><input type="text" id="perm1"><input type="text" id="perm2"><input type="text" id="perm3"></div>
+<div class="char-3col">
+<div class="char-col-left">
+<div class="glass-panel char-attrs-panel"><h2><i class="fas fa-shield-alt"></i> 资质保证<button class="btn-reset-all-attrs" onclick="resetAllAttrs()" title="重置所有标记">↻</button></h2><div id="attrs-list"></div></div>
+</div>
+<div class="char-col-center">
+<div class="panel">
+<h2><i class="fas fa-chart-bar"></i> 进度追踪</h2>
+<div class="track-header">
+<div class="track-stat"><label>MVP</label><input type="text" id="pComm" placeholder="0"></div>
+<div class="track-stat clickable-stat" onclick="showRecordHistory('reward')"><label>嘉奖</label><input type="text" id="mvpCount" placeholder="0" readonly></div>
+<div class="track-stat clickable-stat" onclick="showRecordHistory('reprimand')"><label>申诫</label><input type="text" id="watchCount" placeholder="0" readonly></div>
+<div class="track-stat"><label>察看期</label><input type="text" id="pRep" placeholder="0"></div>
+</div>
+<div class="track-sec"><h3 class="c-func" style="font-size:12px; margin:5px 0;">职能</h3><div class="track-row-wrap"><svg class="track-svg" data-type="f"></svg><div class="track-snake" data-type="f"><div class="p-cell f-cell" data-idx="1"></div><div class="p-cell f-cell" data-idx="2"></div><div class="p-cell f-cell" data-idx="3"><span>A3</span></div><div class="p-cell f-cell" data-idx="4"></div><div class="p-cell f-cell" data-idx="5"></div><div class="p-cell f-cell" data-idx="6"><span>D4</span></div><div class="p-cell f-cell" data-idx="7"></div><div class="p-cell f-cell" data-idx="8"></div><div class="p-cell f-cell" data-idx="9"><span>G3</span></div><div class="p-cell f-cell" data-idx="10"></div><div class="p-cell f-cell" data-idx="11"></div><div class="p-cell f-cell" data-idx="12"><span>J3</span></div><div class="p-cell f-cell" data-idx="13"></div><div class="p-cell f-cell" data-idx="14"></div><div class="p-cell f-cell" data-idx="15"><span>N3</span></div><div class="p-cell f-cell" data-idx="30"></div><div class="p-cell f-cell" data-idx="29"></div><div class="p-cell f-cell" data-idx="28"></div><div class="p-cell f-cell" data-idx="27"><span>Y2</span></div><div class="p-cell f-cell" data-idx="26"></div><div class="p-cell f-cell" data-idx="25"></div><div class="p-cell f-cell" data-idx="24"><span>W8</span></div><div class="p-cell f-cell" data-idx="23"></div><div class="p-cell f-cell" data-idx="22"></div><div class="p-cell f-cell" data-idx="21"><span>T3</span></div><div class="p-cell f-cell" data-idx="20"></div><div class="p-cell f-cell" data-idx="19"></div><div class="p-cell f-cell" data-idx="18"><span>Q3</span></div><div class="p-cell f-cell" data-idx="17"></div><div class="p-cell f-cell" data-idx="16"></div></div></div><div class="track-rule">当你获得任务MVP时，在你的职能记录条上标记1格，且无需从其他记录条上移除一格。</div><div class="track-rule">每当你在职能记录条上标记一格时，将任意一项资质的"资质保证上限"提升1点，最高不超过9点。</div></div>
+<div class="track-sec"><h3 class="c-real" style="font-size:12px; margin:5px 0;">现实</h3><div class="track-row-wrap"><svg class="track-svg" data-type="r"></svg><div class="track-snake" data-type="r"><div class="p-cell r-cell" data-idx="1"><span>C4</span></div><div class="p-cell r-cell" data-idx="2"></div><div class="p-cell r-cell" data-idx="3"></div><div class="p-cell r-cell" data-idx="4"><span>L11</span></div><div class="p-cell r-cell" data-idx="5"></div><div class="p-cell r-cell" data-idx="6"></div><div class="p-cell r-cell" data-idx="7"></div><div class="p-cell r-cell" data-idx="8"><span>E2</span></div><div class="p-cell r-cell" data-idx="9"></div><div class="p-cell r-cell" data-idx="10"><span>O4</span></div><div class="p-cell r-cell" data-idx="11"></div><div class="p-cell r-cell" data-idx="12"><span>J3</span></div><div class="p-cell r-cell" data-idx="13"></div><div class="p-cell r-cell" data-idx="14"><span>T6</span></div><div class="p-cell r-cell" data-idx="15"></div><div class="p-cell r-cell" data-idx="30"></div><div class="p-cell r-cell" data-idx="29"></div><div class="p-cell r-cell" data-idx="28"></div><div class="p-cell r-cell" data-idx="27"><span>E3</span></div><div class="p-cell r-cell" data-idx="26"></div><div class="p-cell r-cell" data-idx="25"></div><div class="p-cell r-cell" data-idx="24"></div><div class="p-cell r-cell" data-idx="23"></div><div class="p-cell r-cell" data-idx="22"><span>H5</span></div><div class="p-cell r-cell" data-idx="21"></div><div class="p-cell r-cell" data-idx="20"><span>X3</span></div><div class="p-cell r-cell" data-idx="19"></div><div class="p-cell r-cell" data-idx="18"></div><div class="p-cell r-cell" data-idx="17"></div><div class="p-cell r-cell" data-idx="16"><span>V2</span></div></div></div><div class="track-rule">当你既未获得任务MVP也未进入察看期时，你可以将你与任意一段关系的连结提升1点。</div><div class="track-rule">每当你在现实记录条上标记一格时，将你与任意一段"关系"的"连结"提升1点，然后对关系网内的每段关系重复此操作。</div></div>
+<div class="track-sec"><h3 class="c-anom" style="font-size:12px; margin:5px 0;">异常</h3><div class="track-row-wrap"><svg class="track-svg" data-type="a"></svg><div class="track-snake" data-type="a"><div class="p-cell a-cell" data-idx="1"><span>H4</span></div><div class="p-cell a-cell" data-idx="2"><span>H3</span></div><div class="p-cell a-cell" data-idx="3"></div><div class="p-cell a-cell" data-idx="4"></div><div class="p-cell a-cell" data-idx="5"><span>U2</span></div><div class="p-cell a-cell" data-idx="6"></div><div class="p-cell a-cell" data-idx="7"><span>X2</span></div><div class="p-cell a-cell" data-idx="8"></div><div class="p-cell a-cell" data-idx="9"></div><div class="p-cell a-cell" data-idx="10"></div><div class="p-cell a-cell" data-idx="11"><span>N1</span></div><div class="p-cell a-cell" data-idx="12"></div><div class="p-cell a-cell" data-idx="13"><span>Q2</span></div><div class="p-cell a-cell" data-idx="14"></div><div class="p-cell a-cell" data-idx="15"></div><div class="p-cell a-cell" data-idx="30"></div><div class="p-cell a-cell" data-idx="29"></div><div class="p-cell a-cell" data-idx="28"></div><div class="p-cell a-cell" data-idx="27"></div><div class="p-cell a-cell" data-idx="26"></div><div class="p-cell a-cell" data-idx="25"></div><div class="p-cell a-cell" data-idx="24"></div><div class="p-cell a-cell" data-idx="23"><span>A7</span></div><div class="p-cell a-cell" data-idx="22"></div><div class="p-cell a-cell" data-idx="21"></div><div class="p-cell a-cell" data-idx="20"></div><div class="p-cell a-cell" data-idx="19"><span>G8</span></div><div class="p-cell a-cell" data-idx="18"></div><div class="p-cell a-cell" data-idx="17"><span>L10</span></div><div class="p-cell a-cell" data-idx="16"></div></div></div><div class="track-rule">当你进入察看期时，在你的异常记录条上标记1格，且无需从其他记录条上移除一格。</div><div class="track-rule">每当你在异常记录条上标记一格时，选择一项：<br>➤练习：在任意一项异常能力上标记"熟练"。 <br>➤广为人知：从一项异常能力中移除"熟练"标记，并向你的团队提出该能力的问题。在获得最多票数的答案轨道上做标记，然后获得所有已解锁的能力。</div></div>
+</div>
+<div class="panel"><h2><i class="fas fa-file-contract"></i> 欢迎你，特工！</h2><div style="margin-bottom:12px;"><label>1. 你是如何与你的异常接触的？</label><div class="rich-editor" id="q1" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>2. 机构是如何找到你的？</label><div class="rich-editor" id="q2" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>3. 你的能力有独特的外在视觉表现吗？</label><div class="rich-editor" id="q3" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>4. 你喝咖啡有什么偏好？</label><div class="rich-editor" id="q4" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>5. 请描述你过往的工作经历</label><div class="rich-editor" id="q5" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>6. 你对Adobe、Excel和Google套件的熟悉程度如何？</label><div class="rich-editor" id="q6" contenteditable="true"></div></div><div style="margin-bottom:12px;"><label>7. 在协作工作环境中，你能做出什么贡献？</label><div class="rich-editor" id="q7" contenteditable="true"></div></div></div>
+<div class="panel"><h2><i class="fas fa-sticky-note"></i> 备注/笔记</h2><label>标题</label><input type="text" id="noteTitle" style="margin-bottom: 12px; font-weight: bold;"><label>内容</label><div class="rich-editor" id="noteBody" contenteditable="true" placeholder="摘要..."></div></div>
+<div class="save-area"><button class="btn-save btn-export" onclick="exportOffline()"><i class="fas fa-download"></i> 离线另存</button></div>
+</div>
+<div class="char-col-right">
+<div class="glass-panel char-info-panel"><div class="char-info-header"><h2><i class="fas fa-id-card"></i> 基础信息</h2><button class="char-info-edit-btn" onclick="openCharEdit()"><i class="fas fa-pen"></i> 编辑</button></div><div class="char-info-body" id="charInfoBody"></div></div>
+</div>
+</div>
+</div>
+<div id="view-anom" class="tab-view"><div class="mod-header"><h2>异常能力</h2><button class="btn-u2-unleash" id="btnU2Unleash" style="display:none" onclick="confirmU2Unleash()"><i class="fas fa-eye"></i></button><button class="btn-add" onclick="addAnom(null, false)"><i class="fas fa-plus"></i> 添加</button></div><div id="list-anom"></div></div>
+<div id="view-real" class="tab-view"><div class="mod-header"><h2>关系网</h2><button class="btn-add" onclick="addRealSafe()"><i class="fas fa-plus"></i> 添加</button></div><div id="list-real"></div></div>
+<div id="view-item" class="tab-view"><div class="mod-header"><h2>申领物/福利</h2><button class="btn-add" onclick="addItem(null, false)"><i class="fas fa-plus"></i> 添加</button></div><div id="list-item"></div></div>
+<div id="view-board" class="tab-view">
+    <div class="mod-header">
+        <h2 style="flex-shrink:0;"><i class="fas fa-desktop"></i> 画板</h2>
+        <select id="boardMissionSelect" onchange="switchBoardMission()" style="margin-left:10px;padding:3px 8px;border:1px solid #d0d5dd;border-radius:4px;font-size:12px;background:#fff;color:#333;max-width:180px;">
+            <option value="">-- 选择任务 --</option>
+        </select>
+        <div class="dice-bar" style="display:flex;align-items:center;gap:4px;margin-left:auto;">
+            <button class="dice-btn die-shape d4" onclick="rollDice(1,4)">4</button>
+            <button class="dice-btn die-shape d6" onclick="rollDice(1,6)">6</button>
+            <button class="dice-btn die-shape d8" onclick="rollDice(1,8)">8</button>
+            <button class="dice-btn die-shape d10" onclick="rollDice(1,10)">10</button>
+            <button class="dice-btn die-shape d12" onclick="rollDice(1,12)">12</button>
+            <button class="dice-btn die-shape d20" onclick="rollDice(1,20)">20</button>
+            <button class="dice-btn die-shape d100" onclick="rollDice(1,100)">%</button>
+            <button class="dice-btn dice-check" onclick="rollCheck()"><i class="fas fa-dice"></i> 检定</button>
+            <button class="dice-btn dice-check" onclick="showDiceHistory()"><i class="fas fa-history"></i> 历史</button>
+            <button class="dice-btn dice-more" onclick="toggleDicePanel()" title="更多骰子"><i class="fas fa-dice-d6"></i></button>
+        </div>
+    </div>
+    <div class="board-canvas" id="playerBoardCanvas" style="flex:1;background:#f5f6f8;position:relative;overflow:auto;min-height:0;border-radius:6px;background-image:radial-gradient(#d0d5dd 1px, transparent 1px);background-size:20px 20px;"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- 邮箱全屏模态框 -->
+<div id="mail-full-modal" class="full-page-modal">
+    <div class="mail-modal-header">
+        <h2><i class="fas fa-envelope"></i> 机构邮箱</h2>
+        <button class="btn-close-mail" onclick="closeMailModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="mail-modal-body">
+        <div class="mail-container-inner">
+			<div class="mail-tabs">
+				<button class="mail-tab active" onclick="switchMailTab('inbox')"><i class="fas fa-inbox"></i><span>收件箱</span></button>
+				<button class="mail-tab" onclick="switchMailTab('sent')"><i class="fas fa-paper-plane"></i><span>已发邮件</span></button>
+				<button class="mail-tab" onclick="switchMailTab('compose')"><i class="fas fa-pen"></i><span>写信</span></button>
+				<button class="mail-tab" id="tab-highwall" onclick="switchMailTab('highwall')" style="display:none;"><i class="fas fa-file-shield"></i><span>高墙文件</span></button>
+			</div>
+            <div class="mail-content" id="mailContent">
+                <div class="mail-empty">
+                    <i class="fas fa-envelope-open"></i>
+                    <p>加载中...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 高墙特效 (伪装 -> 故障 -> 眼睛 -> 吞噬) -->
+<div id="hw-overlay">
+    <!-- 1. 伪装层 -->
+    <div class="hw-normal-content" id="hw-content">
+        <i class="fas fa-circle-notch fa-spin hw-loader-icon" id="hw-icon"></i>
+        <div class="hw-loader-text" id="hw-text">访问高墙文件<span class="hw-dots"></span></div>
+    </div>
+
+    <!-- 2. 故障层 -->
+    <div class="hw-scanlines" id="hw-scanlines"></div>
+
+    <!-- 3. 眼睛层 -->
+    <div class="hw-eye-layer" id="hw-eye-layer">
+        <svg class="hw-eye-svg" id="hw-eye-icon" viewBox="0 0 100 90">
+            <path d="M5 45 Q 50 5 95 45 Q 50 85 5 45 Z" fill="#000" stroke="#00f3ff" stroke-width="3"/>
+            <circle cx="50" cy="45" r="16" fill="#00f3ff" opacity="0.8" />
+            <path d="M50 30 Q 54 45 50 60 Q 46 45 50 30 Z" fill="#fff" />
+        </svg>
+    </div>
+
+    <!-- 4. 暗影触手层 -->
+    <div class="hw-tentacles-layer" id="hw-tentacles"></div>
+
+    <!-- 5. 最终熄灭层 -->
+    <div id="hw-blackout"></div>
+</div>
+
+<!-- U2释放确认弹窗 -->
+<div id="u2-overlay" class="u2-overlay-bg" onclick="event.target===this&&cancelU2Unleash()">
+    <div class="u2-modal" id="u2-modal">
+        <svg class="u2-eye-svg" id="u2-eye-icon" viewBox="0 0 100 90">
+            <path d="M5 45 Q 50 5 95 45 Q 50 85 5 45 Z" fill="#1a1a2e" stroke="var(--accent)" stroke-width="3"/>
+            <circle cx="50" cy="45" r="16" fill="var(--accent)" opacity="0.8" />
+            <path d="M50 30 Q 54 45 50 60 Q 46 45 50 30 Z" fill="#fff" />
+        </svg>
+        <div class="u2-confirm-text">确定要消耗 <strong class="u2-highlight">3 点申诫</strong> 吗？</div>
+        <div class="u2-confirm-btns">
+            <button class="u2-btn u2-btn-cancel" onclick="cancelU2Unleash()">取消</button>
+            <button class="u2-btn u2-btn-confirm" onclick="executeU2Unleash()">确认</button>
+        </div>
+    </div>
+</div>
+
+<!-- 自我评估弹窗 -->
+<div id="assessment-modal" class="assessment-modal">
+    <div class="assessment-overlay" onclick="closeAssessmentModal()"></div>
+    <div class="assessment-box">
+        <div class="assessment-header">
+            <div class="assessment-title-wrapper">
+                <h3><i class="fas fa-clipboard-list"></i> 自我评估</h3>
+                <button class="btn-close-assessment" onclick="closeAssessmentModal()" title="关闭">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <p class="assessment-subtitle">请根据你的角色特质选择最符合的答案</p>
+        </div>
+        <div class="assessment-body" id="assessmentBody">
+            <!-- 问题将在此动态生成 -->
+        </div>
+        <div class="assessment-footer">
+            <button class="btn-assessment-submit" onclick="submitAssessment()">
+                <i class="fas fa-check"></i> 提交评估
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 蓝色眼睛邮件阅读器 -->
+<div id="mail-reader-overlay">
+    <!-- 背景光晕 -->
+    <div class="mail-reader-bg"></div>
+
+    <!-- 背景眼睛装饰 -->
+    <div class="mail-eye-container">
+        <svg class="mail-eye-svg" viewBox="0 0 100 60">
+            <path d="M5 30 Q 50 0 95 30 Q 50 60 5 30 Z" fill="none" stroke="#1e90ff" stroke-width="2"/>
+            <circle cx="50" cy="30" r="15" fill="#1e90ff" opacity="0.6"/>
+            <circle cx="50" cy="30" r="8" class="eye-pupil"/>
+            <ellipse cx="46" cy="27" rx="3" ry="4" fill="rgba(255,255,255,0.4)"/>
+        </svg>
+    </div>
+
+    <!-- 扫描线效果 -->
+    <div class="mail-scanlines"></div>
+
+    <!-- 邮件内容面板 -->
+    <div class="mail-reader-panel">
+        <div class="mail-reader-header">
+            <div class="mail-reader-title">
+                <h3 id="mail-reader-subject">邮件标题</h3>
+                <div class="mail-reader-meta">
+                    <span id="mail-reader-sender"><i class="fas fa-user"></i> 发件人</span>
+                    <span id="mail-reader-time"><i class="fas fa-clock"></i> 时间</span>
+                </div>
+            </div>
+            <button class="mail-reader-close" onclick="closeMailReader()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="mail-reader-body" id="mail-reader-body">
+            邮件内容
+        </div>
+        <div class="mail-reader-actions" id="mail-reader-actions">
+            <button class="mail-reader-btn secondary" onclick="closeMailReader()">
+                <i class="fas fa-check"></i> 关闭
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="nav-bar">
+<div class="nav-btn active n-char" onclick="switchView('view-char', this)"><i class="fas fa-id-badge"></i><span>档案</span></div>
+<div class="nav-btn n-anom" onclick="switchView('view-anom', this)"><i class="fas fa-bolt"></i><span>异常</span></div>
+<div class="nav-btn n-real" onclick="switchView('view-real', this)"><i class="fas fa-heart"></i><span>关系</span></div>
+<div class="nav-btn n-item" onclick="switchView('view-item', this)"><i class="fas fa-box-open"></i><span>物品</span></div>
+<div class="nav-btn n-board" onclick="switchView('view-board', this)"><i class="fas fa-desktop"></i><span>画板</span></div>
+<!-- n-mail Removed -->
+</div>
+<script id="__SAVED_DATA__" type="application/json"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="js/board-core.js"></script>
+<script src="js/sheet.js"></script>
+
+<!-- =========================================
+     报告提交成功 
+     ========================================= -->
+<div id="reportSuccessModal" class="success-modal-overlay">
+    <div class="success-modal-box">
+        <div class="success-modal-icon">
+            <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                <defs>
+                    <linearGradient id="gradient-circle" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#3498db; stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#c0392b; stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+                <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+            </svg>
+        </div>
+        <h3>任务报告已提交</h3>
+    </div>
+</div>
+
+<!-- 嘉奖/申诫记录历史模态框 -->
+<div id="recordHistoryModal" onclick="event.target.id === 'recordHistoryModal' && closeRecordHistory()" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:10000; justify-content:center; align-items:center; overflow:hidden;">
+    <div onclick="event.stopPropagation()" style="background:white; border-radius:8px; max-width:600px; width:90%; max-height:80vh; overflow:hidden; display:flex; flex-direction:column;">
+        <div style="padding:20px; border-bottom:2px solid #ecf0f1; display:flex; justify-content:space-between; align-items:center;">
+            <h3 id="recordHistoryTitle" style="margin:0; font-size:18px; color:#2c3e50;">记录历史</h3>
+            <button onclick="closeRecordHistory()" style="background:none; border:none; font-size:24px; color:#95a5a6; cursor:pointer; padding:0; width:30px; height:30px;">&times;</button>
+        </div>
+        <div id="recordHistoryContent" style="padding:20px; overflow-y:auto; flex:1;">
+            <!-- 记录内容将在这里动态生成 -->
+        </div>
+    </div>
+</div>
+
+<div id="anomEditModal" class="anom-edit-modal" onclick="event.target===this&&closeAnomCardEdit()">
+    <div class="anom-edit-box">
+        <div class="anom-edit-header">
+            <h3><i class="fas fa-bolt" style="color:var(--accent)"></i> 编辑异常能力</h3>
+            <button class="anom-edit-close" onclick="closeAnomCardEdit()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="anom-edit-body">
+            <div class="anom-edit-row-2">
+                <div><label>能力名称</label><input type="text" class="anom-edit-name" placeholder="能力名称"></div>
+                <div><label><i class="fas fa-bolt"></i> 触发器</label><input type="text" class="anom-edit-trig" placeholder="触发器"></div>
+            </div>
+            <label><i class="fas fa-star"></i> 资质</label><input type="text" class="anom-edit-qual" placeholder="资质">
+            <div class="anom-edit-row-2">
+                <div><label style="color:var(--accent)"><i class="fas fa-check-circle"></i> 成功时</label><div class="rich-editor anom-edit-succ" contenteditable="true"></div></div>
+                <div><label style="color:#c0392b"><i class="fas fa-times-circle"></i> 失败时</label><div class="rich-editor anom-edit-fail" contenteditable="true"></div></div>
+            </div>
+            <div class="anom-edit-divider"></div>
+            <label><i class="fas fa-question-circle"></i> 问题</label>
+            <div class="anom-edit-q-row"><input type="text" class="anom-edit-tdesc" placeholder="问题"><label class="chk-btn chk-trained"><input type="checkbox" class="anom-edit-chk"><span></span></label></div>
+            <div class="anom-edit-a-row"><input type="text" class="anom-edit-t1" placeholder="答案1"><input type="text" class="small-input anom-edit-t1v" placeholder="值"><div class="sq-dots anom-edit-d1"><div class="sq-dot"></div><div class="sq-dot"></div><div class="sq-dot"></div></div></div>
+            <div class="anom-edit-a-row"><input type="text" class="anom-edit-t2" placeholder="答案2"><input type="text" class="small-input anom-edit-t2v" placeholder="值"><div class="sq-dots anom-edit-d2"><div class="sq-dot"></div><div class="sq-dot"></div><div class="sq-dot"></div></div></div>
+        </div>
+        <div class="anom-edit-footer">
+            <button class="anom-edit-save" onclick="saveAnomCardEdit()"><i class="fas fa-check"></i> 保存</button>
+        </div>
+    </div>
+</div>
+
+<div id="realEditModal" class="anom-edit-modal" onclick="event.target===this&&closeRealCardEdit()">
+    <div class="anom-edit-box">
+        <div class="anom-edit-header">
+            <h3><i class="fas fa-heart" style="color:var(--reality)"></i> 编辑关系</h3>
+            <button class="anom-edit-close" onclick="closeRealCardEdit()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="anom-edit-body">
+            <div class="anom-edit-row-2">
+                <div><label>姓名</label><input type="text" class="real-edit-name" placeholder="姓名"></div>
+                <div><label>扮演者</label><input type="text" class="real-edit-actor" placeholder="扮演者"></div>
+            </div>
+            <label><i class="fas fa-align-left"></i> 描述</label><div class="rich-editor real-edit-desc" contenteditable="true" placeholder="描述"></div>
+            <div class="anom-edit-divider"></div>
+            <label><i class="fas fa-link"></i> 连结进度</label>
+            <div class="real-edit-lvl-row">
+                <button class="real-lvl-btn" onclick="const v=document.querySelector('.real-edit-lvl');v.value=Math.max(0,parseInt(v.value||0)-1);updateRealLvlDots(v.value)">-</button>
+                <div class="real-edit-lvl-dots"><div class="dot" data-i="1"></div><div class="dot" data-i="2"></div><div class="dot" data-i="3"></div><div class="dot" data-i="4"></div><div class="dot" data-i="5"></div><div class="dot" data-i="6"></div><div class="dot" data-i="7"></div><div class="dot" data-i="8"></div><div class="dot" data-i="9"></div></div>
+                <button class="real-lvl-btn" onclick="const v=document.querySelector('.real-edit-lvl');v.value=Math.min(9,parseInt(v.value||0)+1);updateRealLvlDots(v.value)">+</button>
+                <input type="hidden" class="real-edit-lvl" value="0">
+                <label class="chk-btn"><input type="checkbox" class="real-edit-act"><span></span></label>
+            </div>
+            <label><i class="fas fa-gift"></i> 连结加成</label><div class="hybrid-input-wrapper has-editor"><select class="real-edit-conn-sel" onchange="handleRealBonusChange(this)"></select><div class="rich-editor real-edit-conn" contenteditable="true" placeholder="选择预设或输入加成效果..."></div><button class="btn-reset-list" onclick="resetRealBonus(this)"><i class="fas fa-list"></i></button></div>
+        </div>
+        <div class="anom-edit-footer">
+            <button class="anom-edit-save" style="background:var(--reality)" onclick="saveRealCardEdit()"><i class="fas fa-check"></i> 保存</button>
+        </div>
+    </div>
+</div>
+
+<div id="itemEditModal" class="anom-edit-modal" onclick="event.target===this&&closeItemCardEdit()">
+    <div class="anom-edit-box">
+        <div class="anom-edit-header">
+            <h3><i class="fas fa-box-open" style="color:var(--functional)"></i> 编辑申领物</h3>
+            <button class="anom-edit-close" onclick="closeItemCardEdit()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="anom-edit-body">
+            <div class="anom-edit-row-2">
+                <div><label>物品名称</label><input type="text" class="item-edit-name" placeholder="物品名称"></div>
+                <div><label>页面/PD码</label><input type="text" class="item-edit-pd" placeholder="页面/PD码"></div>
+            </div>
+            <label><i class="fas fa-magic"></i> 效果</label>
+            <div class="rich-editor item-edit-eff" contenteditable="true" placeholder="效果描述..."></div>
+            <div class="anom-edit-divider"></div>
+            <label class="chk-btn chk-once" style="margin-top:10px"><input type="checkbox" class="item-edit-once"><span></span></label>
+        </div>
+        <div class="anom-edit-footer">
+            <button class="anom-edit-save" style="background:var(--functional)" onclick="saveItemCardEdit()"><i class="fas fa-check"></i> 保存</button>
+        </div>
+    </div>
+</div>
+
+<div id="charEditModal" class="anom-edit-modal" onclick="event.target===this&&closeCharEdit()">
+    <div class="anom-edit-box" style="max-width:620px">
+        <div class="anom-edit-header">
+            <h3><i class="fas fa-id-card" style="color:var(--reality)"></i> 编辑基础信息</h3>
+            <button class="anom-edit-close" onclick="closeCharEdit()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="anom-edit-body">
+            <label>玩家姓名</label><input type="text" class="char-edit-name" placeholder="输入姓名">
+            <div class="anom-edit-row-2">
+                <div><label><i class="fas fa-bolt"></i> 异常能力</label><div class="hybrid-input-wrapper" id="grp-char-pAnom"><select class="char-edit-anom-sel" onchange="handleCharPresetChange('pAnom', this.value)"></select><input type="text" class="char-edit-anom" placeholder="输入异常能力"><button class="btn-reset-list" onclick="resetCharDropdown('pAnom')"><i class="fas fa-list"></i></button></div></div>
+                <div><label><i class="fas fa-heart"></i> 现实身份</label><div class="hybrid-input-wrapper" id="grp-char-pReal"><select class="char-edit-real-sel" onchange="handleCharPresetChange('pReal', this.value)"></select><input type="text" class="char-edit-real" placeholder="输入现实身份"><button class="btn-reset-list" onclick="resetCharDropdown('pReal')"><i class="fas fa-list"></i></button></div></div>
+            </div>
+            <label><i class="fas fa-briefcase"></i> 机构职能</label><div class="hybrid-input-wrapper" id="grp-char-pFunc"><select class="char-edit-func-sel" onchange="handleCharPresetChange('pFunc', this.value)"></select><input type="text" class="char-edit-func" placeholder="输入机构职能"><button class="btn-reset-list" onclick="resetCharDropdown('pFunc')"><i class="fas fa-list"></i></button></div>
+            <div class="anom-edit-divider"></div>
+            <label><i class="fas fa-exclamation-triangle"></i> 过载解除</label><div class="rich-editor char-edit-trig1" contenteditable="true" placeholder="如何解除过载"></div>
+            <label><i class="fas fa-eye"></i> 现实触发器</label><div class="rich-editor char-edit-trig2" contenteditable="true" placeholder="GM可随时触发此项"></div>
+            <label>现实计数</label>
+            <div class="char-edit-derivative">
+                <div class="char-deriv-cell" data-idx="1"><span>1</span></div>
+                <div class="char-deriv-cell" data-idx="2"><span>2</span></div>
+                <div class="char-deriv-cell" data-idx="3"><span>3</span></div>
+                <div class="char-deriv-cell" data-idx="4"><span>4</span></div>
+            </div>
+            <div class="anom-edit-divider"></div>
+            <label><i class="fas fa-gavel"></i> 首要指令</label><div class="rich-editor char-edit-trig3" contenteditable="true" placeholder="如果你……，则获得1点申诫"></div>
+            <label><i class="fas fa-check-double"></i> 许可行为</label><div class="char-edit-perms"><input type="text" class="char-edit-perm1" placeholder="许可行为 1"><input type="text" class="char-edit-perm2" placeholder="许可行为 2"><input type="text" class="char-edit-perm3" placeholder="许可行为 3"></div>
+            <div class="char-edit-perm-note">如果你在单次任务中完成全部 3 项，将获得 3 点额外嘉奖。</div>
+        </div>
+        <div class="anom-edit-footer">
+            <button class="anom-edit-save" style="background:var(--reality)" onclick="saveCharEdit()"><i class="fas fa-check"></i> 保存</button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
