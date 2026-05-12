@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>导出角色卡 // TRIANGLE AGENCY</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="css/common.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --card-bg: #ffffff;
+            --text-light: #7f8c8d;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: #0f172a;
+        }
+
+        .toolbar {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            display: flex;
+            gap: 10px;
+        }
+        .tool-btn {
+            background: var(--signal-red);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(192, 57, 43, 0.3);
+        }
+        .tool-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(192, 57, 43, 0.4); }
+        .tool-btn:disabled { background: #94a3b8; cursor: not-allowed; transform: none; }
+        .tool-btn.secondary { background: #34495e; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+
+        #card-template {
+            width: 800px;
+            margin: 0 auto;
+            background: var(--deep-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--signal-red), #e74c3c);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        .card-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255,255,255,0.1);
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            transform: rotate(15deg);
+        }
+        .card-header::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: 10%;
+            width: 200px;
+            height: 200px;
+            background: rgba(0,0,0,0.1);
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            transform: rotate(-10deg);
+        }
+
+        .header-content { position: relative; z-index: 1; }
+        .brand-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        .brand-logo {
+            color: white;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+        .brand-logo .main { font-size: 20px; letter-spacing: 3px; }
+        .brand-logo .sub { font-size: 12px; letter-spacing: 4px; opacity: 0.8; }
+        .doc-id {
+            background: rgba(0,0,0,0.2);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 10px;
+            color: rgba(255,255,255,0.7);
+            letter-spacing: 1px;
+        }
+
+        .char-name {
+            font-size: 36px;
+            font-weight: 900;
+            color: white;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .identity-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .identity-tag {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: 6px;
+            color: white;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .identity-tag i { opacity: 0.8; }
+
+        .card-body {
+            padding: 30px;
+            background: var(--card-bg);
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+        .section:last-child { margin-bottom: 0; }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        .section-header i {
+            width: 24px;
+            height: 24px;
+            background: var(--signal-red);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .section-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--text-dark);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 8px;
+        }
+        .stat-box {
+            background: linear-gradient(145deg, #f8f9fa, #ecf0f1);
+            border-radius: 6px;
+            padding: 12px 8px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+        .stat-name {
+            font-size: 10px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--text-dark);
+        }
+        .stat-marked {
+            color: var(--signal-red);
+        }
+
+        .progress-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .progress-item {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 12px;
+        }
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            margin-bottom: 8px;
+        }
+        .progress-label .name { color: var(--text-light); text-transform: uppercase; }
+        .progress-label .value { color: var(--text-dark); font-weight: bold; }
+        .progress-bar {
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+        .progress-fill.anom { background: var(--c-anom); }
+        .progress-fill.real { background: var(--c-real); }
+        .progress-fill.func { background: var(--c-func); }
+
+        .records-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .record-box {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 12px;
+            text-align: center;
+        }
+        .record-label {
+            font-size: 10px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .record-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--signal-red);
+        }
+
+        .ability-list {
+            display: grid;
+            gap: 12px;
+        }
+        .ability-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            border-left: 4px solid var(--c-anom);
+        }
+        .ability-name {
+            font-weight: bold;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .ability-detail {
+            font-size: 12px;
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+        .ability-detail strong { color: var(--text-dark); }
+
+        .relation-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        .relation-item {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 12px;
+        }
+        .relation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 6px;
+        }
+        .relation-name { font-weight: bold; color: var(--text-dark); font-size: 13px; }
+        .relation-actor { font-size: 10px; color: var(--text-light); margin-top: 2px; }
+        .relation-level {
+            background: var(--signal-red);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        .relation-bonus {
+            font-size: 11px;
+            color: var(--c-anom);
+            background: rgba(26, 188, 156, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-top: 6px;
+            display: inline-block;
+        }
+
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        .item-box {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 12px;
+            border-left: 3px solid var(--signal-red);
+        }
+        .item-name {
+            font-weight: bold;
+            color: var(--text-dark);
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+        .item-pd {
+            font-size: 11px;
+            color: var(--signal-red);
+            font-weight: bold;
+        }
+
+        .owner-info {
+            font-size: 11px;
+            color: rgba(255,255,255,0.7);
+            margin-top: 5px;
+        }
+        .owner-info i { margin-right: 5px; }
+
+        .card-footer {
+            background: var(--deep-bg);
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .footer-left {
+            color: rgba(255,255,255,0.5);
+            font-size: 11px;
+        }
+        .footer-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .qr-placeholder {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.3);
+            font-size: 10px;
+        }
+        .export-info {
+            color: rgba(255,255,255,0.5);
+            font-size: 10px;
+            text-align: right;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 100px;
+            color: rgba(255,255,255,0.5);
+        }
+        .loading i { font-size: 40px; }
+
+        .toast {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--signal-red);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            z-index: 2000;
+            display: none;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            animation: toastIn 0.3s ease;
+        }
+        .toast.show { display: flex; align-items: center; gap: 10px; }
+        .toast.success { background: #27ae60; }
+        .toast.error { background: var(--signal-red); }
+        @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -20px); } to { opacity: 1; transform: translate(-50%, 0); } }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <button class="tool-btn secondary" onclick="window.close()"><i class="fas fa-times"></i> 关闭</button>
+    <button class="tool-btn" id="btnExport" onclick="exportImage()"><i class="fas fa-download"></i> 保存图片</button>
+</div>
+
+<div class="toast" id="toast"><i class="fas fa-exclamation-circle"></i> <span id="toastMsg"></span></div>
+
+<div id="loading" class="loading">
+    <i class="fas fa-circle-notch fa-spin"></i>
+    <p style="margin-top:20px;">加载角色数据...</p>
+</div>
+
+<div id="card-template" style="display:none;">
+    <div class="card-header">
+        <div class="header-content">
+            <div class="brand-row">
+                <div class="brand-logo">
+                    <div class="main">TRIANGLE AGENCY</div>
+                    <div class="sub">三角机构</div>
+                </div>
+                <div class="doc-id" id="docId">DOC-000000</div>
+            </div>
+            <div class="char-name" id="charName">角色名称</div>
+            <div class="identity-row">
+                <div class="identity-tag"><i class="fas fa-bolt"></i> <span id="tagAnom">异常</span></div>
+                <div class="identity-tag"><i class="fas fa-briefcase"></i> <span id="tagFunc">职能</span></div>
+                <div class="identity-tag"><i class="fas fa-user"></i> <span id="tagReal">现实</span></div>
+            </div>
+            <div class="owner-info" id="ownerInfo"><i class="fas fa-id-badge"></i> 所属: ---</div>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <div class="section">
+            <div class="section-header">
+                <i class="fas fa-trophy"></i>
+                <span class="section-title">档案记录</span>
+            </div>
+            <div class="records-row" id="recordsRow">
+                <div class="record-box">
+                    <div class="record-label">MVP</div>
+                    <div class="record-value" id="recMvp">0</div>
+                </div>
+                <div class="record-box">
+                    <div class="record-label">嘉奖</div>
+                    <div class="record-value" id="recJiajiang">0</div>
+                </div>
+                <div class="record-box">
+                    <div class="record-label">申诫</div>
+                    <div class="record-value" id="recShenjie">0</div>
+                </div>
+                <div class="record-box">
+                    <div class="record-label">察看期</div>
+                    <div class="record-value" id="recChakan">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <i class="fas fa-chart-bar"></i>
+                <span class="section-title">资质</span>
+            </div>
+            <div class="stats-grid" id="statsGrid"></div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <i class="fas fa-signal"></i>
+                <span class="section-title">进度追踪</span>
+            </div>
+            <div class="progress-row" id="progressRow"></div>
+        </div>
+
+        <div class="section" id="abilitiesSection" style="display:none;">
+            <div class="section-header">
+                <i class="fas fa-magic"></i>
+                <span class="section-title">异常能力</span>
+            </div>
+            <div class="ability-list" id="abilityList"></div>
+        </div>
+
+        <div class="section" id="relationsSection" style="display:none;">
+            <div class="section-header">
+                <i class="fas fa-users"></i>
+                <span class="section-title">关系网</span>
+            </div>
+            <div class="relation-grid" id="relationGrid"></div>
+        </div>
+
+        <div class="section" id="itemsSection" style="display:none;">
+            <div class="section-header">
+                <i class="fas fa-gift"></i>
+                <span class="section-title">申领物/福利</span>
+            </div>
+            <div class="items-grid" id="itemsGrid"></div>
+        </div>
+    </div>
+
+    <div class="card-footer">
+        <div class="footer-left">
+            <div style="margin-bottom:5px;">TRIANGLE AGENCY // 角色档案</div>
+            <div id="exportTime">导出时间: --</div>
+        </div>
+        <div class="footer-right">
+            <div class="export-info">
+                <div>CONFIDENTIAL</div>
+                <div>机密档案</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const charId = params.get('id');
+    const token = localStorage.getItem('ta_token');
+
+    function showToast(msg, type = 'error') {
+        const toast = document.getElementById('toast');
+        const toastMsg = document.getElementById('toastMsg');
+        toastMsg.textContent = msg;
+        toast.className = 'toast show ' + type;
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    async function loadCharacter() {
+        if (!charId) {
+            showToast('缺少角色ID', 'error');
+            return;
+        }
+
+        try {
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+            const res = await fetch(`/api/character/${charId}`, { headers });
+            const data = await res.json();
+
+            if (!data || data.error) {
+                showToast('加载角色数据失败', 'error');
+                return;
+            }
+
+            renderCard(data);
+        } catch (e) {
+            console.error(e);
+            showToast('加载失败', 'error');
+        }
+    }
+
+    function renderCard(data) {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('card-template').style.display = 'block';
+
+        document.getElementById('docId').textContent = `DOC-${charId.slice(-6)}`;
+        document.getElementById('charName').textContent = data.pName || '未命名';
+        document.getElementById('tagAnom').textContent = data.pAnom || '---';
+        document.getElementById('tagFunc').textContent = data.pFunc || '---';
+        document.getElementById('tagReal').textContent = data.pReal || '---';
+
+        document.getElementById('recMvp').textContent = data.recMvp || 0;
+        document.getElementById('recJiajiang').textContent = data.recJiajiang || 0;
+        document.getElementById('recShenjie').textContent = data.recShenjie || 0;
+        document.getElementById('recChakan').textContent = data.recChakan || 0;
+
+        const statNames = ['专注', '欺瞒', '活力', '共情', '主动', '坚毅', '气场', '专业', '诡秘'];
+        const attrs = data.attrs || {};
+
+        const statsGrid = document.getElementById('statsGrid');
+        statsGrid.innerHTML = statNames.map(name => {
+            const attr = attrs[name] || { v: 0, m: [] };
+            const total = parseInt(attr.v) || 0;
+            const marked = (attr.m || []).length;
+            return `
+                <div class="stat-box">
+                    <div class="stat-name">${name}</div>
+                    <div class="stat-value">${total}/<span class="stat-marked">${marked}</span></div>
+                </div>
+            `;
+        }).join('');
+
+        const progressRow = document.getElementById('progressRow');
+        const progresses = [
+            { name: '职能', key: 'progFunc', max: 'progFuncMax', class: 'func' },
+            { name: '现实', key: 'progReal', max: 'progRealMax', class: 'real' },
+            { name: '异常', key: 'progAnom', max: 'progAnomMax', class: 'anom' }
+        ];
+
+        progressRow.innerHTML = progresses.map(p => {
+            const val = data[p.key] || 0;
+            const max = data[p.max] || 10;
+            const percent = Math.min((val / max) * 100, 100);
+            return `
+                <div class="progress-item">
+                    <div class="progress-label">
+                        <span class="name">${p.name}</span>
+                        <span class="value">${val}/${max}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill ${p.class}" style="width:${percent}%"></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        const abilities = data.anomCards || [];
+        if (abilities.length > 0) {
+            document.getElementById('abilitiesSection').style.display = 'block';
+            document.getElementById('abilityList').innerHTML = abilities.slice(0, 3).map(a => `
+                <div class="ability-item">
+                    <div class="ability-name">${a.name || '未命名能力'}</div>
+                    <div class="ability-detail">
+                        ${a.trigger ? `<strong>触发:</strong> ${a.trigger}<br>` : ''}
+                        ${a.success ? `<strong>成功:</strong> ${a.success}` : ''}
+                        ${a.fail ? `<br><strong>失败:</strong> ${a.fail}` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        const relations = data.reals || [];
+        if (relations.length > 0) {
+            document.getElementById('relationsSection').style.display = 'block';
+            document.getElementById('relationGrid').innerHTML = relations.slice(0, 6).map(r => `
+                <div class="relation-item">
+                    <div class="relation-header">
+                        <div>
+                            <div class="relation-name">${r.name || '未知'}</div>
+                            ${r.actor ? `<div class="relation-actor">扮演者: ${r.actor}</div>` : ''}
+                        </div>
+                        ${r.lvl ? `<div class="relation-level">Lv.${r.lvl}</div>` : ''}
+                    </div>
+                    ${r.conn ? `<div class="relation-bonus"><i class="fas fa-link"></i> ${r.conn}</div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        const items = data.items || [];
+        const validItems = items.filter(i => i.item && i.item.trim());
+        if (validItems.length > 0) {
+            document.getElementById('itemsSection').style.display = 'block';
+            document.getElementById('itemsGrid').innerHTML = validItems.slice(0, 6).map(i => `
+                <div class="item-box">
+                    <div class="item-name">${i.item}</div>
+                    ${i.pd ? `<div class="item-pd">PD: ${i.pd}</div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        if (data.ownerName) {
+            document.getElementById('ownerInfo').innerHTML = `<i class="fas fa-id-badge"></i> 所属: ${data.ownerName}`;
+        }
+
+        document.getElementById('exportTime').textContent = `导出时间: ${new Date().toLocaleString('zh-CN')}`;
+    }
+
+    async function exportImage() {
+        const btn = document.getElementById('btnExport');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 生成中...';
+
+        try {
+            const element = document.getElementById('card-template');
+            const canvas = await html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#1a252f',
+                logging: false
+            });
+
+            const link = document.createElement('a');
+            link.download = `角色卡_${document.getElementById('charName').textContent}_${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+
+            btn.innerHTML = '<i class="fas fa-check"></i> 已保存';
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-download"></i> 保存图片';
+            }, 2000);
+        } catch (e) {
+            console.error(e);
+            showToast('导出失败', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-download"></i> 保存图片';
+        }
+    }
+
+    loadCharacter();
+</script>
+</body>
+</html>
