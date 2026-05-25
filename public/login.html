@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>三角机构 // 身份验证</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="badge-container" id="badgeContainer">
+        <div class="lanyard-clip" id="lanyard"></div>
+        
+        <div class="badge-inner" id="badgeInner">
+            
+            <div class="card-face front">
+                <div class="header-stripe"></div>
+                <div class="watermark"><i class="fas fa-play"></i></div>
+
+                <div class="content-area">
+                    <div class="triangle-frame" id="photo-frame">
+                        <i class="fas fa-user-secret"></i>
+                    </div>
+
+                    <div class="org-title">
+                        <h1>TRIANGLE</h1>
+                        <span>AGENCY</span>
+                        <h2>终端授权</h2>
+                    </div>
+
+                    <div class="form-group">
+                        <label>特工ID</label>
+                        <input type="text" id="user" autocomplete="off" placeholder="AGENT_ID">
+                    </div>
+
+                    <div class="form-group">
+                        <label>验证码</label>
+                        <input type="password" id="pass" placeholder="••••••••">
+                    </div>
+
+                    <button class="btn-verify" onclick="login()">接入终端</button>
+                    <div class="status-msg" id="msg">拒绝访问</div>
+                    <div class="register-link" id="regLink" style="display:none;">
+                        <a href="register.html">没有账号？<span>申请入职</span></a>
+                    </div>
+                </div>
+
+                <div class="footer-scan">
+                    <div class="barcode"></div>
+                    <div class="laser-line"></div>
+                    <div style="text-align:center; font-size:8px; font-weight:bold; color:#94a3b8; margin-top:4px; font-family: 'Roboto Mono', monospace;"></div>
+                </div>
+            </div>
+
+            <div class="card-face back">
+                <div class="circuit-deco"></div>
+                <i class="fas fa-circle-notch fa-spin" style="color: var(--agency-black); font-size: 40px; z-index: 2;"></i>
+                <div class="loading-text">接入终端中...</div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="js/auth-effects.js"></script>
+    <script>
+        initParticles('bg-canvas', 70);
+        init3DTilt('badgeContainer');
+
+        var container = document.getElementById('badgeContainer');
+        var inner = document.getElementById('badgeInner');
+        var lanyard = document.getElementById('lanyard');
+
+        var userIn = document.getElementById('user');
+        var icon = document.querySelector('.triangle-frame i');
+        userIn.addEventListener('input', function(e) {
+            icon.className = e.target.value.length > 0 ? 'fas fa-user-check' : 'fas fa-user-secret';
+        });
+
+        async function checkRegStatus() {
+            try {
+                var res = await fetch('/api/register/status');
+                var data = await res.json();
+                if (data.registrationEnabled) {
+                    document.getElementById('regLink').style.display = 'block';
+                }
+            } catch (e) {}
+        }
+        checkRegStatus();
+
+        async function login() {
+            var u = document.getElementById('user').value;
+            var p = document.getElementById('pass').value;
+            var msg = document.getElementById('msg');
+            var btn = document.querySelector('.btn-verify');
+            
+            var originalText = btn.innerText;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 验证中...';
+            btn.style.opacity = '0.8';
+            msg.classList.remove('show');
+
+            try {
+                var res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: u, password: p })
+                });
+                var data = await res.json();
+                
+                if(data.success) {
+                    btn.innerHTML = '允许访问';
+                    btn.style.background = '#15803d';
+                    localStorage.setItem('ta_uid', data.userId);
+                    localStorage.setItem('ta_token', data.token);
+                    localStorage.setItem('ta_role', data.role);
+                    if (data.isAdmin) localStorage.setItem('ta_is_admin', 'true');
+                    else localStorage.removeItem('ta_is_admin');
+                    if (data.isManager) localStorage.setItem('ta_is_manager', 'true');
+                    else localStorage.removeItem('ta_is_manager');
+                    if (data.branches && data.branches.length > 0) {
+                        if (!localStorage.getItem('ta_current_branch')) {
+                            localStorage.setItem('ta_current_branch', data.branches[0].id);
+                        }
+                    }
+
+                    var targetPage = 'dashboard.html';
+                    if (data.role >= 2) targetPage = 'manager.html';
+                    else if (data.role >= 1) targetPage = 'manager.html';
+
+                    setTimeout(function() {
+                        window.scrollTo(0, 0);
+                        inner.classList.add('flipped');
+                        lanyard.style.opacity = '0';
+                        setTimeout(function() {
+                            container.classList.add('expanded');
+                            setTimeout(function() {
+                                window.location.href = targetPage;
+                            }, 800);
+                        }, 600);
+                    }, 500);
+
+                } else {
+                    btn.innerHTML = '非法授权';
+                    btn.style.background = '#0f172a';
+                    msg.innerText = data.message || "ID 或 密钥错误";
+                    msg.classList.add('show');
+                    setTimeout(function() {
+                        btn.innerHTML = originalText;
+                        btn.style.background = '';
+                        btn.style.opacity = '1';
+                    }, 1500);
+                }
+            } catch(e) {
+                msg.innerText = "服务器连接失败";
+                msg.classList.add('show');
+                btn.innerHTML = originalText;
+                btn.style.opacity = '1';
+            }
+        }
+        
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Enter") login();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>角色卡分享 // TRIANGLE AGENCY</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .password-card {
+            background: var(--pure-white);
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .password-card i.lock-icon {
+            font-size: 48px;
+            color: var(--signal-red);
+            margin-bottom: 20px;
+        }
+        .password-card h2 {
+            color: var(--text-dark);
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        .password-card p {
+            color: #7f8c8d;
+            font-size: 13px;
+            margin-bottom: 25px;
+        }
+        .pwd-input {
+            width: 100%;
+            max-width: 300px;
+            padding: 12px 15px;
+            border: 2px solid #ecf0f1;
+            border-radius: 4px;
+            font-size: 14px;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+        .pwd-input:focus {
+            outline: none;
+            border-color: var(--signal-red);
+        }
+        .btn-unlock {
+            display: block;
+            width: 100%;
+            max-width: 300px;
+            margin: 15px auto 0;
+            padding: 12px;
+            background: var(--signal-red);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-unlock:hover { background: #e74c3c; }
+        .error-msg {
+            color: var(--signal-red);
+            font-size: 12px;
+            margin-top: 10px;
+            display: none;
+        }
+        .error-msg.show { display: block; }
+
+        .share-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
+        .share-header .brand {
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        .share-header .brand span { color: var(--signal-red); }
+        .share-header .label {
+            color: rgba(255,255,255,0.5);
+            font-size: 11px;
+            margin-top: 5px;
+            text-transform: uppercase;
+        }
+
+        .char-view {
+            background: var(--pure-white);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .char-header {
+            background: linear-gradient(135deg, var(--signal-red), #e74c3c);
+            padding: 25px;
+            color: white;
+        }
+        .char-name {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .char-tags {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .char-tag {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+
+        .char-body {
+            padding: 25px;
+        }
+        .section {
+            margin-bottom: 25px;
+        }
+        .section:last-child { margin-bottom: 0; }
+        .section-title {
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-title i { color: var(--signal-red); }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+        }
+        .stat-item {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .stat-name {
+            font-size: 10px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+        }
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+
+        .ability-card {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--signal-red);
+        }
+        .ability-name {
+            font-weight: bold;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+        .ability-desc {
+            font-size: 13px;
+            color: #64748b;
+            line-height: 1.5;
+        }
+
+        .relation-list {
+            display: grid;
+            gap: 8px;
+        }
+        .relation-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .relation-name { font-weight: bold; color: var(--text-dark); }
+        .relation-type { font-size: 12px; color: #7f8c8d; }
+
+        .record-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .record-item {
+            background: #f8f9fa;
+            padding: 12px 8px;
+            border-radius: 4px;
+            text-align: center;
+            border-top: 3px solid #ccc;
+        }
+        .record-item.reward { border-top-color: #27ae60; }
+        .record-item.warning { border-top-color: #e74c3c; }
+        .record-item.review { border-top-color: #f39c12; }
+        .record-item.mvp { border-top-color: #9b59b6; }
+        .record-name {
+            font-size: 10px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .record-value {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: rgba(255,255,255,0.5);
+        }
+        .loading i { font-size: 32px; }
+
+        .not-found {
+            text-align: center;
+            padding: 60px;
+            color: rgba(255,255,255,0.5);
+        }
+        .not-found i {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="loading" class="loading">
+        <i class="fas fa-circle-notch fa-spin"></i>
+        <p style="margin-top:15px;">加载中...</p>
+    </div>
+
+    <div id="passwordForm" class="password-card" style="display:none;">
+        <i class="fas fa-lock lock-icon"></i>
+        <h2>此角色卡需要密码访问</h2>
+        <p>请输入查看密码以继续</p>
+        <input type="password" id="pwdInput" class="pwd-input" placeholder="输入密码">
+        <button class="btn-unlock" onclick="submitPassword()">解锁查看</button>
+        <p class="error-msg" id="errorMsg">密码错误，请重试</p>
+    </div>
+
+    <div id="charContent" style="display:none;">
+        <div class="share-header">
+            <div class="brand">TRIANGLE <span>AGENCY</span></div>
+            <div class="label">// 角色卡分享预览</div>
+        </div>
+        <div class="char-view" id="charView"></div>
+    </div>
+
+    <div id="notFound" class="not-found" style="display:none;">
+        <i class="fas fa-exclamation-triangle"></i>
+        <h3>分享链接无效或已过期</h3>
+        <p style="margin-top:10px;font-size:13px;">请联系分享者获取新的链接</p>
+    </div>
+</div>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const shareCode = params.get('code');
+
+    let needPassword = false;
+
+    async function init() {
+        if (!shareCode) {
+            showNotFound();
+            return;
+        }
+
+        try {
+            const statusRes = await fetch(`/api/share/${shareCode}/status`);
+            if (statusRes.status === 404 || statusRes.status === 410) {
+                showNotFound();
+                return;
+            }
+
+            const status = await statusRes.json();
+            if (!status.exists) {
+                showNotFound();
+                return;
+            }
+
+            if (status.needPassword) {
+                needPassword = true;
+                showPasswordForm();
+            } else {
+                loadCharacter();
+            }
+        } catch (e) {
+            showNotFound();
+        }
+    }
+
+    function showPasswordForm() {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('passwordForm').style.display = 'block';
+        document.getElementById('pwdInput').focus();
+    }
+
+    function showNotFound() {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('notFound').style.display = 'block';
+    }
+
+    async function submitPassword() {
+        const password = document.getElementById('pwdInput').value;
+        if (!password) return;
+
+        try {
+            await loadCharacter(password);
+        } catch (e) {
+            document.getElementById('errorMsg').classList.add('show');
+        }
+    }
+
+    async function loadCharacter(password = null) {
+        const res = await fetch(`/api/share/${shareCode}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password })
+        });
+
+        const result = await res.json();
+
+        if (result.needPassword) {
+            showPasswordForm();
+            return;
+        }
+
+        if (!result.success) {
+            if (res.status === 401) {
+                document.getElementById('errorMsg').classList.add('show');
+                return;
+            }
+            showNotFound();
+            return;
+        }
+
+        renderCharacter(result.data);
+    }
+
+    function renderCharacter(data) {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('passwordForm').style.display = 'none';
+        document.getElementById('charContent').style.display = 'block';
+
+        const view = document.getElementById('charView');
+
+        const stats = [
+            { name: '专注', val: data.sZhuanzhu || 0 },
+            { name: '欺瞒', val: data.sQiman || 0 },
+            { name: '活力', val: data.sHuoli || 0 },
+            { name: '共情', val: data.sGongqing || 0 },
+            { name: '主动', val: data.sZhudong || 0 },
+            { name: '坚毅', val: data.sJianyi || 0 },
+            { name: '气场', val: data.sQichang || 0 },
+            { name: '专业', val: data.sZhuanye || 0 },
+            { name: '诡秘', val: data.sGuimi || 0 }
+        ];
+
+        const abilities = data.anomCards || [];
+        const relations = data.relations || [];
+
+        view.innerHTML = `
+            <div class="char-header">
+                <div class="char-name">${data.pName || '未命名'}</div>
+                <div class="char-tags">
+                    <span class="char-tag"><i class="fas fa-bolt"></i> ${data.pAnom || '---'}</span>
+                    <span class="char-tag"><i class="fas fa-briefcase"></i> ${data.pFunc || '---'}</span>
+                    <span class="char-tag"><i class="fas fa-user"></i> ${data.pReal || '---'}</span>
+                </div>
+            </div>
+            <div class="char-body">
+                <div class="section">
+                    <div class="section-title"><i class="fas fa-award"></i> 职员记录</div>
+                    <div class="record-grid">
+                        <div class="record-item mvp">
+                            <div class="record-name">MVP</div>
+                            <div class="record-value">${data.pComm || 0}</div>
+                        </div>
+                        <div class="record-item reward">
+                            <div class="record-name">嘉奖</div>
+                            <div class="record-value">${data.mvpCount || 0}</div>
+                        </div>
+                        <div class="record-item warning">
+                            <div class="record-name">申诫</div>
+                            <div class="record-value">${data.watchCount || 0}</div>
+                        </div>
+                        <div class="record-item review">
+                            <div class="record-name">察看期</div>
+                            <div class="record-value">${data.pRep || 0}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title"><i class="fas fa-chart-bar"></i> 资质</div>
+                    <div class="stats-grid">
+                        ${stats.map(s => `
+                            <div class="stat-item">
+                                <div class="stat-name">${s.name}</div>
+                                <div class="stat-value">${s.val}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                ${abilities.length > 0 ? `
+                <div class="section">
+                    <div class="section-title"><i class="fas fa-magic"></i> 异常能力</div>
+                    ${abilities.map(a => `
+                        <div class="ability-card">
+                            <div class="ability-name">${a.name || '未命名能力'}</div>
+                            <div class="ability-desc">
+                                ${a.trigger ? `<strong>触发:</strong> ${a.trigger}<br>` : ''}
+                                ${a.success ? `<strong>成功:</strong> ${a.success}<br>` : ''}
+                                ${a.fail ? `<strong>失败:</strong> ${a.fail}` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                ` : ''}
+
+                ${relations.length > 0 ? `
+                <div class="section">
+                    <div class="section-title"><i class="fas fa-users"></i> 关系网</div>
+                    <div class="relation-list">
+                        ${relations.map(r => `
+                            <div class="relation-item">
+                                <div>
+                                    <div class="relation-name">${r.name || '未知'}</div>
+                                    <div class="relation-type">${r.relation || ''}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                ` : ''}
+
+                ${data.pNotes ? `
+                <div class="section">
+                    <div class="section-title"><i class="fas fa-sticky-note"></i> 备注</div>
+                    <div style="background:#f8f9fa;padding:15px;border-radius:4px;font-size:13px;color:#64748b;white-space:pre-wrap;">${data.pNotes}</div>
+                </div>
+                ` : ''}
+            </div>
+        `;
+    }
+
+    document.getElementById('pwdInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') submitPassword();
+    });
+
+    init();
+</script>
+</body>
+</html>

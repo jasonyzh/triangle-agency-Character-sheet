@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>三角机构 // 入职申请</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="badge-container" id="badgeContainer">
+        <div class="lanyard-clip" id="lanyard"></div>
+
+        <div class="badge-inner" id="badgeInner">
+
+            <div class="card-face front">
+                <div class="header-stripe"></div>
+                <div class="watermark"><i class="fas fa-user-plus"></i></div>
+
+                <div class="content-area">
+                    <div class="triangle-frame" id="photo-frame">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+
+                    <div class="org-title">
+                        <h1>TRIANGLE</h1>
+                        <span>AGENCY</span>
+                        <h2>入职申请</h2>
+                    </div>
+
+                    <div class="form-group">
+                        <label>特工ID</label>
+                        <input type="text" id="username" autocomplete="off" placeholder="设置您的登录账号">
+                    </div>
+
+                    <div class="form-group">
+                        <label>姓名</label>
+                        <input type="text" id="name" placeholder="您的称呼（可选）">
+                    </div>
+
+                    <div class="form-group">
+                        <label>密钥</label>
+                        <input type="password" id="password" placeholder="设置登录密码">
+                    </div>
+
+                    <div class="form-group">
+                        <label>确认密钥</label>
+                        <input type="password" id="password2" placeholder="再次输入密码">
+                    </div>
+
+                    <div class="email-section" id="emailSection">
+                        <div class="form-group">
+                            <label>通讯邮箱</label>
+                            <input type="email" id="email" placeholder="您的电子邮箱">
+                        </div>
+
+                        <div class="form-group">
+                            <label>验证码</label>
+                            <div class="code-row">
+                                <input type="text" id="code" placeholder="6位验证码">
+                                <button class="btn-code" id="btnCode" onclick="sendCode()">发送验证码</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn-verify" onclick="register()">提交申请</button>
+                    <div class="status-msg" id="msg"></div>
+
+                    <div class="login-link">
+                        <a href="login.html">已有账号？<span>接入终端</span></a>
+                    </div>
+                </div>
+
+                <div class="footer-scan">
+                    <div class="barcode"></div>
+                    <div class="laser-line"></div>
+                </div>
+            </div>
+
+            <div class="card-face back">
+                <div class="circuit-deco"></div>
+                <i class="fas fa-circle-notch fa-spin" style="color: var(--agency-black); font-size: 40px; z-index: 2;"></i>
+                <div class="loading-text">入职处理中...</div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="js/auth-effects.js"></script>
+    <script>
+        initParticles('bg-canvas', 70);
+        init3DTilt('badgeContainer');
+
+        var container = document.getElementById('badgeContainer');
+        var inner = document.getElementById('badgeInner');
+        var lanyard = document.getElementById('lanyard');
+
+        var emailRequired = false;
+        var countdown = 0;
+
+        async function checkStatus() {
+            try {
+                var res = await fetch('/api/register/status');
+                var data = await res.json();
+                if (!data.registrationEnabled) {
+                    document.querySelector('.content-area').innerHTML = '<div style="text-align:center;padding:40px 20px;"><i class="fas fa-lock" style="font-size:48px;color:#94a3b8;margin-bottom:20px;"></i><h3 style="color:var(--agency-black);margin-bottom:10px;">入职通道已关闭</h3><p style="color:var(--text-gray);font-size:12px;">当前不接受新的入职申请</p><a href="login.html" style="display:inline-block;margin-top:20px;color:var(--agency-red);font-size:12px;">返回登录</a></div>';
+                    return;
+                }
+                if (data.emailRequired) {
+                    emailRequired = true;
+                    document.getElementById('emailSection').classList.add('show');
+                    document.getElementById('badgeContainer').classList.add('email-mode');
+                }
+            } catch (e) { console.error(e); }
+        }
+        checkStatus();
+
+        async function sendCode() {
+            var email = document.getElementById('email').value;
+            var btn = document.getElementById('btnCode');
+            var msg = document.getElementById('msg');
+            if (!email) { msg.textContent = '请输入邮箱地址'; msg.classList.add('show'); return; }
+            btn.disabled = true;
+            btn.textContent = '发送中...';
+            try {
+                var res = await fetch('/api/register/send-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email })
+                });
+                var data = await res.json();
+                if (data.success) {
+                    msg.textContent = '验证码已发送到您的邮箱';
+                    msg.classList.add('show', 'success');
+                    countdown = 60;
+                    updateCountdown();
+                } else {
+                    msg.textContent = data.message || '发送失败';
+                    msg.classList.add('show');
+                    msg.classList.remove('success');
+                    btn.disabled = false;
+                    btn.textContent = '发送验证码';
+                }
+            } catch (e) {
+                msg.textContent = '网络错误';
+                msg.classList.add('show');
+                btn.disabled = false;
+                btn.textContent = '发送验证码';
+            }
+        }
+
+        function updateCountdown() {
+            var btn = document.getElementById('btnCode');
+            if (countdown > 0) {
+                btn.textContent = countdown + 's';
+                countdown--;
+                setTimeout(updateCountdown, 1000);
+            } else {
+                btn.disabled = false;
+                btn.textContent = '发送验证码';
+            }
+        }
+
+        async function register() {
+            var username = document.getElementById('username').value;
+            var name = document.getElementById('name').value;
+            var password = document.getElementById('password').value;
+            var password2 = document.getElementById('password2').value;
+            var email = document.getElementById('email') ? document.getElementById('email').value : '';
+            var code = document.getElementById('code') ? document.getElementById('code').value : '';
+            var msg = document.getElementById('msg');
+            var btn = document.querySelector('.btn-verify');
+
+            msg.classList.remove('show', 'success');
+
+            if (!username || !password) { msg.textContent = '账号和密码必填'; msg.classList.add('show'); return; }
+            if (password !== password2) { msg.textContent = '两次密码输入不一致'; msg.classList.add('show'); return; }
+            if (password.length < 3) { msg.textContent = '密码至少3位'; msg.classList.add('show'); return; }
+            if (emailRequired && (!email || !code)) { msg.textContent = '请输入邮箱和验证码'; msg.classList.add('show'); return; }
+
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 处理中...';
+            btn.style.opacity = '0.8';
+
+            try {
+                var res = await fetch('/api/register/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: username, password: password, name: name, email: email, code: code })
+                });
+                var data = await res.json();
+                if (data.success) {
+                    btn.innerHTML = '入职成功';
+                    btn.style.background = '#15803d';
+                    msg.textContent = '正在跳转登录...';
+                    msg.classList.add('show', 'success');
+                    setTimeout(function() {
+                        inner.classList.add('flipped');
+                        lanyard.style.opacity = '0';
+                        setTimeout(function() {
+                            container.classList.add('expanded');
+                            setTimeout(function() { window.location.href = 'login.html'; }, 800);
+                        }, 600);
+                    }, 500);
+                } else {
+                    msg.textContent = data.message || '注册失败';
+                    msg.classList.add('show');
+                    btn.innerHTML = '提交申请';
+                    btn.style.opacity = '1';
+                    btn.style.background = '';
+                }
+            } catch (e) {
+                msg.textContent = '网络错误';
+                msg.classList.add('show');
+                btn.innerHTML = '提交申请';
+                btn.style.opacity = '1';
+            }
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Enter") register();
+        });
+    </script>
+</body>
+</html>
