@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>申领物系统 // TRIANGLE AGENCY</title>
+    <link rel="stylesheet" href="vendor/font-awesome/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        :root {
+            --card-bg: #ffffff;
+            --item-red: #c0392b;
+            --item-red-dark: #a93226;
+        }
+
+        .item-card.siphon-card {
+            border-left-color: #2980b9;
+        }
+
+        .item-card.siphon-card.purchased {
+            border-left-color: #2980b9;
+            opacity: 0.6;
+        }
+
+        .item-type.siphon {
+            background: #e8f0fe;
+            color: #2980b9;
+        }
+
+        .siphon-price {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+
+        .btn-purchase-blue {
+            background: #2980b9;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .btn-purchase-blue:hover {
+            background: #2471a3;
+            transform: scale(1.05);
+        }
+
+        .char-reprimands {
+            color: #e74c3c;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 4px;
+        }
+
+        .tab.siphon-tab-style.active {
+            background: var(--accent);
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        .character-selector {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .character-selector h3 {
+            color: white;
+            font-size: 14px;
+            margin: 0 0 15px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .character-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .character-card {
+            background: rgba(255,255,255,0.08);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 6px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .character-card:hover {
+            background: rgba(255,255,255,0.12);
+            border-color: var(--item-orange);
+            transform: translateY(-2px);
+        }
+
+        .character-card.selected {
+            background: rgba(192, 57, 43, 0.2);
+            border-color: var(--item-red);
+            box-shadow: 0 0 15px rgba(192, 57, 43, 0.3);
+        }
+
+        .character-card .char-name {
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .character-card .char-bonus {
+            color: #f1c40f;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.05);
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            color: rgba(255,255,255,0.6);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .tab:hover {
+            background: rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.9);
+        }
+
+        .tab.active {
+            background: var(--item-red);
+            color: white;
+        }
+
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .item-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            border-left: 5px solid var(--item-red);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .item-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        }
+
+        .item-card.purchased {
+            border-left-color: #27ae60;
+            opacity: 0.7;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .item-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--text-main);
+            flex: 1;
+        }
+
+        .item-type {
+            font-size: 10px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .item-type.basic {
+            background: #e8f5e9;
+            color: #27ae60;
+        }
+
+        .item-type.permission {
+            background: #fff3e0;
+            color: #e67e22;
+        }
+
+        .item-pd {
+            font-size: 11px;
+            color: var(--text-sub);
+            background: #f8f9fa;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .item-effect {
+            font-size: 13px;
+            color: #444;
+            line-height: 1.6;
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            min-height: 60px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .item-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+            border-top: 1px dashed var(--border-color);
+        }
+
+        .item-price {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #f1c40f;
+        }
+
+        .price-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin-top: 10px;
+            border-left: 3px solid var(--item-red);
+        }
+        
+        .price-option-desc {
+            font-size: 13px;
+            font-weight: 600;
+            color: #2c3e50;
+            flex: 1;
+        }
+        
+        .price-option-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .price-option-value {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 15px;
+            font-weight: bold;
+            color: #f1c40f;
+        }
+        
+        .btn-purchase-small {
+            background: var(--item-red);
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        
+        .btn-purchase-small:hover {
+            background: var(--item-red-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .btn-purchase-small:active {
+            transform: translateY(0);
+        }
+        
+        .btn-purchase {
+            background: var(--item-red);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .btn-purchase:hover {
+            background: var(--item-red-dark);
+            transform: scale(1.05);
+        }
+
+        .btn-purchase:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .purchased-badge {
+            background: #27ae60;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .permission-section {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+
+        .permission-section h3 {
+            color: white;
+            font-size: 14px;
+            margin: 0 0 15px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-box {
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 10px 10px 35px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            background: rgba(255,255,255,0.08);
+            color: white;
+            font-size: 13px;
+        }
+
+        .search-box input::placeholder {
+            color: rgba(255,255,255,0.4);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255,255,255,0.4);
+        }
+
+        .permission-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .permission-item {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .permission-item:hover {
+            background: rgba(255,255,255,0.12);
+            border-color: var(--item-red);
+        }
+
+        .permission-item.granted {
+            background: rgba(192, 57, 43, 0.2);
+            border-color: var(--item-red);
+        }
+
+        .permission-checkbox {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .permission-item.granted .permission-checkbox {
+            background: var(--item-red);
+            border-color: var(--item-red);
+        }
+
+        .permission-checkbox i {
+            color: white;
+            font-size: 12px;
+            display: none;
+        }
+
+        .permission-item.granted .permission-checkbox i {
+            display: block;
+        }
+
+        .permission-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .permission-name {
+            color: white;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .permission-price {
+            color: #f1c40f;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 12px; }
+            .container { padding: 0; }
+            header { flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; }
+            header .btn-group { display: flex !important; }
+            .brand-logo .top { font-size: 20px; }
+            .brand-logo .btm { font-size: 12px; }
+            .character-list { grid-template-columns: 1fr; }
+            .items-grid { grid-template-columns: 1fr; }
+            .tab { font-size: 0; padding: 12px; }
+            .tab i { font-size: 16px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="transition-overlay">
+        <div class="loader-content">
+            <i class="fas fa-circle-notch fa-spin loader-icon"></i>
+            <div class="loader-text">访问申领物仓库<span class="dots"></span></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <header>
+            <div class="btn-group">
+                <button class="btn-icon" onclick="goBack()" title="返回">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+            </div>
+            <div class="brand-logo">
+                <span class="top">TRIANGLE</span>
+                <span class="btm">AGENCY</span>
+            </div>
+            <div class="btn-group">
+                <button class="btn-icon" onclick="refreshData()" title="刷新数据">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="character-selector">
+            <h3><i class="fas fa-user"></i> 选择角色</h3>
+            <div class="character-list" id="characterList"></div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('available')">
+                <i class="fas fa-shopping-cart"></i> 可购买
+            </button>
+            <button class="tab" onclick="switchTab('purchased')">
+                <i class="fas fa-box-open"></i> 已购买
+            </button>
+            <button class="tab siphon-tab-style" id="siphonTabBtn" style="display:none" onclick="switchTab('siphon')">
+                <i class="fas fa-eye"></i> Siphon商店
+            </button>
+            <button class="tab siphon-tab-style" id="siphonPurchasedTabBtn" style="display:none" onclick="switchTab('siphon-purchased')">
+                <i class="fas fa-box-open"></i> Siphon已购买
+            </button>
+        </div>
+
+        <div class="items-grid" id="itemsList"></div>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script>
+        const uid = localStorage.getItem('ta_uid');
+        const token = localStorage.getItem('ta_token');
+        if(!uid) window.location.href = 'login.html';
+
+        let currentCharacterId = null;
+        let currentTab = 'available';
+        let allCharacters = [];
+        let availableItems = [];
+        let purchasedItems = [];
+        let siphonProducts = [];
+        let siphonPurchased = [];
+        let isX2Unlocked = false;
+        const urlParams = new URLSearchParams(window.location.search);
+        const preselectedCharId = urlParams.get('charId');
+
+        function goBack() {
+            if (preselectedCharId) {
+                createTransition('返回角色卡', 'sheet.html?id=' + preselectedCharId);
+            } else {
+                createTransition('返回档案库', 'dashboard.html');
+            }
+        }
+
+        async function refreshData() {
+            showToast('正在刷新数据...', 'success');
+            currentCharacterId = null;
+            allCharacters = [];
+            availableItems = [];
+            purchasedItems = [];
+            await loadCharacters();
+        }
+
+        async function loadCharacters() {
+            try {
+                const timestamp = Date.now();
+                const res = await fetch(`/api/characters?userId=${uid}&_t=${timestamp}`, {
+                    headers: {'Authorization': `Bearer ${token}`},
+                    cache: 'no-cache'
+                });
+                
+                if (res.status === 401) {
+                    localStorage.clear();
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}`);
+                }
+
+                allCharacters = await res.json();
+                console.log('加载角色数量:', allCharacters.length);
+                renderCharacters();
+                
+                if (preselectedCharId) {
+                    var selector = document.querySelector('.character-selector');
+                    if (selector) selector.style.display = 'none';
+                    selectCharacter(preselectedCharId);
+                } else if (allCharacters.length > 0) {
+                    if (currentCharacterId && allCharacters.find(c => c.id === currentCharacterId)) {
+                        selectCharacter(currentCharacterId);
+                    } else {
+                        selectCharacter(allCharacters[0].id);
+                    }
+                }
+            } catch(e) {
+                console.error('加载角色失败:', e);
+                showToast('加载角色失败: ' + e.message);
+            }
+        }
+
+        function renderCharacters() {
+            const container = document.getElementById('characterList');
+            container.innerHTML = '';
+
+            allCharacters.forEach(char => {
+                let charData = {};
+                try {
+                    if (typeof char.data === 'string') {
+                        charData = JSON.parse(char.data);
+                    } else if (typeof char.data === 'object' && char.data !== null) {
+                        charData = char.data;
+                    }
+                } catch(e) {
+                    console.error('解析角色数据失败:', e);
+                }
+
+                const rewards = charData.rewards || [];
+                const reprimands = charData.reprimands || [];
+                
+                const totalRewards = rewards.reduce((sum, r) => {
+                    const count = r.count !== undefined && r.count !== null ? parseInt(r.count) : 1;
+                    return sum + (isNaN(count) ? 1 : count);
+                }, 0);
+                const totalReprimands = reprimands.reduce((sum, r) => {
+                    const count = r.count !== undefined && r.count !== null ? parseInt(r.count) : 1;
+                    return sum + (isNaN(count) ? 1 : count);
+                }, 0);
+                
+                const bonus = totalRewards;
+
+                console.log('角色嘉奖计算:', {
+                    name: char.name,
+                    rewards: totalRewards,
+                    reprimands: totalReprimands,
+                    displayedBonus: bonus
+                });
+
+                const card = document.createElement('div');
+                card.className = 'character-card';
+                card.innerHTML = `
+                    <div class="char-name">${char.name}</div>
+                    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                        <div class="char-bonus">
+                            <i class="fas fa-award"></i>
+                            嘉奖: ${bonus}
+                        </div>
+                        <div class="char-reprimands">
+                            <i class="fas fa-exclamation-circle"></i>
+                            申诫: ${totalReprimands}
+                        </div>
+                    </div>
+                `;
+                card.onclick = () => selectCharacter(char.id);
+                container.appendChild(card);
+            });
+        }
+
+        function selectCharacter(charId) {
+            currentCharacterId = charId;
+            
+            document.querySelectorAll('.character-card').forEach((card, idx) => {
+                card.classList.toggle('selected', allCharacters[idx].id === charId);
+            });
+
+            checkX2AndLoadItems();
+        }
+
+        async function checkX2AndLoadItems() {
+            if (!currentCharacterId) return;
+
+            try {
+                const x2Res = await fetch(`/api/character/${currentCharacterId}/check-x2`, {
+                    headers: {'Authorization': `Bearer ${token}`}
+                });
+                if (x2Res.ok) {
+                    const x2Data = await x2Res.json();
+                    isX2Unlocked = x2Data.unlocked;
+                }
+            } catch (e) {
+                isX2Unlocked = false;
+            }
+
+            const siphonBtn = document.getElementById('siphonTabBtn');
+            const siphonPurchasedBtn = document.getElementById('siphonPurchasedTabBtn');
+            if (siphonBtn) siphonBtn.style.display = isX2Unlocked ? '' : 'none';
+            if (siphonPurchasedBtn) siphonPurchasedBtn.style.display = isX2Unlocked ? '' : 'none';
+            if (!isX2Unlocked && (currentTab === 'siphon' || currentTab === 'siphon-purchased')) {
+                currentTab = 'available';
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelector('.tab:not(.siphon-tab-style)').classList.add('active');
+            }
+
+            loadItems();
+        }
+
+        async function loadItems() {
+            if (!currentCharacterId) return;
+
+            try {
+                const timestamp = Date.now();
+                
+                const res1 = await fetch(`/api/character/${currentCharacterId}/requisitions?_t=${timestamp}`, {
+                    headers: {'Authorization': `Bearer ${token}`},
+                    cache: 'no-cache'
+                });
+                
+                if (res1.ok) {
+                    const data1 = await res1.json();
+                    availableItems = data1.items || [];
+                    console.log('可购买申领物数量:', availableItems.length);
+                } else {
+                    console.error('加载可购买申领物失败:', res1.status);
+                }
+
+                const res2 = await fetch(`/api/character/${currentCharacterId}/purchased-requisitions?_t=${timestamp}`, {
+                    headers: {'Authorization': `Bearer ${token}`},
+                    cache: 'no-cache'
+                });
+                
+                if (res2.ok) {
+                    const data2 = await res2.json();
+                    purchasedItems = data2.purchases || [];
+                    console.log('已购买申领物数量:', purchasedItems.length);
+                } else {
+                    console.error('加载已购买申领物失败:', res2.status);
+                }
+
+                // Load siphon data if X2 unlocked
+                siphonProducts = [];
+                siphonPurchased = [];
+                if (isX2Unlocked) {
+                    try {
+                        const spRes = await fetch(`/api/character/${currentCharacterId}/siphon-products`, {
+                            headers: {'Authorization': `Bearer ${token}`}
+                        });
+                        if (spRes.ok) {
+                            const spData = await spRes.json();
+                            siphonProducts = spData.products || [];
+                        }
+
+                        const sppRes = await fetch(`/api/character/${currentCharacterId}/siphon-purchased`, {
+                            headers: {'Authorization': `Bearer ${token}`}
+                        });
+                        if (sppRes.ok) {
+                            const sppData = await sppRes.json();
+                            siphonPurchased = sppData.purchases || [];
+                        }
+                    } catch (e) {
+                        console.error('加载Siphon商品失败:', e);
+                    }
+                }
+
+                renderItems();
+            } catch(e) {
+                console.error('加载申领物失败:', e);
+                showToast('加载申领物失败: ' + e.message);
+            }
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            document.querySelectorAll('.tab').forEach(t => {
+                t.classList.remove('active');
+            });
+            event.target.closest('.tab').classList.add('active');
+
+            renderItems();
+        }
+
+        function renderItems() {
+            const container = document.getElementById('itemsList');
+            container.innerHTML = '';
+
+            if (currentTab === 'siphon') {
+                renderSiphonShop(container);
+                return;
+            }
+
+            if (currentTab === 'siphon-purchased') {
+                renderSiphonPurchased(container);
+                return;
+            }
+
+            let items = currentTab === 'available' ? availableItems : purchasedItems;
+            
+            console.log(`渲染申领物: 标签=${currentTab}, 数量=${items.length}`);
+            if (items.length > 0) {
+                console.log('申领物详情:', items.map(i => ({name: i.name, type: i.type})));
+            }
+
+            if (items.length === 0) {
+                container.innerHTML = `<div class="empty-state">
+                    ${currentTab === 'available' ? '暂无可购买的申领物' : '暂无已购买的申领物'}
+                    <br><small style="color: rgba(255,255,255,0.4); margin-top: 10px; display: block;">
+                        ${currentTab === 'available' ? '如果已授权但未显示，请点击"刷新"按钮' : ''}
+                    </small>
+                </div>`;
+                return;
+            }
+
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'item-card';
+                
+                if (currentTab === 'available') {
+                    let pricesHTML = '';
+                    
+                    if (item.prices && Array.isArray(item.prices) && item.prices.length > 0) {
+                        pricesHTML = item.prices.map((priceOption, index) => `
+                            <div class="price-option">
+                                <div class="price-option-desc">${priceOption.description || '标准'}</div>
+                                <div class="price-option-right">
+                                    <div class="price-option-value">
+                                        <i class="fas fa-award"></i> ${priceOption.price}
+                                    </div>
+                                    <button class="btn-purchase-small" onclick="purchaseItem('${item.id}', ${priceOption.price}, ${index})">
+                                        <i class="fas fa-shopping-cart"></i> 购买
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        pricesHTML = `
+                            <div class="item-footer">
+                                <div class="item-price">
+                                    <i class="fas fa-award"></i>
+                                    ${item.price || 0}
+                                </div>
+                                <button class="btn-purchase" onclick="purchaseItem('${item.id}', ${item.price || 0}, null)">
+                                    <i class="fas fa-shopping-cart"></i> 购买
+                                </button>
+                            </div>
+                        `;
+                    }
+                    
+                    card.innerHTML = `
+                        <div class="item-header">
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-type ${item.type}">${item.type === 'basic' ? '基础' : '权限'}</div>
+                        </div>
+                        ${item.pd ? `<div class="item-pd">PD: ${item.pd}</div>` : ''}
+                        <div class="item-effect">${item.effect || '无描述'}</div>
+                        ${pricesHTML}
+                    `;
+                } else {
+                    const purchaseDate = new Date(item.purchased_at).toLocaleString('zh-CN');
+                    card.innerHTML = `
+                        <div class="item-header">
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-type ${item.type}">${item.type === 'basic' ? '基础' : '权限'}</div>
+                        </div>
+                        ${item.pd ? `<div class="item-pd">PD: ${item.pd}</div>` : ''}
+                        <div class="item-effect">${item.effect || '无描述'}</div>
+                        <div class="item-footer">
+                            <div style="font-size: 11px; color: #95a5a6;">
+                                <i class="fas fa-clock"></i> ${purchaseDate}
+                            </div>
+                            <div class="item-price">
+                                <i class="fas fa-award"></i>
+                                ${item.price}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                container.appendChild(card);
+            });
+        }
+
+        async function purchaseItem(itemId, price, priceIndex = null) {
+            if (!currentCharacterId) {
+                showToast('请先选择角色');
+                return;
+            }
+
+            if (!confirm(`确定花费 ${price} 个嘉奖购买该申领物吗？`)) {
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/character/${currentCharacterId}/purchase-requisition`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ 
+                        requisitionId: itemId,
+                        priceIndex: priceIndex
+                    })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    await loadCharacters();
+                    await loadItems();
+                } else {
+                    showToast(data.message || '购买失败');
+                }
+            } catch(e) {
+                console.error('购买失败:', e);
+                showToast('购买失败');
+            }
+        }
+
+        function renderSiphonShop(container) {
+            if (siphonProducts.length === 0) {
+                container.innerHTML = `<div class="empty-state">暂无Siphon商品</div>`;
+                return;
+            }
+
+            siphonProducts.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'item-card siphon-card';
+                card.innerHTML = `
+                    <div class="item-header">
+                        <div class="item-name">${product.name}</div>
+                        <div class="item-type siphon">Siphon</div>
+                    </div>
+                    <div class="item-effect">${product.description || '无描述'}</div>
+                    <div class="item-footer">
+                        <div class="siphon-price">
+                            <i class="fas fa-exclamation-circle"></i>
+                            ${product.price} 申诫
+                        </div>
+                        <button class="btn-purchase-blue" onclick="purchaseSiphonProduct('${product.id}', ${product.price})">
+                            <i class="fas fa-shopping-cart"></i> 购买
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderSiphonPurchased(container) {
+            if (siphonPurchased.length === 0) {
+                container.innerHTML = `<div class="empty-state">暂无Siphon购买记录</div>`;
+                return;
+            }
+
+            siphonPurchased.forEach(purchase => {
+                const card = document.createElement('div');
+                card.className = 'item-card siphon-card purchased';
+                const purchaseDate = new Date(purchase.purchased_at).toLocaleString('zh-CN');
+                card.innerHTML = `
+                    <div class="item-header">
+                        <div class="item-name">${purchase.name}</div>
+                        <div class="item-type siphon">Siphon</div>
+                    </div>
+                    <div class="item-effect">${purchase.description || '无描述'}</div>
+                    <div class="item-footer">
+                        <div style="font-size: 11px; color: #95a5a6;">
+                            <i class="fas fa-clock"></i> ${purchaseDate}
+                        </div>
+                        <div class="siphon-price">
+                            <i class="fas fa-exclamation-circle"></i>
+                            ${purchase.price} 申诫
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function purchaseSiphonProduct(productId, price) {
+            if (!currentCharacterId) {
+                showToast('请先选择角色');
+                return;
+            }
+
+            if (!confirm(`确定花费 ${price} 点申诫购买此商品吗？`)) {
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/character/${currentCharacterId}/siphon-purchase`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ productId })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    await checkX2AndLoadItems();
+                } else {
+                    showToast(data.message || '购买失败');
+                }
+            } catch (e) {
+                console.error('购买失败:', e);
+                showToast('购买失败');
+            }
+        }
+
+        loadCharacters();
+    </script>
+</body>
+</html>

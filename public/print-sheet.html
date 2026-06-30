@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>打印角色卡 // TRIANGLE AGENCY</title>
+    <link rel="stylesheet" href="vendor/font-awesome/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&family=Noto+Sans+SC:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        /* ===== 设计 Token（复用全站配色） ===== */
+        :root {
+            --signal-red: #c0392b;
+            --signal-red-dark: #962d22;
+            --deep-bg: #1a252f;
+            --text-dark: #2c3e50;
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+            --text-light: #7f8c8d;
+            --border-color: #e2d4c8;
+            --panel-bg: #f3ede5;
+            --c-anom: #0284c7;
+            --c-real: #f39c12;
+            --c-func: #dc2626;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body {
+            font-family: "Roboto Mono", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+            color: var(--text-main);
+            background: #e9eef2;
+            line-height: 1.5;
+            font-size: 12px;
+        }
+
+        /* ===== 屏幕预览：A4 纸张效果 ===== */
+        body {
+            padding: 20px 0;
+        }
+
+        /* ===== 浮动工具栏（打印时隐藏） ===== */
+        .toolbar {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+        }
+        .tool-btn {
+            background: var(--signal-red);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(192, 57, 43, 0.3);
+            font-family: inherit;
+        }
+        .tool-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(192, 57, 43, 0.4); }
+        .tool-btn.secondary { background: #34495e; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+
+        /* ===== 打印模式复选框 ===== */
+        .print-mode-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #fff;
+            border-radius: 6px;
+            padding: 6px 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            color: #475569;
+            user-select: none;
+        }
+        .print-mode-toggle input { width: 16px; height: 16px; cursor: pointer; accent-color: #c0392b; }
+
+        /* 打印模式：所有米色背景变纯白 */
+        html.print-mode { --panel-bg: #fff; }
+        html.print-mode .print-page { background: #fff; }
+        /* 打印模式：档案记录图片灰度褪色 + 边框 + 阴影 */
+        html.print-mode .record-img {
+            filter: grayscale(1) brightness(1.4);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        /* ===== 主题切换按钮组 ===== */
+        .theme-switcher {
+            display: flex;
+            background: #fff;
+            border-radius: 6px;
+            padding: 4px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            gap: 3px;
+            align-items: center;
+        }
+        .theme-switcher .theme-label {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: bold;
+            padding: 0 8px 0 6px;
+        }
+        .theme-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 5px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 12px;
+        }
+        .theme-btn:hover { transform: scale(1.1); }
+        .theme-btn.active { border-color: #2c3e50; box-shadow: 0 0 0 2px #fff inset; }
+        .theme-btn.t-red { background: #c0392b; }
+        .theme-btn.t-blue { background: #0284c7; }
+        .theme-btn.t-yellow { background: #f39c12; }
+
+        /* ===== 性别切换按钮组 ===== */
+        .gender-switcher {
+            display: flex;
+            background: #fff;
+            border-radius: 6px;
+            padding: 4px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            gap: 3px;
+            align-items: center;
+        }
+        .gender-switcher .gender-label {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: bold;
+            padding: 0 8px 0 6px;
+        }
+        .gender-btn {
+            padding: 4px 12px;
+            border-radius: 5px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 11px;
+            font-weight: bold;
+            background: #e2e8f0;
+            color: #64748b;
+            font-family: inherit;
+        }
+        .gender-btn:hover { transform: scale(1.05); }
+        .gender-btn.active { border-color: #2c3e50; box-shadow: 0 0 0 2px #fff inset; }
+        .gender-btn.g-male.active { background: #2980b9; color: #fff; }
+        .gender-btn.g-female.active { background: #c0392b; color: #fff; }
+
+        /* ===== 主题变量覆盖（作用于第一页） ===== */
+        /* 默认红色（无需 data-theme，保持原样） */
+        /* 蓝色主题 */
+        html[data-theme="blue"] {
+            --signal-red: #0284c7;
+            --signal-red-dark: #0369a1;
+        }
+        /* 黄色主题 */
+        html[data-theme="yellow"] {
+            --signal-red: #f39c12;
+            --signal-red-dark: #d97706;
+        }
+
+        /* ===== 图片模式（表头图片由 配色主题 + 性别 共同决定） ===== */
+        .print-page.first-page .card-header.has-img {
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        /* 红色（默认）男/女 */
+        html[data-gender="male"] .print-page.first-page .card-header.has-img {
+            background-image: url('../img/print/male.webp');
+        }
+        html[data-gender="female"] .print-page.first-page .card-header.has-img {
+            background-image: url('../img/print/female.webp');
+        }
+        /* 蓝色 男/女 */
+        html[data-theme="blue"][data-gender="male"] .print-page.first-page .card-header.has-img {
+            background-image: url('../img/print/bmale.webp');
+        }
+        html[data-theme="blue"][data-gender="female"] .print-page.first-page .card-header.has-img {
+            background-image: url('../img/print/bfemale.webp');
+        }
+        /* 黄色 男/女 */
+        html[data-theme="yellow"][data-gender="male"] .print-page.first-page .card-header.has-img {
+            background-image: url('../img/print/ymale.webp');
+        }
+        html[data-theme="yellow"][data-gender="female"] .print-page.first-page .card-header.has-img {
+            background-image: url('../img/print/yfemale.webp');
+        }
+        /* 图片模式下隐藏 header 原本的渐变和装饰三角 */
+        .card-header.has-img { background-color: transparent; }
+        .card-header.has-img::before,
+        .card-header.has-img::after { display: none; }
+
+        /* ===== A4 纸张容器 ===== */
+        .print-page {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto 20px;
+            background: #f7f1ee;
+            padding: 15mm 14mm;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            position: relative;
+        }
+
+        /* ===== 红色 Header 条 ===== */
+        .card-header {
+            background: linear-gradient(135deg, var(--signal-red), var(--signal-red-dark));
+            padding: 18px 24px;
+            margin: -15mm -14mm 16px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            min-height: 120px;
+        }
+        .card-header.has-img { min-height: 160px; }
+        .card-header::before {
+            content: '';
+            position: absolute;
+            top: -60%;
+            right: -5%;
+            width: 240px;
+            height: 240px;
+            background: rgba(255,255,255,0.08);
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            transform: rotate(15deg);
+        }
+        .card-header::after {
+            content: '';
+            position: absolute;
+            bottom: -40%;
+            left: 8%;
+            width: 160px;
+            height: 160px;
+            background: rgba(0,0,0,0.08);
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            transform: rotate(-10deg);
+        }
+        .header-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: inherit;
+            height: 100%;
+            padding: 4px 0;
+            margin-left: 160px;
+        }
+        .brand-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .brand-logo {
+            font-weight: 900;
+            text-transform: uppercase;
+            line-height: 1.2;
+        }
+        .brand-logo .main { font-size: 24px; letter-spacing: 4px; }
+        .brand-logo .sub { font-size: 13px; letter-spacing: 4px; opacity: 0.85; margin-top: 3px; }
+        .doc-id {
+            background: rgba(0,0,0,0.22);
+            padding: 5px 11px;
+            border-radius: 4px;
+            font-size: 10px;
+            color: rgba(255,255,255,0.85);
+            letter-spacing: 1px;
+        }
+        .char-row {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .char-name {
+            font-size: 42px;
+            font-weight: 900;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            line-height: 1.1;
+            font-family: "Noto Sans SC", "Orbitron", "Share Tech Mono", "Roboto Mono", sans-serif;
+            letter-spacing: 6px;
+        }
+        .info-bottom {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px 14px;
+        }
+        .identity-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .identity-tag {
+            background: rgba(255,255,255,0.18);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .identity-tag i { opacity: 0.85; font-size: 10px; }
+        .owner-info {
+            font-size: 11px;
+            color: rgba(255,255,255,0.8);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-left: auto;
+        }
+        .owner-info i { font-size: 10px; }
+
+        /* ===== 通用 Section ===== */
+        .section {
+            margin-bottom: 14px;
+            break-inside: avoid-page;
+        }
+        .section:last-child { margin-bottom: 0; }
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            margin-bottom: 10px;
+        }
+        /* 分隔线：文字右侧延伸，与文字水平居中对齐 */
+        .section-header::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #ece1d5;
+        }
+        .section-header i {
+            width: 22px;
+            height: 22px;
+            background: var(--signal-red);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            font-size: 11px;
+            flex-shrink: 0;
+        }
+        /* section 标题图片图标 */
+        .section-icon {
+            height: 24px;
+            width: auto;
+            flex-shrink: 0;
+            object-fit: contain;
+        }
+        /* 基础信息子标题图片 */
+        .info-label-icon {
+            height: 24px;
+            width: auto;
+            vertical-align: middle;
+            margin-right: 6px;
+            object-fit: contain;
+        }
+        /* 异常能力 section 图标 - 蓝色 */
+        .section.sec-anom .section-header i { background: var(--c-anom); }
+        /* 关系网 section 图标 - 黄色 */
+        .section.sec-real .section-header i { background: var(--c-real); }
+        /* 申领物 section 图标 - 固定红色 */
+        .section.sec-item .section-header i { background: #c0392b; }
+        /* 进度追踪 section 图标 - 固定深灰 */
+        .section.sec-track .section-header i { background: #475569; }
+        /* 笔记 section 图标 - 固定深灰 */
+        .section.sec-notes .section-header i { background: #475569; }
+        .section-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--text-dark);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ===== 进度统计 4 格 ===== */
+        .records-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        .record-box {
+            padding: 0;
+            text-align: center;
+            position: relative;
+        }
+        .record-img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .record-cn {
+            position: absolute;
+            right: 8px;
+            bottom: 27px;
+            font-size: 8px;
+            font-weight: bold;
+            color: #5c3d1a;
+            text-shadow: 0 1px 3px rgba(255,255,255,0.6);
+            letter-spacing: 1px;
+            transform: rotate(-45deg);
+            transform-origin: right bottom;
+        }
+        .record-label {
+            font-size: 10px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+        }
+        .record-value {
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--signal-red);
+            min-height: 28px;
+        }
+
+        /* ===== 基础信息（触发器 + 许可行为） ===== */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .info-block {
+            background: var(--panel-bg);
+            border-left: 3px solid var(--signal-red);
+            border-radius: 0 5px 5px 0;
+            padding: 9px 11px;
+        }
+        .info-block.full { grid-column: 1 / -1; }
+        .info-label {
+            font-size: 10px;
+            color: var(--signal-red);
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .info-content {
+            font-size: 11.5px;
+            color: var(--text-main);
+            line-height: 1.55;
+            padding-left: 30px;
+        }
+        .info-content.empty { color: var(--text-light); font-style: italic; }
+        .perm-list {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding-left: 30px;
+        }
+        .perm-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+            font-size: 11.5px;
+        }
+        .perm-item .num {
+            background: var(--signal-red);
+            color: white;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        /* ===== 资质保证（3×3 网格 + 空心红三角留空） ===== */
+        .attr-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        .attr-cell {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 9px 10px;
+        }
+        .attr-cell-name {
+            font-size: 11.5px;
+            font-weight: bold;
+            color: var(--text-dark);
+            margin-bottom: 6px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .attr-cell-tri {
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .tri-mark {
+            width: 16px;
+            height: 16px;
+            display: block;
+            fill: none;
+            stroke: var(--signal-red);
+            stroke-width: 1.2;
+            stroke-linejoin: round;
+        }
+
+        /* ===== 资质保证 - 新版（图标+名称+灰色进度条） ===== */
+        .attr-cell {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+        .attr-icon {
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
+            object-fit: contain;
+            background: #f3ede5;
+            border-radius: 50%;
+            padding: 2px;
+            box-shadow: 0 2px 5px rgba(92, 61, 26, 0.15);
+        }
+        .attr-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .attr-name-new {
+            font-size: 11px;
+            font-weight: bold;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+        .attr-bar {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 2px;
+        }
+        .attr-bar-cell {
+            height: 8px;
+            background: #d3ccc8;
+            border-radius: 1px;
+        }
+
+        /* ===== 进度追踪（蛇形 30 格） ===== */
+        .track-sec {
+            margin-bottom: 12px;
+        }
+        .track-sec:last-child { margin-bottom: 0; }
+        .track-h {
+            font-size: 11px;
+            font-weight: bold;
+            margin: 0 0 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .track-h .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .track-icon {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+            padding: 4px;
+            border-radius: 50%;
+        }
+        .track-h.c-func { color: var(--c-func); }
+        .track-h.c-func .dot { background: var(--c-func); }
+        .track-h.c-real { color: var(--c-real); }
+        .track-h.c-real .dot { background: var(--c-real); }
+        .track-h.c-anom { color: var(--c-anom); }
+        .track-h.c-anom .dot { background: var(--c-anom); }
+        .track-snake {
+            display: grid;
+            grid-template-columns: repeat(15, 1fr);
+            gap: 10px;
+            max-width: 560px;
+            margin: 0 auto;
+            position: relative;
+        }
+        .p-cell {
+            aspect-ratio: 1;
+            border: 1px solid #cbd5e1;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 6.5px;
+            color: #94a3b8;
+            background: #fff;
+            position: relative;
+            z-index: 2;
+        }
+        .p-cell.c-func { border-color: rgba(220, 38, 38, 0.4); }
+        .p-cell.c-real { border-color: rgba(243, 156, 18, 0.4); }
+        .p-cell.c-anom { border-color: rgba(2, 132, 199, 0.4); }
+        /* SVG 连接线层 */
+        .track-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            overflow: visible;
+        }
+        .track-lines line {
+            stroke-width: 1.2;
+            stroke-linecap: round;
+        }
+        .track-rule {
+            font-size: 9.5px;
+            color: var(--text-sub);
+            padding: 4px 0 0;
+            border-top: 1px dotted var(--border-color);
+            margin-top: 6px;
+            line-height: 1.5;
+        }
+        .track-rule + .track-rule { border-top: none; margin-top: 2px; padding-top: 0; }
+
+        /* ===== 笔记区（横线手写） ===== */
+        .notes-block {
+            margin-top: 14px;
+        }
+        .notes-block .section-header { margin-bottom: 12px; }
+        .notes-lines {
+            background-image: repeating-linear-gradient(
+                to bottom,
+                transparent 0,
+                transparent 25px,
+                rgba(71, 85, 105, 0.35) 25px,
+                rgba(71, 85, 105, 0.35) 26px
+            );
+            min-height: 350px;
+        }
+
+        /* ===== 异常能力 ===== */
+        .anom-list {
+            display: grid;
+            gap: 8px;
+        }
+        .anom-card {
+            position: relative;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 10px 13px;
+            break-inside: avoid;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+        /* 左上角内嵌彩色三角角标（SVG，完整不截断） */
+        .anom-card .corner-tri {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 26px;
+            height: 26px;
+            display: block;
+        }
+        .corner-tri polygon { fill: var(--c-anom); }
+        .anom-card .corner-tri polygon { fill: var(--c-anom); }
+        .anom-card-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0 0 7px 16px;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .anom-name {
+            font-weight: bold;
+            color: var(--text-dark);
+            font-size: 13px;
+        }
+        .anom-tags {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        .anom-tag {
+            font-size: 9.5px;
+            padding: 2px 7px;
+            border-radius: 3px;
+            background: rgba(2, 132, 199, 0.12);
+            color: var(--c-anom);
+            font-weight: bold;
+        }
+        .anom-tag.trained { background: rgba(192, 57, 43, 0.12); color: #c0392b; }
+        .anom-detail {
+            font-size: 11px;
+            color: var(--text-main);
+            line-height: 1.6;
+            padding-left: 16px;
+        }
+        .anom-detail p { margin-bottom: 3px; }
+        .anom-detail p:last-child { margin-bottom: 0; }
+        .anom-detail strong {
+            color: var(--signal-red);
+            font-weight: bold;
+            margin-right: 3px;
+        }
+        .anom-detail .lbl-succ { color: var(--c-anom); }
+        .anom-detail .lbl-fail { color: #c0392b; }
+
+        /* ===== 异常能力 - 问题/答案区 ===== */
+        .anom-question {
+            margin: 6px 0 0 16px;
+            padding-top: 6px;
+            border-top: 1px dashed var(--border-color);
+        }
+        .anom-trained {
+            font-size: 10.5px;
+            color: var(--signal-red);
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .anom-q-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10.5px;
+            color: var(--text-main);
+            margin-bottom: 3px;
+        }
+        .anom-q-label {
+            color: var(--c-anom);
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        .anom-q-text { flex: 1; }
+        .anom-trained {
+            background: var(--c-anom);
+            color: #fff;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 1px 7px;
+            border-radius: 3px;
+            flex-shrink: 0;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .trained-box {
+            display: inline-block;
+            width: 9px;
+            height: 9px;
+            background: #fff;
+            border-radius: 1px;
+        }
+        .anom-a-row {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10.5px;
+            color: var(--text-sub);
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        .anom-a-row:last-child { margin-bottom: 0; }
+        .anom-a-text {
+            flex: 1;
+            line-height: 1.4;
+        }
+        /* 方框前的数值文本（下划线与方框底部对齐） */
+        .sq-val {
+            padding: 0 5px;
+            text-align: center;
+            border-bottom: 1.5px solid var(--c-anom);
+            flex-shrink: 0;
+            font-size: 10px;
+            color: var(--text-dark);
+            line-height: 15px;
+            height: 15px;
+            min-width: 34px;
+        }
+        .sq-dots {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+            justify-content: flex-end;
+            min-width: 60px;
+        }
+        .sq-dot {
+            width: 15px;
+            height: 15px;
+            border: 1.2px solid var(--c-anom);
+            border-radius: 2px;
+        }
+
+        /* ===== 关系网 ===== */
+        .real-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .real-card {
+            position: relative;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 9px 12px;
+            break-inside: avoid;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+        .real-card .corner-tri {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 24px;
+            height: 24px;
+            display: block;
+        }
+        .real-card .corner-tri polygon { fill: var(--c-real); }
+        .real-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+            margin: 0 0 6px 14px;
+        }
+        .real-name {
+            font-weight: bold;
+            color: var(--text-dark);
+            font-size: 12.5px;
+        }
+        .real-actor {
+            font-size: 10px;
+            color: var(--text-light);
+            margin-top: 2px;
+        }
+        .real-level {
+            background: var(--c-real);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+        .real-desc {
+            font-size: 11px;
+            color: var(--text-sub);
+            line-height: 1.55;
+            margin: 0 0 5px 14px;
+        }
+        .real-conn {
+            font-size: 10.5px;
+            color: var(--c-real);
+            background: rgba(243, 156, 18, 0.1);
+            padding: 4px 8px;
+            border-radius: 3px;
+            display: inline-block;
+            margin-left: 14px;
+        }
+        .real-conn i { margin-right: 4px; }
+
+        /* ===== 申领物 ===== */
+        .item-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .item-card {
+            position: relative;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 9px 12px;
+            break-inside: avoid;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+        .item-card .corner-tri {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 24px;
+            height: 24px;
+            display: block;
+        }
+        .item-card .corner-tri polygon { fill: var(--c-func); }
+        .item-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin: 0 0 6px 14px;
+        }
+        .item-name {
+            font-weight: bold;
+            color: var(--text-dark);
+            font-size: 12.5px;
+        }
+        .item-pd {
+            font-size: 9.5px;
+            color: var(--c-func);
+            font-weight: bold;
+            background: rgba(220, 38, 38, 0.1);
+            padding: 2px 6px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+        .item-once {
+            font-size: 9px;
+            background: var(--signal-red);
+            color: white;
+            padding: 1px 5px;
+            border-radius: 2px;
+            margin-left: 4px;
+        }
+        .item-eff {
+            font-size: 11px;
+            color: var(--text-sub);
+            line-height: 1.55;
+            padding-left: 14px;
+        }
+
+        /* ===== 底部 Footer ===== */
+        .card-footer {
+            margin-top: 16px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 9.5px;
+            color: var(--text-light);
+        }
+        .footer-brand { font-weight: bold; color: var(--text-dark); letter-spacing: 1px; }
+
+        /* ===== 加载/空态 ===== */
+        .loading {
+            text-align: center;
+            padding: 100px 20px;
+            color: var(--text-sub);
+        }
+        .loading i { font-size: 36px; margin-bottom: 14px; display: block; }
+        .empty-section {
+            color: var(--text-light);
+            font-size: 11px;
+            font-style: italic;
+            padding: 8px 4px;
+        }
+
+        /* ===== Toast ===== */
+        .toast {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--signal-red);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            z-index: 2000;
+            display: none;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            animation: toastIn 0.3s ease;
+        }
+        .toast.show { display: flex; align-items: center; gap: 10px; }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translate(-50%, -20px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+
+        /* ============================
+           打印样式（@media print）
+           严格 A4，隐藏工具栏，强制背景色
+           ============================ */
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        @media print {
+            html, body {
+                background: white !important;
+                padding: 0 !important;
+                font-size: 11px;
+            }
+            .toolbar { display: none !important; }
+            .toast { display: none !important; }
+
+            .print-page {
+                width: auto;
+                min-height: 297mm;
+                margin: 0;
+                padding: 12mm 14mm;
+                box-shadow: none;
+                page-break-after: always;
+            }
+            .print-page:last-child { page-break-after: auto; }
+
+            /* 第一页内容偏多，整体等比缩小以确保单页打印；
+               min-height 按 zoom 反算，使底色铺满整页又不溢出到第二页 */
+            .print-page.first-page {
+                zoom: 0.95;
+                min-height: calc(296mm / 0.95);
+            }
+
+            /* header 贴边显示（@page margin 已留白） */
+            .card-header {
+                margin: 0 0 14px;
+            }
+
+            /* 强制打印背景色 */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .section { break-inside: avoid-page; }
+            .anom-card, .real-card, .item-card { break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <div class="theme-switcher">
+        <span class="theme-label">配色</span>
+        <button class="theme-btn t-red active" onclick="setTheme('red', this)" title="红色"></button>
+        <button class="theme-btn t-blue" onclick="setTheme('blue', this)" title="蓝色"></button>
+        <button class="theme-btn t-yellow" onclick="setTheme('yellow', this)" title="黄色"></button>
+    </div>
+    <div class="gender-switcher">
+        <span class="gender-label">表头</span>
+        <button class="gender-btn g-male active" onclick="setGender('male', this)" title="男">男</button>
+        <button class="gender-btn g-female" onclick="setGender('female', this)" title="女">女</button>
+        <button class="gender-btn g-none" onclick="setGender('none', this)" title="无">无</button>
+    </div>
+    <label class="print-mode-toggle">
+        <input type="checkbox" id="printModeChk" onchange="togglePrintMode(this)">
+        打印模式
+    </label>
+    <button class="tool-btn secondary" onclick="window.close()"><i class="fas fa-times"></i> 关闭</button>
+    <button class="tool-btn" onclick="doPrint()"><i class="fas fa-print"></i> 打印</button>
+</div>
+
+<div class="toast" id="toast"><i class="fas fa-exclamation-circle"></i> <span id="toastMsg"></span></div>
+
+<div id="loading" class="loading">
+    <i class="fas fa-circle-notch fa-spin"></i>
+    <p>加载角色数据...</p>
+</div>
+
+<div id="content"></div>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const charId = params.get('id');
+    const token = localStorage.getItem('ta_token');
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        document.getElementById('toastMsg').textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    function doPrint() {
+        window.print();
+    }
+
+    // 切换第一页配色主题（红/蓝/黄），并持久化到 localStorage
+    function setTheme(theme, btn) {
+        if (theme === 'red') {
+            document.documentElement.removeAttribute('data-theme');
+        } else {
+            document.documentElement.setAttribute('data-theme', theme);
+        }
+        localStorage.setItem('ta_print_theme', theme);
+        // 更新按钮选中态
+        document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    // 页面加载时恢复上次选择的主题
+    function restoreTheme() {
+        const saved = localStorage.getItem('ta_print_theme') || 'red';
+        const btn = document.querySelector(`.theme-btn.t-${saved}`) || document.querySelector('.theme-btn.t-red');
+        if (saved === 'red') {
+            document.documentElement.removeAttribute('data-theme');
+        } else {
+            document.documentElement.setAttribute('data-theme', saved);
+        }
+        document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+    restoreTheme();
+
+    // 切换表头图片（男/女/无），并持久化
+    function setGender(gender, btn) {
+        if (gender === 'none') {
+            document.documentElement.removeAttribute('data-gender');
+            const h = document.querySelector('.print-page.first-page .card-header');
+            if (h) h.classList.remove('has-img');
+        } else {
+            document.documentElement.setAttribute('data-gender', gender);
+            const h = document.querySelector('.print-page.first-page .card-header');
+            if (h) h.classList.add('has-img');
+        }
+        localStorage.setItem('ta_print_gender', gender);
+        document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    // 页面加载时恢复上次选择的性别
+    function restoreGender() {
+        const saved = localStorage.getItem('ta_print_gender') || 'male';
+        const btn = document.querySelector(`.gender-btn.g-${saved}`) || document.querySelector('.gender-btn.g-male');
+        setGender(saved, btn);
+    }
+    restoreGender();
+
+    // 打印模式：勾选后米色背景全部变纯白，并持久化
+    function togglePrintMode(chk) {
+        if (chk.checked) {
+            document.documentElement.classList.add('print-mode');
+        } else {
+            document.documentElement.classList.remove('print-mode');
+        }
+        localStorage.setItem('ta_print_mode', chk.checked ? '1' : '0');
+    }
+    // 页面加载时恢复打印模式
+    function restorePrintMode() {
+        const saved = localStorage.getItem('ta_print_mode') === '1';
+        const chk = document.getElementById('printModeChk');
+        if (chk) chk.checked = saved;
+        if (saved) document.documentElement.classList.add('print-mode');
+    }
+    restorePrintMode();
+
+    // 富文本字段可能含 HTML，提取纯文本用于卡片预览
+    function stripHtml(html) {
+        if (!html) return '';
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        return tmp.textContent || tmp.innerText || '';
+    }
+
+    function escapeHtml(str) {
+        if (str == null) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    async function loadCharacter() {
+        if (!charId) {
+            showToast('缺少角色ID');
+            return;
+        }
+        try {
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+            const res = await fetch(`/api/character/${charId}`, { headers });
+            const data = await res.json();
+
+            if (!data || data.error) {
+                showToast('加载角色数据失败');
+                document.getElementById('loading').innerHTML = '<p>加载失败</p>';
+                return;
+            }
+
+            renderCard(data);
+        } catch (e) {
+            console.error(e);
+            showToast('加载失败');
+            document.getElementById('loading').innerHTML = '<p>加载失败: ' + escapeHtml(e.message) + '</p>';
+        }
+    }
+
+    // 生成 9 个紧凑的空心红色三角形，正三角(▲)与倒三角(▼)交替
+    function renderTriangles() {
+        // 正三角: 顶点朝上 points="6,1 11,11 1,11"
+        const up = `<svg viewBox="0 0 12 12" class="tri-mark"><polygon points="6,1 11,11 1,11"/></svg>`;
+        // 倒三角: 顶点朝下 points="6,11 1,1 11,1"
+        const down = `<svg viewBox="0 0 12 12" class="tri-mark"><polygon points="6,11 1,1 11,1"/></svg>`;
+        let html = '';
+        for (let i = 0; i < 9; i++) {
+            html += (i % 2 === 0) ? up : down;
+        }
+        return html;
+    }
+
+    // 资质名 → 拼音图标映射
+    const ATTR_ICONS = {
+        '专注': 'zhuanzhu', '欺瞒': 'qiman', '活力': 'huoli',
+        '共情': 'gongqing', '主动': 'zhudong', '坚毅': 'jianyi',
+        '气场': 'qichang', '专业': 'zhuanye', '诡秘': 'guimi'
+    };
+
+    // 资质格：图标(2行) + 名称 + 灰色9格进度条
+    function renderAttrCell(name) {
+        const icon = ATTR_ICONS[name] || 'zhuanzhu';
+        const bar = '<div class="attr-bar">' + '<div class="attr-bar-cell"></div>'.repeat(9) + '</div>';
+        return `<div class="attr-cell">
+            <img class="attr-icon" src="img/attr/${icon}.webp" alt="${name}">
+            <div class="attr-info">
+                <div class="attr-name-new">${name}</div>
+                ${bar}
+            </div>
+        </div>`;
+    }
+
+    function renderCard(d) {
+        document.getElementById('loading').style.display = 'none';
+        const content = document.getElementById('content');
+
+        const ATTR_NAMES = ['专注', '欺瞒', '活力', '共情', '主动', '坚毅', '气场', '专业', '诡秘'];
+        const attrs = d.attrs || {};
+
+        // ===== 基础信息触发器 =====
+        const triggers = [
+            { label: '过载解除', icon: 'guozaijiechu', val: d.pTrig1 },
+            { label: '现实触发器', icon: 'xianshichufaqi', val: d.pTrig2 },
+            { label: '首要指令', icon: 'shouyaozhiling', val: d.pTrig3 }
+        ];
+
+        // ===== 许可行为 =====
+        const perms = [d.perm1, d.perm2, d.perm3].filter(p => p && String(p).trim());
+
+        // ===== 异常能力 =====
+        const anoms = (d.anoms || []).filter(a => a && a.name && a.name.trim());
+
+        // ===== 关系 =====
+        const reals = (d.reals || []).filter(r => r && r.name && r.name.trim());
+
+        // ===== 申领物 =====
+        const items = (d.items || []).filter(i => i && i.item && i.item.trim());
+
+        // ===== 构建 HTML =====
+        let html = `
+        <div class="print-page first-page">
+            <div class="card-header has-img">
+                <div class="header-content">
+                    <div class="brand-row">
+                        <div class="brand-logo">
+                            <div class="main">TRIANGLE AGENCY</div>
+                            <div class="sub">三角机构 // 角色档案</div>
+                        </div>
+                        <div class="doc-id">DOC-${(charId || '').slice(-6)}</div>
+                    </div>
+                    <div class="char-row">
+                        <div class="char-name">${escapeHtml(d.pName || '未命名')}</div>
+                        <div class="info-bottom">
+                            <div class="identity-row">
+                                <div class="identity-tag"><i class="fas fa-bolt"></i> 异常: ${escapeHtml(d.pAnom || '---')}</div>
+                                <div class="identity-tag"><i class="fas fa-briefcase"></i> 职能: ${escapeHtml(d.pFunc || '---')}</div>
+                                <div class="identity-tag"><i class="fas fa-user"></i> 现实: ${escapeHtml(d.pReal || '---')}</div>
+                            </div>
+                            ${d.ownerName ? `<div class="owner-info"><i class="fas fa-id-badge"></i> 所属: ${escapeHtml(d.ownerName)}</div>` : ''}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section sec-record">
+                <div class="section-header">
+                    <img class="section-icon" src="img/title/danganjilu.webp" alt="档案记录">
+                    <span class="section-title">档案记录</span>
+                </div>
+                <div class="records-row">
+                    <div class="record-box"><img class="record-img" src="img/attr/MVP.webp" alt="MVP"><span class="record-cn">MVP</span></div>
+                    <div class="record-box"><img class="record-img" src="img/attr/jiajiang.webp" alt="嘉奖"><span class="record-cn">嘉奖</span></div>
+                    <div class="record-box"><img class="record-img" src="img/attr/shengjie.webp" alt="申诫"><span class="record-cn">申诫</span></div>
+                    <div class="record-box"><img class="record-img" src="img/attr/chakanqi.webp" alt="察看期"><span class="record-cn">察看期</span></div>
+                </div>
+            </div>
+
+            <div class="section sec-base">
+                <div class="section-header">
+                    <img class="section-icon" src="img/title/jichuxinxi.webp" alt="基础信息">
+                    <span class="section-title">基础信息</span>
+                </div>
+                <div class="info-grid">
+                    ${triggers.map(t => {
+                        const txt = stripHtml(t.val).trim();
+                        return `<div class="info-block full">
+                            <div class="info-label"><img class="info-label-icon" src="img/title/${t.icon}.webp" alt="${t.label}">${t.label}</div>
+                            <div class="info-content${txt ? '' : ' empty'}">${txt ? escapeHtml(txt) : '未填写'}</div>
+                        </div>`;
+                    }).join('')}
+                    <div class="info-block full">
+                        <div class="info-label"><img class="info-label-icon" src="img/title/xukexingwei.webp" alt="许可行为">许可行为</div>
+                        ${perms.length > 0
+                            ? `<div class="perm-list">${perms.map((p, i) => `<div class="perm-item"><span class="num">${i + 1}</span><span>${escapeHtml(p)}</span></div>`).join('')}</div>`
+                            : `<div class="info-content empty">未填写</div>`}
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">
+                    <img class="section-icon" src="img/title/zizhibaozheng.webp" alt="资质保证">
+                    <span class="section-title">资质保证</span>
+                </div>
+                <div class="attr-grid">
+                    ${ATTR_NAMES.map(renderAttrCell).join('')}
+                </div>
+            </div>
+
+            <div class="card-footer">
+                <div class="footer-brand">TRIANGLE AGENCY</div>
+                <div>CONFIDENTIAL // 机密档案</div>
+            </div>
+        </div>
+        `;
+
+        // ===== 进度追踪页 =====
+        // 三条记录条：每条 30 格，坐标文本按 idx 映射（来自角色卡页面数据）
+        const TRACKS = [
+            {
+                cls: 'c-func', name: '职能',
+                labels: { 3: 'A3', 6: 'D4', 9: 'G3', 12: 'J3', 15: 'N3', 27: 'Y2', 24: 'W8', 21: 'T3', 18: 'Q3' },
+                rules: [
+                    '当你获得任务MVP时，在你的职能记录条上标记1格，且无需从其他记录条上移除一格。',
+                    '每当你在职能记录条上标记一格时，将任意一项资质的"资质保证上限"提升1点，最高不超过9点。'
+                ]
+            },
+            {
+                cls: 'c-real', name: '现实',
+                labels: { 1: 'C4', 4: 'L11', 8: 'E2', 10: 'O4', 12: 'J3', 14: 'T6', 27: 'E3', 22: 'H5', 20: 'X3', 16: 'V2' },
+                rules: [
+                    '当你既未获得任务MVP也未进入察看期时，你可以将你与任意一段关系的连结提升1点。',
+                    '每当你在现实记录条上标记一格时，将你与任意一段"关系"的"连结"提升1点，然后对关系网内的每段关系重复此操作。'
+                ]
+            },
+            {
+                cls: 'c-anom', name: '异常',
+                labels: { 1: 'H4', 2: 'H3', 5: 'U2', 7: 'X2', 11: 'N1', 13: 'Q2', 23: 'A7', 19: 'G8', 17: 'L10' },
+                rules: [
+                    '当你进入察看期时，在你的异常记录条上标记1格，且无需从其他记录条上移除一格。',
+                    '每当你在异常记录条上标记一格时，选择一项：<br>➤练习：在任意一项异常能力上标记"熟练"。<br>➤广为人知：从一项异常能力中移除"熟练"标记，并向你的团队提出该能力的问题。在获得最多票数的答案轨道上做标记，然后获得所有已解锁的能力。'
+                ]
+            }
+        ];
+        // 蛇形渲染顺序：前15格 idx 1→15，后15格 idx 30→16
+        const SNAKE_ORDER = [
+            ...Array.from({ length: 15 }, (_, i) => i + 1),
+            ...Array.from({ length: 15 }, (_, i) => 30 - i)
+        ];
+
+        // 进度追踪三条记录的 SVG 图标（实心白色图标 + 对应颜色圆形背景）
+        function trackIcon(cls) {
+            const icons = {
+                'c-func': { color: '#dc2626', svg: '<path fill="#fff" d="M10 4h4a1 1 0 011 1v2h4a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V9a2 2 0 012-2h4V5a1 1 0 011-1zm-1 9v1a1 1 0 001 1h4a1 1 0 001-1v-1H9z"/>' },
+                'c-real': { color: '#f39c12', svg: '<path fill="#fff" d="M6.5 3l3 1.2-.8 3.8-2.4 3.2c.8 3 2.7 5.6 5.5 7.4l3.2-2.4 3.8.8 1.2 3c-.3 1-1.2 1.8-2.3 1.8C11.3 21.8 2.2 12.7 2.2 4.3c0-1.1.8-2 1.8-2.3l2.5.7z"/>' },
+                'c-anom': { color: '#0284c7', svg: '<path fill="#fff" d="M12 5c4 0 7.5 3 10 7-2.5 4-6 7-10 7s-7.5-3-10-7c2.5-4 6-7 10-7zm0 3a4 4 0 100 8 4 4 0 000-8z"/>' }
+            };
+            const ic = icons[cls] || icons['c-func'];
+            return `<svg class="track-icon" viewBox="0 0 24 24" style="background:${ic.color}">${ic.svg}</svg>`;
+        }
+
+        function buildTrack(t) {
+            const cells = SNAKE_ORDER.map(idx => {
+                const txt = t.labels[idx] || '';
+                return `<div class="p-cell ${t.cls}" data-idx="${idx}">${txt}</div>`;
+            }).join('');
+            const rules = t.rules.map(r => `<div class="track-rule">${r}</div>`).join('');
+            return `<div class="track-sec">
+                <div class="track-h ${t.cls}">${trackIcon(t.cls)}${t.name}</div>
+                <div class="track-snake">${cells}<svg class="track-lines" data-cls="${t.cls}"></svg></div>
+                ${rules}
+            </div>`;
+        }
+
+        html += `
+        <div class="print-page">
+            <div class="section sec-track">
+                <div class="section-header">
+                    <i class="fas fa-signal"></i>
+                    <span class="section-title">进度追踪</span>
+                </div>
+                ${TRACKS.map(buildTrack).join('')}
+            </div>
+
+            <div class="section notes-block sec-notes">
+                <div class="section-header">
+                    <i class="fas fa-pen"></i>
+                    <span class="section-title">笔记 / NOTES</span>
+                </div>
+                <div class="notes-lines"></div>
+            </div>
+
+            <div class="card-footer">
+                <div class="footer-brand">TRIANGLE AGENCY</div>
+                <div>CONFIDENTIAL // 机密档案</div>
+            </div>
+        </div>
+        `;
+
+        // 渲染后绘制 SVG 连接线（蛇形相邻格子之间的连线）
+        function drawTrackLines() {
+            const colorMap = { 'c-func': 'rgba(220,38,38,0.45)', 'c-real': 'rgba(243,156,18,0.45)', 'c-anom': 'rgba(2,132,199,0.45)' };
+            document.querySelectorAll('.track-lines').forEach(svg => {
+                const snake = svg.parentElement;
+                const cells = snake.querySelectorAll('.p-cell');
+                if (cells.length < 2) return;
+                const snakeRect = snake.getBoundingClientRect();
+                svg.setAttribute('viewBox', `0 0 ${snakeRect.width} ${snakeRect.height}`);
+
+                // 按 data-idx 查找格子中心（参考角色卡 layout.js 的 drawTrackSVG）
+                const getCenter = (idx) => {
+                    const cell = snake.querySelector('.p-cell[data-idx="' + idx + '"]');
+                    if (!cell) return null;
+                    const r = cell.getBoundingClientRect();
+                    return {
+                        x: r.left - snakeRect.left + r.width / 2,
+                        y: r.top - snakeRect.top + r.height / 2
+                    };
+                };
+
+                const color = colorMap[svg.dataset.cls] || '#95a5a6';
+                const arrowSize = 3;
+                const makeArrow = (x, y, angle) => {
+                    return `<polygon points="${-arrowSize},${-arrowSize} ${arrowSize},0 ${-arrowSize},${arrowSize}" fill="${color}" transform="translate(${x},${y}) rotate(${angle})"/>`;
+                };
+
+                // 序列：idx 1→30，体现游戏路径（15→16 是蛇形转折）
+                const seq = [];
+                for (let i = 1; i <= 30; i++) seq.push(i);
+
+                let inner = '';
+                for (let i = 0; i < seq.length - 1; i++) {
+                    const ac = getCenter(seq[i]);
+                    const bc = getCenter(seq[i + 1]);
+                    if (!ac || !bc) continue;
+                    const dx = bc.x - ac.x;
+                    const dy = bc.y - ac.y;
+                    let angle, mx, my;
+                    if (Math.abs(dx) > Math.abs(dy)) {
+                        // 水平相邻
+                        angle = dx > 0 ? 0 : 180;
+                        mx = (ac.x + bc.x) / 2;
+                        my = ac.y;
+                    } else {
+                        // 垂直相邻
+                        angle = dy > 0 ? 90 : 270;
+                        mx = ac.x;
+                        my = (ac.y + bc.y) / 2;
+                    }
+                    inner += makeArrow(mx, my, angle);
+                }
+                svg.innerHTML = inner;
+            });
+        }
+
+        // ===== 异常能力页 =====
+        if (anoms.length > 0) {
+            html += `
+            <div class="print-page">
+                <div class="section sec-anom">
+                    <div class="section-header">
+                        <i class="fas fa-bolt"></i>
+                        <span class="section-title">异常能力</span>
+                    </div>
+                    <div class="anom-list">
+                        ${anoms.map(a => {
+                            const succ = stripHtml(a.succ).trim();
+                            const fail = stripHtml(a.fail).trim();
+                            const tdesc = a.tdesc ? escapeHtml(a.tdesc) : '';
+                            const a1 = a.t1 ? escapeHtml(a.t1) : '';
+                            const a2 = a.t2 ? escapeHtml(a.t2) : '';
+                            const a1v = a.t1v ? escapeHtml(a.t1v) : '';
+                            const a2v = a.t2v ? escapeHtml(a.t2v) : '';
+                            // 3个空方点（不读数据，玩家手填）
+                            const renderSq = () => {
+                                let s = '<div class="sq-dots">';
+                                for (let i = 0; i < 3; i++) s += '<div class="sq-dot"></div>';
+                                return s + '</div>';
+                            };
+                            // 仅当有问题文本或答案时才显示问题区
+                            const hasQ = tdesc || a1 || a2;
+                            return `<div class="anom-card">
+                                <svg class="corner-tri" viewBox="0 0 26 26" preserveAspectRatio="none"><polygon points="0,0 26,0 0,26"/></svg>
+                                <div class="anom-card-title">
+                                    <div class="anom-name">${escapeHtml(a.name)}</div>
+                                    <div class="anom-tags">
+                                        ${a.qual ? `<span class="anom-tag">${escapeHtml(a.qual)}</span>` : ''}
+                                        ${a.trig ? `<span class="anom-tag">${escapeHtml(a.trig)}</span>` : ''}
+                                    </div>
+                                </div>
+                                <div class="anom-detail">
+                                    ${succ ? `<p><strong class="lbl-succ">成功:</strong> ${escapeHtml(succ)}</p>` : ''}
+                                    ${fail ? `<p><strong class="lbl-fail">失败:</strong> ${escapeHtml(fail)}</p>` : ''}
+                                </div>
+                                ${hasQ ? `<div class="anom-question">
+                                    <div class="anom-q-row">
+                                        <span class="anom-q-label">问题</span>
+                                        <span class="anom-q-text">${tdesc || ''}</span>
+                                        <span class="anom-trained">已训练 <span class="trained-box"></span></span>
+                                    </div>
+                                    ${a1 ? `<div class="anom-a-row"><span class="anom-a-text">${a1}</span><span class="sq-val">${a1v}</span>${renderSq()}</div>` : ''}
+                                    ${a2 ? `<div class="anom-a-row"><span class="anom-a-text">${a2}</span><span class="sq-val">${a2v}</span>${renderSq()}</div>` : ''}
+                                </div>` : ''}
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </div>
+            </div>
+            `;
+        }
+
+        // ===== 关系网页 =====
+        if (reals.length > 0) {
+            html += `
+            <div class="print-page">
+                <div class="section sec-real">
+                    <div class="section-header">
+                        <i class="fas fa-users"></i>
+                        <span class="section-title">关系网</span>
+                    </div>
+                    <div class="real-grid">
+                        ${reals.map(r => {
+                            const desc = stripHtml(r.desc).trim();
+                            const conn = stripHtml(r.conn).trim();
+                            return `<div class="real-card">
+                                <svg class="corner-tri" viewBox="0 0 24 24" preserveAspectRatio="none"><polygon points="0,0 24,0 0,24"/></svg>
+                                <div class="real-head">
+                                    <div>
+                                        <div class="real-name">${escapeHtml(r.name)}</div>
+                                        ${r.actor ? `<div class="real-actor">扮演者: ${escapeHtml(r.actor)}</div>` : ''}
+                                    </div>
+                                    ${r.lvl ? `<div class="real-level">Lv.${escapeHtml(r.lvl)}</div>` : ''}
+                                </div>
+                                ${desc ? `<div class="real-desc">${escapeHtml(desc)}</div>` : ''}
+                                ${conn ? `<div class="real-conn"><i class="fas fa-link"></i>${escapeHtml(conn)}</div>` : ''}
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </div>
+            </div>
+            `;
+        }
+
+        // ===== 申领物页 =====
+        if (items.length > 0) {
+            html += `
+            <div class="print-page">
+                <div class="section sec-item">
+                    <div class="section-header">
+                        <i class="fas fa-box-open"></i>
+                        <span class="section-title">申领物 / 福利</span>
+                    </div>
+                    <div class="item-grid">
+                        ${items.map(it => {
+                            const eff = stripHtml(it.eff).trim();
+                            return `<div class="item-card">
+                                <svg class="corner-tri" viewBox="0 0 24 24" preserveAspectRatio="none"><polygon points="0,0 24,0 0,24"/></svg>
+                                <div class="item-head">
+                                    <div class="item-name">${escapeHtml(it.item)}${it.once ? '<span class="item-once">一次性</span>' : ''}</div>
+                                    ${it.pd ? `<div class="item-pd">PD: ${escapeHtml(it.pd)}</div>` : ''}
+                                </div>
+                                ${eff ? `<div class="item-eff">${escapeHtml(eff)}</div>` : ''}
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </div>
+            </div>
+            `;
+        }
+
+        content.innerHTML = html;
+        // 等 DOM 布局完成后绘制蛇形连接线
+        requestAnimationFrame(() => requestAnimationFrame(drawTrackLines));
+    }
+
+    // 窗口尺寸变化或打印前重绘连接线
+    window.addEventListener('resize', () => {
+        if (typeof drawTrackLines === 'function') drawTrackLines();
+    });
+    window.addEventListener('beforeprint', () => {
+        if (typeof drawTrackLines === 'function') drawTrackLines();
+    });
+
+    loadCharacter();
+</script>
+</body>
+</html>
