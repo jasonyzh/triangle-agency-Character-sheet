@@ -1,0 +1,39 @@
+{
+  "name": "triangle-agency",
+  "version": "2.0.0",
+  "description": "三角机构跑团管理平台：角色档案、分部系统、任务管理、申领物、虹吸商店",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "dev:front": "vite",
+    "dev:all": "concurrently \"npm run dev\" \"npm run dev:front\"",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "format": "prettier --write \"**/*.js\" --ignore-path .gitignore"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "better-sqlite3": "^12.10.0",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "cos-nodejs-sdk-v5": "^2.15.4",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.1.1",
+    "nodemailer": "^6.9.7",
+    "socket.io": "^4.8.3",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "concurrently": "^9.2.1",
+    "eslint": "^10.4.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "nodemon": "^3.1.14",
+    "prettier": "^3.8.3",
+    "vite": "^8.0.14"
+  }
+}

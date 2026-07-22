@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>广场 // TRIANGLE AGENCY</title>
+    <link rel="stylesheet" href="vendor/font-awesome/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/plaza.css">
+</head>
+<body>
+    <div id="transition-overlay">
+        <div class="loader-content">
+            <i class="fas fa-circle-notch fa-spin loader-icon"></i>
+            <div class="loader-text">访问终端中<span class="dots"></span></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <header>
+            <div class="brand-logo">
+                <span class="top">TRIANGLE</span>
+                <span class="btm">AGENCY</span>
+                <div class="page-title">PLAZA // 广场</div>
+            </div>
+            <div class="btn-group">
+                <button class="btn-icon" onclick="goBack()" title="返回">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="plaza-branch-bar">
+            <div id="branchSelector" class="plaza-branch-selector"></div>
+            <div class="plaza-sorter" id="plazaSorter">
+                <button class="sort-btn sort-mvp" onclick="setSortMode('mvp')" title="MVP次数排序"><i class="fas fa-medal"></i></button>
+                <button class="sort-btn sort-mission" onclick="setSortMode('mission')" title="参与任务排序"><i class="fas fa-tasks"></i></button>
+                <button class="sort-btn sort-watch" onclick="setSortMode('watch')" title="查看期排序"><i class="fas fa-eye"></i></button>
+            </div>
+        </div>
+
+        <div id="plazaList" class="plaza-grid"></div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="js/common.js"></script>
+    <script src="js/plaza.js"></script>
+</body>
+</html>
