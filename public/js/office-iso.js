@@ -447,22 +447,29 @@ function bindWorkstationHover() {
 
     avatars.forEach(function (g) {
         g.style.cursor = 'pointer';
+        g.style.touchAction = 'manipulation'; // 移动端消除 300ms 延迟
         // 电脑端：悬停显示，离开隐藏
         g.addEventListener('mouseenter', function () { fillAndShow(g); });
         g.addEventListener('mouseleave', function () { tooltip.classList.remove('show'); });
-        // 点击/触摸：显示（不切换，避免 mouseenter+click 冲突关闭）
-        g.addEventListener('click', function (e) {
+        // 点击/触摸：pointerdown（立即触发）+ touchstart（移动端兜底）
+        g.addEventListener('pointerdown', function (e) {
+            e.preventDefault();
             e.stopPropagation();
             fillAndShow(g);
         });
+        g.addEventListener('touchstart', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            fillAndShow(g);
+        }, { passive: false });
     });
 
-    // 点击空白处关闭浮窗（手机端尤其需要）
-    document.addEventListener('click', function (e) {
+    // 点击空白处关闭浮窗（pointerdown 保证移动端生效，不阻止滚动）
+    document.addEventListener('pointerdown', function (e) {
         if (!e.target.closest('.ws-avatar') && !e.target.closest('#officeTooltip')) {
             tooltip.classList.remove('show');
         }
-    });
+    }, { passive: true });
 }
 
 function createTooltip() {
