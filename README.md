@@ -210,8 +210,6 @@ const NEW_ADMIN_PASSWORD = '你的密码';
 - ⚠️ **必须保留版权声明与许可声明**（署名原作者 ska）
 - 📄 完整协议见根目录 [LICENSE](./LICENSE) 文件
 
-简言之：随便用、随便改、可以拿去赚钱，但**必须署名**，且原作者不承担任何责任。
-
 ## 致谢
 
 感谢 **残光（[Airexplosion](https://github.com/Airexplosion)）** 对项目的贡献，主要合并的 PR 包括：
