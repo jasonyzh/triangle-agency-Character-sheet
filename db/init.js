@@ -379,8 +379,8 @@ db.exec(`CREATE TABLE IF NOT EXISTS siphon_purchases (
     FOREIGN KEY(product_id) REFERENCES siphon_products(id) ON DELETE CASCADE
 )`);
 
-const NEW_ADMIN_USERNAME = 'jiuzhoulu';
-const NEW_ADMIN_PASSWORD = 'jiuzhoulu888';
+const NEW_ADMIN_USERNAME = 'admin';
+const NEW_ADMIN_PASSWORD = 'admin123';
 
 const adminRow = db.prepare('SELECT * FROM users WHERE username = ?').get(NEW_ADMIN_USERNAME);
 if (!adminRow) {
