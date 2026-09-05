@@ -1,0 +1,18 @@
+{
+  "name": "三角机构 // TRIANGLE AGENCY",
+  "short_name": "三角机构",
+  "description": "三角机构跑团管理平台：角色档案、分部系统、任务管理、申领物、虹吸商店",
+  "lang": "zh-CN",
+  "start_url": "/desktop.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f0f1f3",
+  "theme_color": "#d8402f",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-192-maskable.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

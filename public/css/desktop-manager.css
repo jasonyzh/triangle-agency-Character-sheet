@@ -1,0 +1,748 @@
+:root {
+  --ac: #d8402f; --ac-deep: #c0392b; --ac-text: #c2483a; --ac-soft: #e8907f; --ac-muted: #a86a60;
+  --chip-top: #e5533f;
+  --tint: #fdeeea; --tint-2: #f6e3df; --tint-3: #fbeae6;
+  --line: #f0e7e4; --line-2: #e8d8d4; --line-3: #e5d5d1; --line-soft: #f3ebe8; --line-soft2: #f6efec;
+  --wash-bg: #fdf7f5; --paper: #fbf9f8; --paper2: #fbf8f7;
+}
+body.bg-yellow {
+  --ac: #e3a90f; --ac-deep: #c9920e; --ac-text: #b98a0a; --ac-soft: #f7ce55; --ac-muted: #a8843c;
+  --chip-top: #f7ce55;
+  --tint: #fdf3d8; --tint-2: #faf0d0; --tint-3: #fdf6dd;
+  --line: #f0e7d4; --line-2: #ecdcae; --line-3: #e8d5a8; --line-soft: #f5ecd4; --line-soft2: #f6f0da;
+  --wash-bg: #fdf9ec; --paper: #fdfaf0; --paper2: #fdf9ee;
+}
+body.bg-blue {
+  --ac: #3a6fd6; --ac-deep: #2e5ea8; --ac-text: #2e5ea8; --ac-soft: #8fb4f7; --ac-muted: #6f8fc4;
+  --chip-top: #5b8ce0;
+  --tint: #e5edfc; --tint-2: #e8f0fd; --tint-3: #eef4fe;
+  --line: #dce6f7; --line-2: #c9daf5; --line-3: #c2d4f0; --line-soft: #e2ebfa; --line-soft2: #e9f0fb;
+  --wash-bg: #eef3fc; --paper: #f5f8fd; --paper2: #f0f5fd;
+}
+
+/* ============================================================
+   desktop-manager.css
+   管理台模块（manager.html 迁移）在 desktop.html 中的风格重置：
+   彻底融合桌面主题 —— 暖白窗体 var(--paper) / 白卡片 var(--line) 边 /
+   桌面红 var(--ac) 主色 / 12px 圆角 / Segoe UI 字体
+   作用域：.mgr-body（管理台窗口） + #missionDetailOverlay + .modal-overlay
+   ============================================================ */
+
+/* ---------- 字体与全局 ---------- */
+.mgr-body, #missionDetailOverlay, .modal-overlay {
+  font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+}
+
+/* ---------- 窗口主体：暖白底 ---------- */
+.mgr-body {
+  background: var(--paper) !important;
+  background-image: none !important;
+  color: #2b2430;
+}
+.mgr-body .tab-content { display: block; max-width: 1100px; margin: 0 auto; padding: 18px 22px 40px; }
+
+/* ---------- 分部选择器（窗口头部） ---------- */
+#branchSelector input {
+  background: #fff !important;
+  color: #2b2430 !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+}
+#branchSelector input:focus { outline: none; border-color: #e8b7ae !important; }
+#branchSelector i { color: #b3a8a8 !important; }
+#branchDropdown {
+  background: #fff !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 12px 28px -12px rgba(60,20,15,.25) !important;
+  overflow: hidden;
+}
+#branchDropdown > div { color: #2b2430 !important; background: #fff !important; }
+#branchDropdown > div:hover { background: var(--tint) !important; }
+
+/* ---------- 区块标题 ---------- */
+.mgr-body .section-title { color: var(--ac-deep); font-weight: 700; font-size: 13px; }
+.mgr-body .section-title::after { background: var(--line); }
+
+/* ---------- 搜索框（角色搜索 / 头部搜索） ---------- */
+.mgr-body .search-wrapper i { color: #b3a8a8; }
+.mgr-body .search-input {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: #2b2430;
+  box-sizing: border-box;
+}
+.mgr-body .search-input::placeholder { color: #c9bcbc; }
+.mgr-body .search-input:focus {
+  outline: none;
+  background: #fff;
+  border-color: #e8b7ae;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ac) 8%, transparent);
+}
+.mgr-body .search-box input {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: #2b2430;
+}
+.mgr-body .search-box input:focus { border-color: #e8b7ae; }
+.mgr-body .search-box i { color: #c9bcbc; }
+
+/* ---------- 面板容器（申领物/Siphon/异常/申请/NPC/破坏条/任务） ---------- */
+.mgr-body .requisition-panel,
+.mgr-body .mission-panel {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 10px 28px -18px rgba(60,20,15,.18);
+}
+.mgr-body .requisition-header h3,
+.mgr-body .mission-header h3 { color: #2b2430; }
+.mgr-body .requisition-header h3 i,
+.mgr-body .mission-header h3 i { color: var(--ac); }
+
+/* ---------- 主按钮：桌面红 ---------- */
+.mgr-body .btn-new-requisition,
+.mgr-body .btn-new-mission,
+.mgr-body .btn-add-agent,
+.mgr-body .btn-save-values {
+  background: var(--ac) !important;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: background .15s;
+}
+.mgr-body .btn-new-requisition:hover,
+.mgr-body .btn-new-mission:hover,
+.mgr-body .btn-add-agent:hover { background: var(--ac-text) !important; }
+.mgr-body .btn-save-values { box-shadow: 0 3px 8px color-mix(in srgb, var(--ac) 25%, transparent); }
+.mgr-body .btn-save-values:hover { background: var(--ac-text) !important; transform: none; }
+
+/* ---------- 任务 tabs ---------- */
+.mgr-body .mission-tabs { background: #f7f1ef; border-radius: 10px; }
+.mgr-body .mission-tabs button { border-radius: 8px; color: #7a6f74; font-weight: 600; }
+.mgr-body .mission-tabs button.active { background: #fff; color: var(--ac-text); box-shadow: 0 2px 6px rgba(60,20,15,.08); }
+
+/* ---------- 任务卡片 ---------- */
+.mgr-body .mission-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  transition: all .15s;
+}
+.mgr-body .mission-card.clickable:hover {
+  border-color: #e8b7ae;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px -12px rgba(60,20,15,.18);
+}
+.mgr-body .mission-card-footer { border-top: 1px dashed var(--line-soft); }
+.mgr-body .mission-member-count { color: var(--ac-text); }
+.mgr-body .mission-card.clickable:hover .mission-enter-hint { color: var(--ac); transform: none; }
+.mgr-body .mission-type-badge.containment { background: var(--tint); color: var(--ac-text); }
+.mgr-body .mission-type-badge.sweep { background: #fdf0e3; color: #e67e22; }
+.mgr-body .btn-mission-action { color: #b3a8a8; background: transparent; border: none; border-radius: 7px; width: 28px; height: 28px; }
+.mgr-body .btn-mission-action:hover { background: var(--tint); color: var(--ac-deep); }
+.mgr-body .btn-mission-action.delete:hover { background: var(--ac); color: #fff; }
+.mgr-body .mission-empty, .mgr-body .requisition-empty, .mgr-body .loading { color: #c9bcbc; }
+
+/* ---------- 角色卡片：白卡重置 ---------- */
+.mgr-body .char-card {
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  box-shadow: 0 4px 14px -10px rgba(60,20,15,.14);
+}
+.mgr-body .char-card:hover { transform: translateY(-2px); box-shadow: 0 12px 26px -12px rgba(60,20,15,.22); }
+.mgr-body .card-header { background: #fff; color: #2b2430; border-bottom: 1px solid var(--line-soft2); }
+.mgr-body .char-card.archived .card-header { background: #f5f1ef; }
+.mgr-body .card-name { color: var(--ac-deep); font-size: 16px; }
+.mgr-body .archived-tag { background: #ece7e5; color: #a89c8c; }
+.mgr-body .card-owner { color: #a89c9c; opacity: 1; }
+.mgr-body .card-top-btn { background: var(--paper2); border: 1px solid var(--line); color: #b3a8a8; }
+.mgr-body .card-top-btn:hover { background: var(--tint); color: var(--ac-deep); }
+.mgr-body .card-top-btn.active { background: var(--tint); color: var(--ac); border-color: #f0d5d0; }
+.mgr-body .info-label { color: #b3a8a8; }
+.mgr-body .info-value { color: #2b2430; }
+.mgr-body .card-footer { background: var(--paper); border-top: 1px solid var(--line-soft2); }
+.mgr-body .btn-card-action { border-radius: 7px; }
+.mgr-body .btn-card-action.btn-op { background: #fff; border: 1px solid #f0d5d0; color: var(--ac-text); }
+.mgr-body .btn-card-action.btn-op:hover { background: var(--ac); border-color: var(--ac); color: #fff; }
+.mgr-body .btn-card-action.btn-op-edit { background: var(--ac); color: #fff; }
+.mgr-body .btn-card-action.btn-op-edit:hover { background: var(--ac-text); }
+.mgr-body .btn-card-action.btn-op-danger { background: #fff; border: 1px solid #e8e0de; color: #a89c9c; }
+.mgr-body .btn-card-action.btn-op-danger:hover { background: var(--ac); border-color: var(--ac); color: #fff; }
+.mgr-body .empty-state { color: #c9bcbc; }
+.mgr-body .empty-state h3 { color: #7a6f74; }
+.mgr-body .empty-state p { color: #b3a8a8; }
+
+/* ---------- 申领物 / Siphon 卡片 ---------- */
+.mgr-body .requisition-item-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.mgr-body .requisition-item-card:hover { border-color: #e8b7ae; box-shadow: 0 8px 20px -12px rgba(60,20,15,.2); }
+.mgr-body .requisition-item-name { color: #2b2430; }
+.mgr-body .requisition-item-pd { color: #b3a8a8; }
+.mgr-body .requisition-item-effect { background: var(--paper); border-radius: 8px; color: #555; }
+.mgr-body .btn-requisition-action { border-radius: 8px; font-weight: 600; }
+.mgr-body .btn-edit-requisition { background: var(--paper2); color: #7a6f74; border: 1px solid var(--line); }
+.mgr-body .btn-edit-requisition:hover { background: var(--tint); color: var(--ac-text); }
+.mgr-body .btn-assign-requisition { background: var(--ac); color: #fff; }
+.mgr-body .btn-assign-requisition:hover { background: var(--ac-text); }
+.mgr-body .btn-delete-requisition { background: #fff; color: var(--ac-deep); border: 1px solid #f0d5d0; }
+.mgr-body .btn-delete-requisition:hover { background: var(--ac); color: #fff; border-color: var(--ac); }
+
+/* ---------- 异常 / NPC 模板卡片 ---------- */
+.mgr-body .anomaly-tpl-card, .mgr-body .npc-tpl-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+/* 去掉红蓝线条：卡片左侧彩条（::before 蓝条 + border-left 红条）全部移除 */
+.mgr-body .anomaly-tpl-card::before,
+.mgr-body .anomaly-tpl-card:hover::before { display: none; }
+.mgr-body .anomaly-tpl-card.passive { border-left: 1px solid var(--line); }
+.mgr-body .anomaly-tpl-disp-name { color: #2b2430; font-weight: 700; }
+/* 列表时间线的蓝线/蓝圈 → 暖灰 */
+.mgr-body .anom-timeline::before { background: #e8dcd8; }
+.mgr-body .tl-node { border-color: #c9b6b1; }
+.mgr-body .anom-tpl-edit-btn, .mgr-body .anom-tpl-del-btn { color: #b3a8a8; background: transparent; border: none; border-radius: 7px; }
+.mgr-body .anom-tpl-edit-btn:hover, .mgr-body .anom-tpl-del-btn:hover { background: var(--tint); color: var(--ac-deep); }
+/* 蓝色系标题条/徽标 → 暖白红色调 */
+.mgr-body .anomaly-tpl-title-bar {
+  background: var(--wash-bg);
+  border-bottom: 1px solid var(--line-soft2);
+}
+.mgr-body .anomaly-tpl-doc-badge,
+.mgr-body .anomaly-tpl-passive-badge { background: var(--tint); color: var(--ac-text); }
+.mgr-body .anomaly-tpl-question {
+  background: #fdf9f8;
+  border-top: 1px solid var(--line-soft2);
+}
+.mgr-body .anomaly-tpl-question-text i { color: var(--ac); }
+.mgr-body .anomaly-tpl-answer code {
+  background: var(--tint); color: var(--ac-text); border-radius: 4px; padding: 0 4px;
+}
+
+/* ---------- 任务详情全屏层：暖白重置 ---------- */
+#missionDetailOverlay {
+  background: var(--paper) !important;
+  background-image: none !important;
+}
+#missionDetailOverlay .btn-back {
+  background: #fff;
+  border: 1px solid var(--line);
+  color: #7a6f74;
+  border-radius: 8px;
+}
+#missionDetailOverlay .btn-back:hover { background: var(--tint); color: var(--ac-text); }
+#missionDetailOverlay .btn-mission-panel,
+#missionDetailOverlay .btn-mission-edit,
+#missionDetailOverlay .btn-mission-archive { border-radius: 8px; font-weight: 600; }
+#missionDetailOverlay .btn-mission-panel { background: #fff; border: 1px solid var(--line); color: #7a6f74; }
+#missionDetailOverlay .btn-mission-panel:hover { background: var(--tint); color: var(--ac-text); opacity: 1; }
+#missionDetailOverlay .btn-mission-edit { background: #fff; border: 1px solid #f0d5d0; color: var(--ac-text); }
+#missionDetailOverlay .btn-mission-edit:hover { background: var(--tint); }
+#missionDetailOverlay .btn-mission-archive { background: var(--ac); color: #fff; }
+#missionDetailOverlay .btn-mission-archive:hover { background: var(--ac-text); }
+#missionDetailOverlay .mission-detail-section {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+#missionDetailOverlay .mission-detail-section h3 { color: #2b2430; }
+#missionDetailOverlay .mission-detail-section h3 i,
+#missionDetailOverlay .section-header h3 i { color: var(--ac); }
+#missionDetailOverlay .mission-desc-text { color: #7a6f74; }
+#missionDetailOverlay .agent-card { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; }
+#missionDetailOverlay .agent-card:hover { border-color: #e8b7ae; box-shadow: 0 8px 20px -12px rgba(60,20,15,.2); }
+#missionDetailOverlay .agent-name { color: #2b2430; border-bottom-color: var(--line-soft); }
+#missionDetailOverlay .btn-agent-record,
+#missionDetailOverlay .btn-agent-perm,
+#missionDetailOverlay .btn-agent-slots,
+#missionDetailOverlay .btn-agent-docs,
+#missionDetailOverlay .btn-agent-anomaly,
+#missionDetailOverlay .btn-agent-npc {
+  background: #fff;
+  border: 1px solid var(--line);
+  color: #7a6f74;
+  border-radius: 8px;
+}
+#missionDetailOverlay .btn-agent-record:hover,
+#missionDetailOverlay .btn-agent-perm:hover,
+#missionDetailOverlay .btn-agent-slots:hover,
+#missionDetailOverlay .btn-agent-docs:hover,
+#missionDetailOverlay .btn-agent-anomaly:hover,
+#missionDetailOverlay .btn-agent-npc:hover {
+  background: var(--tint);
+  border-color: #f0d5d0;
+  color: var(--ac-text);
+}
+#missionDetailOverlay .btn-remove-agent { background: #fff; border: 1px solid var(--line); color: #b3a8a8; border-radius: 8px; }
+#missionDetailOverlay .btn-remove-agent:hover { color: var(--ac-deep); border-color: #f0d5d0; background: var(--tint); }
+#missionDetailOverlay .value-btn { background: var(--paper2); color: #7a6f74; }
+#missionDetailOverlay .value-btn:hover { background: var(--tint); color: var(--ac-text); }
+#missionDetailOverlay .value-btn:active { background: #f3d9d3; }
+#missionDetailOverlay .value-input-wrapper { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #fff; }
+#missionDetailOverlay .report-item { border: 1px solid var(--line); border-radius: 12px; box-shadow: none; }
+#missionDetailOverlay .report-item:hover { box-shadow: 0 8px 20px -12px rgba(60,20,15,.18); transform: none; }
+#missionDetailOverlay .btn-report { border-radius: 8px; font-weight: 600; }
+#missionDetailOverlay .btn-report.save,
+#missionDetailOverlay .btn-report.send { background: var(--ac); box-shadow: none; }
+#missionDetailOverlay .btn-report.save:hover,
+#missionDetailOverlay .btn-report.send:hover { background: var(--ac-text); transform: none; box-shadow: none; }
+#missionDetailOverlay .btn-refresh-inbox { background: #fff; border: 1px solid var(--line); color: #7a6f74; border-radius: 8px; }
+#missionDetailOverlay .btn-refresh-inbox:hover { background: var(--tint); color: var(--ac-text); }
+#missionDetailOverlay .mission-inbox-item { border: 1px solid var(--line); border-radius: 12px; box-shadow: none; }
+#missionDetailOverlay .mission-inbox-item:hover { background: var(--wash-bg); transform: none; box-shadow: none; }
+#missionDetailOverlay .mission-inbox-item.unread { background: var(--tint); border-color: #f0d5d0; border-left: 3px solid var(--ac); }
+#missionDetailOverlay .mission-inbox-item.unread:hover { background: #fdeaea; box-shadow: none; }
+#missionDetailOverlay .mission-inbox-sender { background: var(--ac); }
+#missionDetailOverlay .report-empty, #missionDetailOverlay .inbox-empty { color: #c9bcbc; }
+#missionDetailOverlay .report-submitter { color: #2b2430; font-weight: 700; }
+#missionDetailOverlay .report-time { color: #b3a8a8; }
+#missionDetailOverlay .report-status { border-radius: 10px; }
+#missionDetailOverlay .report-status.submitted { background: #fdf0e3; color: #e67e22; }
+#missionDetailOverlay .report-status.reviewed { background: #e8f1fb; color: #2f7fbf; }
+#missionDetailOverlay .report-status.sent { background: #eaf5ea; color: #27ae60; }
+#missionDetailOverlay .report-rating-input label { color: #7a6f74; }
+#missionDetailOverlay .report-rating-input select,
+#missionDetailOverlay .report-rating-input input,
+#missionDetailOverlay .report-annotation textarea {
+  border: 1px solid var(--line) !important;
+  border-radius: 8px;
+  background: #fff;
+  color: #2b2430;
+}
+#missionDetailOverlay .no-members { color: #c9bcbc; }
+
+/* ---------- 弹窗：白底圆角重置 ---------- */
+.modal-overlay .modal-box {
+  border-radius: 14px;
+  box-shadow: 0 18px 44px -14px rgba(60,20,15,.32);
+}
+.modal-overlay .modal-header { background: #fff !important; border-bottom: 1px solid var(--line-soft); }
+.modal-overlay .modal-header h3 { color: #2b2430 !important; font-size: 14.5px; }
+.modal-overlay .modal-header h3 i { color: var(--ac) !important; }
+.modal-overlay .modal-close { color: #b3a8a8 !important; }
+.modal-overlay .modal-close:hover { color: var(--ac-deep) !important; opacity: 1; }
+.modal-overlay .modal-desc { color: #7a6f74; border-bottom: 1px solid var(--line-soft); }
+.modal-overlay .modal-footer { background: var(--paper); border-top: 1px solid var(--line-soft); }
+.modal-overlay .btn-modal { border-radius: 8px; font-weight: 600; }
+.modal-overlay .btn-modal-cancel { background: #fff; border: 1px solid var(--line); color: #7a6f74; }
+.modal-overlay .btn-modal-cancel:hover { background: var(--tint); color: var(--ac-text); }
+.modal-overlay .btn-modal-confirm { background: var(--ac) !important; color: #fff !important; }
+.modal-overlay .btn-modal-confirm:hover { background: var(--ac-text) !important; }
+.modal-overlay .requisition-form-group label {
+  color: #7a6f74;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 12.5px;
+}
+.modal-overlay input[type="text"],
+.modal-overlay input[type="number"],
+.modal-overlay select,
+.modal-overlay textarea {
+  border: 1px solid var(--line) !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  color: #2b2430 !important;
+}
+.modal-overlay input[type="text"]:focus,
+.modal-overlay input[type="number"]:focus,
+.modal-overlay select:focus,
+.modal-overlay textarea:focus { outline: none; border-color: #e8b7ae !important; }
+.modal-overlay .requisition-form-group input,
+.modal-overlay .requisition-form-group select {
+  border: 1px solid var(--line) !important;
+  border-radius: 8px !important;
+}
+.modal-overlay .requisition-form-group input:focus,
+.modal-overlay .requisition-form-group select:focus { border-color: #e8b7ae !important; }
+.modal-overlay .rich-editor {
+  border: 1px solid var(--line) !important;
+  border-radius: 8px !important;
+  background: #fff;
+  color: #2b2430;
+}
+.modal-overlay .rich-editor:focus { border-color: #e8b7ae !important; }
+.modal-overlay .doc-list { border-color: var(--line); border-radius: 10px; }
+.modal-overlay .doc-item:hover { background: var(--wash-bg); }
+.modal-overlay .doc-item-name { color: #2b2430; }
+.modal-overlay .doc-search {
+  border: 1px solid var(--line) !important;
+  border-radius: 8px !important;
+  padding: 9px 12px;
+  width: 100%;
+  box-sizing: border-box;
+  background: #fff;
+  color: #2b2430;
+}
+.modal-overlay .character-select-item { border-color: var(--line); border-radius: 10px; }
+.modal-overlay .character-select-item:hover { background: var(--wash-bg); border-color: #e8b7ae; }
+.modal-overlay .character-select-item.selected { background: var(--tint); border-color: var(--ac); }
+.modal-overlay .character-select-name { color: #2b2430; font-weight: 600; }
+.modal-overlay .character-select-player { color: #a89c9c; }
+.modal-overlay .character-filter-input {
+  border: 1px solid var(--line) !important;
+  border-radius: 8px !important;
+  padding: 9px 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.modal-overlay .price-desc-input, .modal-overlay .price-value-input {
+  border: 1px solid var(--line) !important;
+  border-radius: 8px !important;
+}
+.modal-overlay .btn-add-price { background: var(--tint); color: var(--ac-text); border: none; border-radius: 8px; }
+.modal-overlay .btn-add-price:hover { background: #f8dcd4; color: var(--ac-deep); }
+.modal-overlay .btn-remove-price { background: transparent; color: #b3a8a8; }
+.modal-overlay .btn-remove-price:hover { color: var(--ac-deep); }
+.modal-overlay .member-select-item { border-radius: 10px; padding: 10px 12px; transition: background .15s; }
+.modal-overlay .member-select-item:hover { background: var(--wash-bg); }
+.modal-overlay .member-select-item i { color: var(--ac) !important; }
+.modal-overlay .inbox-item { border-bottom: 1px solid var(--line-soft); border-radius: 10px; }
+.modal-overlay .inbox-item:hover { background: var(--wash-bg); }
+.modal-overlay .inbox-item.unread { background: var(--tint); }
+.modal-overlay .inbox-item-icon { background: var(--tint); color: var(--ac-text); border-radius: 50%; }
+.modal-overlay .inbox-item-subject { color: #2b2430; font-weight: 600; }
+.modal-overlay .inbox-item-meta { color: #a89c9c; }
+.modal-overlay .inbox-empty { color: #c9bcbc; }
+.modal-overlay .report-section h4 { color: var(--ac-deep); }
+.modal-overlay .report-table td, .modal-overlay .report-table th { border-bottom: 1px solid var(--line-soft); color: #555; }
+
+/* 职员记录弹窗 */
+.modal-overlay .record-tab { border-radius: 8px; background: #f7f1ef; color: #7a6f74; font-weight: 600; }
+.modal-overlay .record-tab.active-reward { background: var(--ac); color: #fff; }
+.modal-overlay .record-tab.active-reprimand { background: #e67e22; color: #fff; }
+.modal-overlay .record-input-area textarea {
+  border: 1px solid var(--line) !important;
+  border-radius: 10px !important;
+  background: #fff;
+  color: #2b2430;
+  box-sizing: border-box;
+}
+.modal-overlay .record-count-input {
+  border: 1px solid var(--line) !important;
+  border-radius: 8px !important;
+}
+.modal-overlay .btn-add-record { border-radius: 8px; font-weight: 600; }
+.modal-overlay .btn-add-record.reward { background: var(--ac); }
+.modal-overlay .btn-add-record.reward:hover { background: var(--ac-text); }
+.modal-overlay .btn-add-record.reprimand { background: #e67e22; }
+.modal-overlay .btn-add-record.reprimand:hover { background: #d35400; }
+.modal-overlay #btnDeductRecord {
+  background: #fff !important;
+  color: #e67e22 !important;
+  border: 1px solid #f5cfa4 !important;
+  border-radius: 8px !important;
+}
+.modal-overlay #btnDeductRecord:hover { background: #fdf0e3 !important; }
+.modal-overlay .record-history h4 { color: #7a6f74; }
+.modal-overlay .record-entry { background: var(--paper2); border-radius: 8px; border-left: 3px solid var(--ac); }
+.modal-overlay .record-entry.reprimand { border-left-color: #e67e22; }
+.modal-overlay .record-entry .record-reason { color: #2b2430; }
+.modal-overlay .record-entry .record-meta { color: #b3a8a8; }
+.modal-overlay .record-entry .btn-delete-record:hover { color: var(--ac-deep); }
+.modal-overlay .record-empty { color: #c9bcbc; }
+.modal-overlay .record-count-badge { background: var(--tint); color: var(--ac-text); border-radius: 8px; }
+.modal-overlay .record-count-badge.reprimand { background: #fdf0e3; color: #e67e22; }
+
+/* 槽位管理弹窗 */
+.modal-overlay .slot-group label { color: #7a6f74; font-weight: 600; }
+.modal-overlay .slot-btn {
+  background: #fff;
+  border: 1px solid #f0d5d0 !important;
+  color: var(--ac-text);
+  border-radius: 50% !important;
+}
+.modal-overlay .slot-btn:hover { background: var(--ac); border-color: var(--ac); color: #fff; }
+.modal-overlay .slot-value { color: #2b2430; }
+.modal-overlay .slot-info { color: #a89c9c; }
+
+/* iframe 特工档案弹窗 */
+.modal-overlay .iframe-container { background: var(--paper); }
+.modal-overlay .iframe-container iframe { border: none; }
+
+/* NPC 弹窗 */
+.modal-overlay .hybrid-reset-btn { background: transparent; border: none; color: #b3a8a8; }
+.modal-overlay .hybrid-reset-btn:hover { color: var(--ac-deep); }
+.modal-overlay .npc-lvl-dots .dot { background: #f3ece9; border: 1px solid var(--line-3); }
+.modal-overlay .npc-lvl-dots .dot.active { background: var(--ac); border-color: var(--ac); }
+.modal-overlay .anom-edit-add-list { background: var(--tint); color: var(--ac-text); border: none; border-radius: 8px; }
+.modal-overlay .anom-edit-add-list:hover { background: #f8dcd4; }
+.modal-overlay .anom-edit-list-del { color: #b3a8a8; background: transparent; border: none; }
+.modal-overlay .anom-edit-list-del:hover { color: var(--ac-deep); }
+
+/* ---------- 破坏条：桌面红轨道 ---------- */
+.mgr-body .dest-cell { border-color: #e8b7ae; color: var(--ac-text); }
+.mgr-body .dest-cell.active { background: var(--ac); border-color: var(--ac-text); color: #fff; }
+.mgr-body .dest-svg polygon { fill: color-mix(in srgb, var(--ac-deep) 38%, transparent); }
+
+/* ---------- 经理控制台 toast：桌面深色圆角 ---------- */
+.toast {
+  background: #1a252f;
+  border-radius: 10px;
+  box-shadow: 0 12px 28px -10px rgba(30,15,10,.45);
+  font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+}
+.toast.success { background: var(--ac); }
+
+/* ============================================================
+   分部选择：统一收进左下角开始菜单（个人资料面板）+ 角色弹窗顶部
+   ============================================================ */
+.pp-branch { cursor: default; }
+.pp-branch-sel {
+  margin-left: auto; padding: 4px 6px 4px 10px; max-width: 158px;
+  border: none; background: transparent; outline: none;
+  font-size: 12.5px; font-weight: 700; color: var(--ac-text);
+  text-align: right; font-family: inherit; cursor: pointer;
+  transition: background .15s; border-radius: 8px;
+}
+.pp-branch-sel:hover { background: color-mix(in srgb, var(--ac) 8%, transparent); }
+.pp-branch-sel option { color: #2b2430; font-weight: 500; }
+
+/* 角色弹窗顶部分部条 */
+.cm-branch {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 2px 2px; font-size: 12.5px; font-weight: 600; color: #7a6f74;
+}
+.cm-branch select {
+  flex: 1; border: 1px solid var(--line); background: #fff; color: #2b2430;
+  border-radius: 8px; padding: 8px 10px; font-size: 12.5px; font-weight: 600;
+  font-family: inherit; outline: none; cursor: pointer; transition: border-color .15s;
+}
+.cm-branch select:focus { border-color: #e8b7ae; }
+.cm-hint {
+  text-align: center; color: var(--ac-text); font-size: 12.5px; padding: 18px 0 10px;
+}
+
+/* ============================================================
+   系统设置窗口（admin.html 迁移，仅超管）——桌面风格重设计
+   ============================================================ */
+.adm-body { padding: 16px 20px; overflow-y: auto; }
+.adm-layout { max-width: 1080px; margin: 0 auto; display: flex; gap: 14px; align-items: flex-start; }
+
+/* 左侧导航 */
+.adm-nav { flex: none; width: 158px; display: flex; flex-direction: column; gap: 6px; position: sticky; top: 0; }
+.adm-nav-btn {
+  display: flex; align-items: center; gap: 10px; padding: 12px 14px;
+  background: #fff; border: 1px solid var(--line); border-radius: 12px;
+  font-size: 13px; font-weight: 600; color: #7a6f74; cursor: pointer;
+  font-family: inherit; transition: all .15s; text-align: left;
+}
+.adm-nav-btn svg { width: 18px; height: 18px; flex: none; }
+.adm-nav-btn:hover { background: var(--tint); color: var(--ac-text); border-color: #f0d5d0; }
+.adm-nav-btn.active { background: var(--ac); border-color: var(--ac); color: #fff; box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--ac) 50%, transparent); }
+
+/* 内容区 */
+.adm-content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.adm-pane { display: none; flex-direction: column; gap: 14px; }
+.adm-pane.active { display: flex; }
+.adm-card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+.adm-card-h { display: flex; align-items: baseline; gap: 10px; padding-bottom: 12px; margin-bottom: 14px; border-bottom: 1px solid var(--line-soft2); }
+.adm-card-h b { display: flex; align-items: center; gap: 8px; font-size: 14.5px; color: #2b2430; }
+.adm-card-h b::before { content: ''; width: 8px; height: 8px; border-radius: 2.5px; background: var(--ac); }
+.adm-card-h span { margin-left: auto; font-size: 11.5px; color: #c9bcbc; }
+
+/* 表单 */
+.adm-form-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.adm-input {
+  padding: 9px 12px; border: 1px solid var(--line); border-radius: 9px; background: #fff;
+  font-size: 12.5px; color: #2b2430; font-family: inherit; outline: none; transition: border-color .15s; box-sizing: border-box;
+}
+.adm-input:focus { border-color: #e8b7ae; }
+.adm-input-wide { flex: 1; min-width: 160px; }
+.adm-btn-primary {
+  background: var(--ac); color: #fff; border: none; border-radius: 9px; padding: 9px 18px;
+  font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background .15s; white-space: nowrap;
+}
+.adm-btn-primary:hover { background: var(--ac-text); }
+
+.adm-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.adm-filters { display: flex; gap: 5px; background: #f7f1ef; border-radius: 9px; padding: 4px; }
+.adm-filter-btn { border: none; background: transparent; border-radius: 7px; padding: 6px 14px; font-size: 12px; font-weight: 600; color: #7a6f74; cursor: pointer; font-family: inherit; transition: all .15s; }
+.adm-filter-btn.active { background: #fff; color: var(--ac-text); box-shadow: 0 2px 6px rgba(60,20,15,.08); }
+.adm-search { flex: 1; min-width: 180px; }
+
+.adm-list { display: flex; flex-direction: column; gap: 8px; max-height: 460px; overflow-y: auto; }
+.adm-user-card {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  border: 1px solid var(--line); border-radius: 12px; padding: 11px 14px; transition: all .15s;
+}
+.adm-user-card:hover { border-color: #e8b7ae; box-shadow: 0 6px 16px -10px rgba(60,20,15,.2); }
+.adm-u-info { min-width: 0; }
+.adm-u-name { font-size: 13.5px; font-weight: 700; color: #2b2430; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.adm-u-meta { font-size: 11px; color: #b3a8a8; margin-top: 3px; word-break: break-all; }
+.adm-u-actions { display: flex; gap: 6px; flex: none; flex-wrap: wrap; justify-content: flex-end; }
+.adm-btn {
+  background: #fff; border: 1px solid var(--line); color: #7a6f74; border-radius: 8px;
+  padding: 6px 12px; font-size: 11.5px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all .15s; white-space: nowrap;
+}
+.adm-btn:hover { background: var(--tint); border-color: #f0d5d0; color: var(--ac-text); }
+.adm-btn-danger { color: var(--ac-deep); border-color: #f0d5d0; }
+.adm-btn-danger:hover { background: var(--ac); border-color: var(--ac); color: #fff; }
+.adm-role { font-size: 10px; font-weight: 700; border-radius: 6px; padding: 2px 8px; }
+.adm-role-0 { background: #eef3f8; color: #2f7fbf; }
+.adm-role-1 { background: var(--tint); color: var(--ac-text); }
+.adm-role-2 { background: #2b2430; color: #fff; }
+.adm-sys-tag { font-size: 10px; color: #c9bcbc; padding: 0 8px; }
+.adm-empty { text-align: center; color: #c9bcbc; font-size: 12.5px; padding: 40px 0; }
+
+/* 系统设置行 */
+.adm-cfg-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  background: var(--paper); border: 1px solid var(--line-soft); border-radius: 10px; padding: 11px 14px; margin-bottom: 10px;
+}
+.adm-cfg-row label { font-size: 13px; font-weight: 600; color: #2b2430; }
+.adm-desc { font-size: 11px; color: #b3a8a8; margin-top: 2px; }
+.adm-switch { position: relative; display: inline-block; width: 42px; height: 24px; flex: none; }
+.adm-switch input { opacity: 0; width: 0; height: 0; }
+.adm-slider { position: absolute; cursor: pointer; inset: 0; background: var(--line-3); border-radius: 999px; transition: .2s; }
+.adm-slider::before { content: ''; position: absolute; height: 18px; width: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .2s; box-shadow: 0 1px 4px rgba(60,20,15,.25); }
+.adm-switch input:checked + .adm-slider { background: var(--ac); }
+.adm-switch input:checked + .adm-slider::before { transform: translateX(18px); }
+
+.adm-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.adm-field label { display: block; font-size: 11.5px; font-weight: 600; color: #7a6f74; margin-bottom: 5px; }
+.adm-field .adm-input { width: 100%; }
+.adm-field.adm-full, .adm-cfg-row.adm-full { grid-column: 1 / -1; }
+.adm-btn-row { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+
+.adm-member-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px dashed var(--line-soft2); font-size: 12.5px; color: #2b2430; }
+.adm-member-row:last-child { border-bottom: none; }
+.adm-member-row small { color: #b3a8a8; font-size: 11px; }
+
+/* 窄屏：导航横排 */
+@media (max-width: 900px) {
+  .adm-layout { flex-direction: column; }
+  .adm-nav { flex-direction: row; width: 100%; position: static; }
+  .adm-nav-btn { flex: 1; justify-content: center; }
+}
+
+/* ================= 管理台弹窗：盒子 transform 上滑（桌面页） ================= */
+.modal-overlay {
+  display: flex;
+  visibility: hidden; pointer-events: none;
+  transition: visibility 0s linear .2s;
+}
+.modal-overlay.show, .modal-overlay.active {
+  visibility: visible; pointer-events: auto;
+  transition: visibility 0s;
+}
+.modal-box {
+  transform: translateY(16px);
+  transition: transform .22s cubic-bezier(.2, .9, .3, 1);
+}
+.modal-overlay.show .modal-box, .modal-overlay.active .modal-box { transform: none; }
+
+
+
+/* ---- 外勤任务：左列表 + 右详情双栏 ---- */
+.mgm-layout { display: grid; grid-template-columns: 320px 1fr; gap: 14px; align-items: start; }
+.mgm-left .mission-panel { height: 100%; }
+.mgm-left #missionList { max-height: calc(100vh - 260px); overflow-y: auto; }
+.mgm-right {
+  background: #fff; border: 1px solid var(--line); border-radius: 14px;
+  min-height: 420px; max-height: calc(100vh - 190px); overflow-y: auto;
+  padding: 18px 20px; box-sizing: border-box;
+}
+.mgm-right .mission-detail-container { max-width: none; padding: 0; }
+.mgm-right .btn-back { display: none; }
+.mgm-detail-empty { text-align: center; color: #c9bcbc; font-size: 13px; padding: 120px 0; }
+#mMissionDetail.active .mission-detail-container { display: block; }
+
+/* ============================================================
+   外勤任务区风格重置：彻底融入桌面风（白卡/圆角/红主色），覆盖 manager.css 旧深色样式
+   ============================================================ */
+.mgm-layout .mission-panel {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: none;
+  padding: 14px 16px;
+  box-sizing: border-box;
+}
+.mgm-layout .mission-header h3 { color: #2b2430; margin: 0; font-size: 15px; }
+.mgm-layout .mission-header h3 i { color: var(--ac); }
+.mgm-layout .btn-new-mission {
+  background: var(--ac); color: #fff; border: none; border-radius: 9px;
+  padding: 8px 16px; font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: inherit;
+  transition: background .15s;
+}
+.mgm-layout .btn-new-mission:hover { background: var(--ac-text); }
+.mgm-layout .mission-tabs { background: #f7f1ef; border-radius: 10px; padding: 4px; }
+.mgm-layout .mission-tabs button { border-radius: 8px; color: #7a6f74; font-weight: 600; padding: 7px; }
+.mgm-layout .mission-tabs button.active { background: var(--ac); color: #fff; box-shadow: 0 3px 8px color-mix(in srgb, var(--ac) 30%, transparent); }
+
+/* 任务卡 */
+.mgm-layout .mission-card {
+  background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 13px 15px;
+  transition: all .15s;
+}
+.mgm-layout .mission-card.clickable:hover {
+  border-color: #e8b7ae; transform: none;
+  box-shadow: 0 8px 20px -12px rgba(60,20,15,.2);
+}
+.mgm-layout .mission-card h4 { color: #2b2430; font-size: 14px; }
+.mgm-layout .mission-card .mission-desc { color: #8a8f98; }
+.mgm-layout .mission-type-badge.containment { background: var(--tint); color: var(--ac-text); }
+.mgm-layout .mission-type-badge.sweep { background: #fdf0e3; color: #e67e22; }
+.mgm-layout .mission-card.logged,
+.mgm-layout .mission-card-footer { border-top: 1px dashed var(--line-soft); }
+.mgm-layout .mission-member-count { color: var(--ac-text); }
+.mgm-layout .mission-enter-hint { color: #c9bcbc; }
+.mgm-layout .mission-card.clickable:hover .mission-enter-hint { color: var(--ac); transform: none; }
+.mgm-layout .btn-mission-action {
+  background: var(--paper2); border: 1px solid var(--line); color: #7a6f74; border-radius: 8px;
+  width: 28px; height: 28px;
+}
+.mgm-layout .btn-mission-action:hover { background: var(--tint); color: var(--ac-text); }
+.mgm-layout .btn-mission-action.delete:hover { background: var(--ac); color: #fff; }
+.mgm-layout .mission-empty { color: #c9bcbc; }
+
+/* 右侧详情 */
+.mgm-right .mission-detail-section {
+  background: var(--paper); border: 1px solid var(--line-soft2); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px;
+}
+.mgm-right .mission-detail-section h3 { color: #2b2430; }
+.mgm-right .mission-detail-section h3 i,
+.mgm-right .section-header h3 i { color: var(--ac); }
+.mgm-right .mission-desc-text { color: #7a6f74; }
+.mgm-right .btn-add-agent { background: var(--ac); border-radius: 8px; font-weight: 600; }
+.mgm-right .btn-agent-record, .mgm-right .btn-agent-perm, .mgm-right .btn-agent-slots,
+.mgm-right .btn-agent-docs, .mgm-right .btn-agent-anomaly, .mgm-right .btn-agent-npc {
+  background: #fff; border: 1px solid var(--line); color: #7a6f74; border-radius: 8px;
+}
+.mgm-right .btn-agent-record:hover, .mgm-right .btn-agent-perm:hover, .mgm-right .btn-agent-slots:hover,
+.mgm-right .btn-agent-docs:hover, .mgm-right .btn-agent-anomaly:hover, .mgm-right .btn-agent-npc:hover {
+  background: var(--tint); border-color: #f0d5d0; color: var(--ac-text);
+}
+.mgm-right .btn-remove-agent { background: #fff; border: 1px solid var(--line); border-radius: 8px; color: #b3a8a8; }
+.mgm-right .btn-remove-agent:hover { color: var(--ac-deep); background: var(--tint); }
+.mgm-right .value-btn { background: var(--paper2); color: #7a6f74; }
+.mgm-right .value-btn:hover { background: var(--tint); color: var(--ac-text); }
+.mgm-right .value-input-wrapper { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #fff; }
+.mgm-right .btn-save-values { background: var(--ac); border-radius: 8px; }
+.mgm-right .btn-save-values:hover { background: var(--ac-text); transform: none; }
+.mgm-right .btn-refresh-inbox { background: #fff; border: 1px solid var(--line); border-radius: 8px; color: #7a6f74; }
+.mgm-right .btn-refresh-inbox:hover { background: var(--tint); color: var(--ac-text); }
+.mgm-right .report-item { background: #fff; border: 1px solid var(--line); border-radius: 10px; box-shadow: none; }
+.mgm-right .btn-report.save, .mgm-right .btn-report.send { background: var(--ac); box-shadow: none; }
+.mgm-right .btn-report.save:hover, .mgm-right .btn-report.send:hover { background: var(--ac-text); transform: none; box-shadow: none; }
+.mgm-right .mission-inbox-item { background: #fff; border: 1px solid var(--line); border-radius: 10px; box-shadow: none; }
+.mgm-right .mission-inbox-item.unread { background: var(--tint); border-color: #f0d5d0; border-left: 3px solid var(--ac); }
+.mgm-right .mission-inbox-sender { background: var(--ac); }
+.mgm-right .report-status-badge { border-radius: 8px; }
+.mgm-right .report-status-badge.submitted { background: #fdf0e3; color: #e67e22; }
+.mgm-right .report-status-badge.reviewed { background: #e8f1fb; color: #2f7fbf; }
+.mgm-right .report-status-badge.sent { background: #eaf5ea; color: #27ae60; }
+
+/* 管理台窗口内容可滚动（appwin-body hidden 会裁掉超高内容） */
+.appwin-body.mgr-body { overflow-y: auto; }

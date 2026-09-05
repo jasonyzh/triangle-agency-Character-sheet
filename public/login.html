@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+<script>try { if (localStorage.getItem('ta_token') && localStorage.getItem('ta_uid')) location.replace('desktop.html'); } catch (e) {}</script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>三角机构 // 身份验证</title>
+    <link rel="stylesheet" href="vendor/font-awesome/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/auth.css">
+    <style>
+        /* 桌面默认隐藏手机手持场景 */
+        .stage, .bg-deco { display: none; }
+        /* ===== 手机端（≤860px）：手持手机插画场景 ===== */
+        @media (max-width: 860px) {
+            .badge-container { display: none !important; }
+            canvas#bg-canvas { display: none; }
+            .stage, .bg-deco { display: block !important; }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            height: 100vh;
+            background: #f0eeec;
+            font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+            overflow: hidden;
+        }
+        /* ===== 背景几何装饰 ===== */
+        .bg-deco { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .bg-deco .circle-a { position: absolute; right: -90px; top: -70px; width: 300px; height: 300px; border-radius: 50%; background: #fff; }
+        .bg-deco .circle-b { position: absolute; right: 60px; bottom: 90px; width: 120px; height: 120px; border-radius: 50%; background: #fff; }
+        .bg-deco .dots-a {
+            position: absolute; left: 7%; top: 6%;
+            width: 90px; height: 66px;
+            background-image: radial-gradient(rgba(0,0,0,.10) 2.2px, transparent 2.4px);
+            background-size: 15px 15px;
+        }
+        .bg-deco .dots-b {
+            position: absolute; left: 10%; bottom: 12%;
+            width: 90px; height: 66px;
+            background-image: radial-gradient(rgba(0,0,0,.08) 2.2px, transparent 2.4px);
+            background-size: 15px 15px;
+        }
+        .bg-deco .dotspad {
+            position: absolute; right: 5%; top: 10%;
+            width: 34px; height: 26px;
+            background-image: radial-gradient(#d3322a 2.2px, transparent 2.4px);
+            background-size: 13px 13px;
+        }
+        .bg-deco svg.tri { position: absolute; }
+        @media (max-width: 900px) { .bg-deco { position: absolute; } }
+
+        /* ===== 插画舞台 ===== */
+        .stage {
+            position: absolute;
+            left: 0; bottom: 0;
+            width: min(88vw, 100vh * 0.4761);
+            aspect-ratio: 776 / 1630;
+            z-index: 1;
+        }
+        .stage .hand { display: block; width: 100%; height: 100%; pointer-events: none; }
+        .screen {
+            position: absolute;
+            left: 31.7%; top: 0.5%;
+            width: 58.3%; height: 67.1%;
+            background: transparent;
+            overflow: hidden;
+            font-size: var(--su, 15.5px);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .content { width: 88%; display: block; }
+
+        /* 屏内红对角 + 点阵 */
+        .corner { position: absolute; top: 0; right: 0; width: 46%; height: 27%;
+            background: linear-gradient(215deg, #d3322a 0%, #c12820 52%, #ffffff 52.5%);
+            clip-path: polygon(100% 0, 100% 100%, 0 0); }
+        .corner::after { content: ''; position: absolute; right: 14px; top: 12px; width: 46px; height: 36px;
+            background-image: radial-gradient(#d3322a 2.4px, transparent 2.6px); background-size: 12px 12px; }
+        .corner-b { position: absolute; bottom: 0; left: 0; width: 54%; height: 24%;
+            background: linear-gradient(35deg, #ffffff 47.5%, #c12820 48%, #d3322a 100%);
+            clip-path: polygon(0 0, 100% 100%, 0 100%); }
+        .dots-l { position: absolute; left: -6px; bottom: 54px; width: 62px; height: 46px;
+            background-image: radial-gradient(rgba(120,100,90,.30) 2.2px, transparent 2.4px); background-size: 13px 13px; }
+        .tri-deco { position: absolute; fill: rgba(211,50,42,.16); }
+        .logo { position: absolute; left: 6%; top: 4%; width: 2.3em; height: 2.3em; }
+        .logo svg { width: 100%; height: 100%; display: block; }
+        .brand { text-align: center; margin: 1.7em 0; position: relative; z-index: 2; }
+        .brand h1 { font-size: 2.3em; font-weight: 900; letter-spacing: .25em; text-indent: .25em; color: #d3322a; font-family: 'Roboto Mono', monospace; }
+        .brand p { margin-top: .5em; font-size: .72em; letter-spacing: .38em; text-indent: .38em; color: #9b948e; font-family: 'Roboto Mono', monospace; text-transform: uppercase; }
+        .field { display: flex; align-items: center; margin-bottom: .85em; position: relative; z-index: 2; }
+        .field-ico { width: 2.6em; height: 2.6em; flex: none; background: #d3322a; color: #fff;
+            border-radius: .55em; margin-right: .52em; display: flex; align-items: center; justify-content: center; font-size: .95em; }
+        .field input { flex: 1; height: 2.6em; border: 1px solid #e7e3df; border-radius: .55em; background: #fff;
+            padding: 0 .85em; font-size: .9em; color: #2b2430; outline: none; font-family: inherit;
+            transition: border-color .15s, box-shadow .15s; }
+        .field input:focus { border-color: #d3322a; box-shadow: 0 0 0 3px rgba(211,50,42,.10); }
+        .btn-verify { width: 100%; height: 2.9em; margin-top: .32em; background: #d3322a; color: #fff; border: none;
+            border-radius: .6em; font-size: .95em; font-weight: 700; letter-spacing: .2em; cursor: pointer;
+            font-family: inherit; position: relative; z-index: 2; display: flex; align-items: center;
+            justify-content: center; gap: 8px; transition: background .15s; box-shadow: 0 8px 18px rgba(211,50,42,.25); }
+        .btn-verify:hover { background: #b92c24; }
+        .btn-verify:active { transform: scale(.985); }
+        .status-msg { margin-top: .8em; text-align: center; font-size: .8em; color: #a33; display: none; position: relative; z-index: 2; }
+        .status-msg.show { display: block; }
+        .status-msg.ok { color: #1e8e4e; }
+        .register-link { margin-top: .8em; text-align: center; font-size: .8em; color: #8f8880; position: relative; z-index: 2; }
+        .register-link a { color: #8f8880; text-decoration: none; }
+        .register-link span { color: #d3322a; font-weight: 700; }
+        .loading-mask { position: absolute; inset: 0; background: #fdfbfa; z-index: 5; border-radius: 0;
+            display: flex; flex-direction: column; gap: 12px; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity .4s; }
+        .loading-mask.show { opacity: 1; pointer-events: auto; }
+        .loading-mask i { color: #d3322a; font-size: 2em; }
+        .loading-mask span { font-size: .85em; color: #9b948e; letter-spacing: .1em; }
+
+
+
+    
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="badge-container" id="badgeContainer">
+        <div class="lanyard-clip" id="lanyard"></div>
+        
+        <div class="badge-inner" id="badgeInner">
+            
+            <div class="card-face front">
+                <div class="header-stripe"></div>
+                <div class="watermark"><i class="fas fa-play"></i></div>
+
+                <div class="content-area">
+                    <div class="triangle-frame" id="photo-frame">
+                        <i class="fas fa-user-secret"></i>
+                    </div>
+
+                    <div class="org-title">
+                        <h1>TRIANGLE</h1>
+                        <span>AGENCY</span>
+                        <h2>终端授权</h2>
+                    </div>
+
+                    <div class="form-group">
+                        <label>特工ID</label>
+                        <input type="text" id="user" autocomplete="off" placeholder="AGENT_ID">
+                    </div>
+
+                    <div class="form-group">
+                        <label>验证码</label>
+                        <input type="password" id="pass" placeholder="••••••••">
+                    </div>
+
+                    <button class="btn-verify" id="btn" onclick="login()">接入终端</button>
+                    <div class="status-msg" id="msg">拒绝访问</div>
+                    <div class="register-link" id="regLink" style="display:none;">
+                        <a href="register.html">没有账号？<span>申请入职</span></a>
+                    </div>
+                </div>
+
+                <div class="footer-scan">
+                    <div class="barcode"></div>
+                    <div class="laser-line"></div>
+                    <div style="text-align:center; font-size:8px; font-weight:bold; color:#94a3b8; margin-top:4px; font-family: 'Roboto Mono', monospace;"></div>
+                </div>
+            </div>
+
+            <div class="card-face back">
+                <div class="circuit-deco"></div>
+                <i class="fas fa-circle-notch fa-spin" style="color: var(--agency-black); font-size: 40px; z-index: 2;"></i>
+                <div class="loading-text">接入终端中...</div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="js/auth-effects.js"></script>
+    <div class="bg-deco">
+        <div class="circle-a"></div>
+        <div class="circle-b"></div>
+        <div class="dots-a"></div>
+        <div class="dots-b"></div>
+        <div class="dotspad"></div>
+        <svg class="tri" style="left:6%;top:16%;width:56px;" viewBox="0 0 24 24"><path d="M12 2 L22 22 H2 Z" fill="rgba(211,50,42,.12)"/></svg>
+        <svg class="tri" style="left:4%;bottom:26%;width:44px;transform:rotate(20deg);" viewBox="0 0 24 24"><path d="M12 2 L22 22 H2 Z" fill="none" stroke="rgba(0,0,0,.15)" stroke-width="1.4"/></svg>
+        <svg class="tri" style="right:8%;top:34%;width:64px;" viewBox="0 0 24 24"><path d="M12 2 L22 22 H2 Z" fill="none" stroke="rgba(0,0,0,.12)" stroke-width="1.4"/></svg>
+    </div>
+
+    <div class="stage" id="stage">
+        <img class="hand" src="img/hand.svg" alt="">
+        <div class="screen">
+            <div class="logo">
+                <svg viewBox="0 0 24 24"><path d="M12 2.5 L22 22 L2 22 Z" fill="none" stroke="#d3322a" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 9.5 L17 19 L7 19 Z" fill="none" stroke="#d3322a" stroke-width="1.4" stroke-linejoin="round"/></svg>
+            </div>
+
+            <div class="content">
+                <div class="brand">
+                <h1>LOGIN</h1>
+                <p>Welcome Back</p>
+            </div>
+
+            <div class="field">
+                <div class="field-ico"><i class="fas fa-user"></i></div>
+                <input type="text" id="mUser" autocomplete="off" placeholder="jiuzhoulu">
+            </div>
+            <div class="field">
+                <div class="field-ico"><i class="fas fa-lock"></i></div>
+                <input type="password" id="mPass" placeholder="••••••••">
+            </div>
+
+            <button class="btn-verify" id="mBtn" onclick="login()">
+                <span>SIGN IN</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+
+            <div class="status-msg" id="mMsg"></div>
+            <div class="register-link" id="mRegLink" style="display:none;">
+                <a href="register.html">没有账号？<span>申请入职</span></a>
+            </div>
+
+            <div class="loading-mask" id="mLoadingMask">
+                <i class="fas fa-triangle"></i>
+                <span>接入终端中...</span>
+            </div>
+        </div>
+    </div>
+    <script>
+        initParticles('bg-canvas', 70);
+        init3DTilt('badgeContainer');
+
+        var container = document.getElementById('badgeContainer');
+        var inner = document.getElementById('badgeInner');
+        var lanyard = document.getElementById('lanyard');
+
+        var userIn = document.getElementById('user');
+        var icon = document.querySelector('.triangle-frame i');
+        userIn.addEventListener('input', function(e) {
+            icon.className = e.target.value.length > 0 ? 'fas fa-user-check' : 'fas fa-user-secret';
+        });
+
+        async function checkRegStatus() {
+            try {
+                var res = await fetch('/api/register/status');
+                var data = await res.json();
+                if (data.registrationEnabled) {
+                    document.getElementById('regLink').style.display = 'block';
+                    var mrl = document.getElementById('mRegLink');
+                    if (mrl) mrl.style.display = 'block';
+                }
+            } catch (e) {}
+        }
+        checkRegStatus();
+
+        function isMobile() { return window.matchMedia('(max-width: 860px)').matches; }
+        function mEl(id) { return document.getElementById(isMobile() ? 'm' + id : id); }
+
+        async function login() {
+            var u = mEl('User').value;
+            var p = mEl('Pass').value;
+            var msg = mEl('Msg');
+            var btn = mEl('Btn');
+            
+            var originalText = btn.innerText;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 验证中...';
+            btn.style.opacity = '0.8';
+            msg.classList.remove('show');
+
+            try {
+                var res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: u, password: p })
+                });
+                var data = await res.json();
+                
+                if(data.success) {
+                    btn.innerHTML = '允许访问';
+                    btn.style.background = '#15803d';
+                    localStorage.setItem('ta_uid', data.userId);
+                    localStorage.setItem('ta_token', data.token);
+                    localStorage.setItem('ta_role', data.role);
+                    if (data.isAdmin) localStorage.setItem('ta_is_admin', 'true');
+                    else localStorage.removeItem('ta_is_admin');
+                    if (data.isManager) localStorage.setItem('ta_is_manager', 'true');
+                    else localStorage.removeItem('ta_is_manager');
+                    if (data.branches && data.branches.length > 0) {
+                        if (!localStorage.getItem('ta_current_branch')) {
+                            localStorage.setItem('ta_current_branch', data.branches[0].id);
+                        }
+                    }
+
+                    var targetPage = 'desktop.html';
+                    if (data.role >= 2) targetPage = 'desktop.html';
+                    else if (data.role >= 1) targetPage = 'desktop.html';
+
+                    setTimeout(function() {
+                        if (isMobile()) {
+                            document.getElementById('mLoadingMask').classList.add('show');
+                            setTimeout(function () { window.location.href = targetPage; }, 900);
+                            return;
+                        }
+                        window.scrollTo(0, 0);
+                        inner.classList.add('flipped');
+                        lanyard.style.opacity = '0';
+                        setTimeout(function() {
+                            container.classList.add('expanded');
+                            setTimeout(function() {
+                                window.location.href = targetPage;
+                            }, 800);
+                        }, 600);
+                    }, 500);
+
+                } else {
+                    btn.innerHTML = '非法授权';
+                    btn.style.background = '#0f172a';
+                    msg.innerText = data.message || "ID 或 密钥错误";
+                    msg.classList.add('show');
+                    setTimeout(function() {
+                        btn.innerHTML = originalText;
+                        btn.style.background = '';
+                        btn.style.opacity = '1';
+                    }, 1500);
+                }
+            } catch(e) {
+                msg.innerText = "服务器连接失败";
+                msg.classList.add('show');
+                btn.innerHTML = originalText;
+                btn.style.opacity = '1';
+            }
+        }
+        
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Enter") login();
+        });
+    </script>
+</body>
+</html>

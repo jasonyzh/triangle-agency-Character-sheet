@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>高墙档案库 // PLAYWALLED DOCUMENTS</title>
+    <link rel="stylesheet" href="vendor/font-awesome/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <style>
+        :root {
+            --deep-bg: #0f172a;
+            --sidebar-bg: #1e293b;
+            --text-main: #e2e8f0;
+            --accent: #d50000;
+            --locked: #475569;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            margin: 0; padding: 0;
+            font-family: "Roboto Mono", "Noto Sans SC", sans-serif;
+            background: var(--deep-bg);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* 侧边栏 */
+        .sidebar {
+            width: 300px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid #334155;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            z-index: 10;
+            transition: transform 0.3s ease;
+        }
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #334155;
+            background: #0b1120;
+            flex-shrink: 0;
+        }
+        .brand { font-size: 18px; font-weight: 900; letter-spacing: 2px; color: white; }
+        .brand span { color: var(--accent); }
+        .back-btn {
+            display: inline-block; margin-top: 10px; font-size: 12px; 
+            color: #94a3b8; text-decoration: none; cursor: pointer;
+            padding: 5px 0;
+        }
+
+        .file-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .file-item {
+            padding: 15px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid transparent;
+            font-size: 14px;
+        }
+        .file-item:active { background: rgba(255,255,255,0.1); }
+        .file-item.active { background: var(--accent); color: white; border-color: var(--accent); }
+        .file-item.locked { opacity: 0.5; }
+
+        /* 阅读器 */
+        .reader {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-image: radial-gradient(#334155 1px, transparent 1px);
+            background-size: 20px 20px;
+            position: relative;
+            z-index: 5;
+            width: 100%;
+        }
+
+        .mobile-nav {
+            display: none;
+            padding: 15px;
+            background: var(--sidebar-bg);
+            border-bottom: 1px solid #334155;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-close {
+            background: transparent; border: 1px solid #475569; color: #cbd5e1;
+            padding: 6px 12px; border-radius: 4px; font-size: 12px;
+        }
+
+        .doc-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .markdown-body { 
+            max-width: 800px; margin: 0 auto; 
+            background: rgba(30, 41, 59, 0.95);
+            padding: 25px; border-radius: 8px;
+            min-height: 50vh;
+        }
+
+        /* Markdown 基础样式 (防止CDN加载失败时没样式) */
+        .markdown-body h1 { border-bottom: 1px solid #444; padding-bottom: 10px; color: white; font-size: 1.5em; }
+        .markdown-body p { line-height: 1.6; color: #ccc; margin-bottom: 1em; }
+        .markdown-body pre { background: #111; padding: 10px; overflow-x: auto; border-radius: 4px; }
+        .markdown-body code { background: #222; padding: 2px 5px; font-family: monospace; }
+        .markdown-body a { color: var(--accent); }
+
+        /* 错误提示样式 */
+        .error-box {
+            padding: 20px;
+            text-align: center;
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 8px;
+            margin: 20px;
+            font-size: 13px;
+        }
+        .btn-retry {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: var(--sidebar-bg);
+            border: 1px solid #475569;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* ========== A1 任务报告表单样式 ========== */
+        .report-container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .report-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #334155;
+        }
+        .report-header h1 {
+            color: #e67e22;
+            font-size: 24px;
+            margin: 0 0 10px 0;
+        }
+        .report-header p {
+            color: #94a3b8;
+            font-size: 13px;
+            margin: 0;
+        }
+        .report-section {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .report-section h3 {
+            color: #f1c40f;
+            font-size: 14px;
+            margin: 0 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #475569;
+        }
+        .report-status-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        .report-status-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .report-status-item:hover { background: rgba(0,0,0,0.4); }
+        .report-status-item input[type="checkbox"] {
+            width: 18px; height: 18px;
+            accent-color: #e67e22;
+        }
+        .report-status-item .status-icon { font-size: 22px; }
+        .report-status-item .status-info h4 { margin: 0; font-size: 13px; color: #e2e8f0; }
+        .report-status-item .status-info small { color: #64748b; font-size: 11px; }
+        .report-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .report-row label {
+            width: 80px;
+            flex-shrink: 0;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+        .report-row input, .report-row textarea {
+            flex: 1;
+            padding: 10px 12px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid #475569;
+            border-radius: 4px;
+            color: #e2e8f0;
+            font-size: 13px;
+        }
+        .report-row input:focus, .report-row textarea:focus {
+            outline: none;
+            border-color: #e67e22;
+        }
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .report-table th {
+            text-align: left;
+            padding: 8px;
+            color: #94a3b8;
+            font-size: 12px;
+            font-weight: normal;
+            border-bottom: 1px solid #475569;
+        }
+        .report-table td {
+            padding: 8px;
+        }
+        .report-table input {
+            width: 100%;
+            padding: 8px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid #475569;
+            border-radius: 4px;
+            color: #e2e8f0;
+            font-size: 12px;
+        }
+        .report-table input:focus {
+            outline: none;
+            border-color: #e67e22;
+        }
+        .btn-submit-report {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #e67e22, #d35400);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .btn-submit-report:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(230, 126, 34, 0.4);
+        }
+        .btn-submit-report:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .report-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 1000;
+            transition: transform 0.3s;
+        }
+        .report-toast.show { transform: translateX(-50%) translateY(0); }
+        .report-toast.success { background: #27ae60; color: white; }
+        .report-toast.error { background: #e74c3c; color: white; }
+
+        /* ========== A1 只读模式样式 ========== */
+        .report-readonly-container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 30px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            color: #333;
+        }
+        .report-readonly-container .report-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e67e22;
+        }
+        .report-readonly-container .report-header h1 {
+            color: #e67e22;
+            font-size: 24px;
+            margin: 0 0 10px 0;
+        }
+        .report-readonly-container .report-header p {
+            color: #666;
+            font-size: 14px;
+            margin: 0;
+        }
+        .report-readonly-container .readonly-section {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .report-readonly-container .readonly-section h3 {
+            color: #d35400;
+            font-size: 15px;
+            margin: 0 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #ddd;
+        }
+        .report-readonly-container .readonly-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        .report-readonly-container .readonly-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: #fff;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+        }
+        .report-readonly-container .readonly-item .status-icon { font-size: 22px; }
+        .report-readonly-container .readonly-item .status-info h4 { margin: 0; font-size: 13px; color: #333; }
+        .report-readonly-container .readonly-item .status-info small { color: #888; font-size: 11px; }
+        .report-readonly-container .readonly-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            background: #fff;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+        }
+        .report-readonly-container .readonly-row label {
+            width: 80px;
+            flex-shrink: 0;
+            font-size: 13px;
+            color: #666;
+            font-weight: 500;
+        }
+        .report-readonly-container .readonly-row span {
+            flex: 1;
+            color: #999;
+            font-size: 13px;
+        }
+        .report-readonly-container .readonly-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .report-readonly-container .readonly-table th {
+            text-align: left;
+            padding: 10px;
+            color: #666;
+            font-size: 12px;
+            font-weight: 500;
+            background: #f1f3f4;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .report-readonly-container .readonly-table td {
+            padding: 10px;
+            font-size: 12px;
+            color: #999;
+            border-bottom: 1px solid #f1f3f4;
+        }
+        .report-readonly-container .readonly-notice {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff8e1;
+            border: 1px solid #ffe082;
+            border-radius: 8px;
+            text-align: center;
+            color: #f57c00;
+            font-size: 13px;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .sidebar { width: 100%; position: absolute; height: 100%; }
+            .reader { position: absolute; width: 100%; height: 100%; transform: translateX(100%); transition: transform 0.3s ease; }
+            .mobile-nav { display: flex; }
+            
+            /* 阅读模式激活 */
+            body.reading-mode .sidebar { transform: translateX(-30%); opacity: 0; pointer-events: none; }
+            body.reading-mode .reader { transform: translateX(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="sidebar-header">
+        <div class="brand">PLAY<span>WALLED</span></div>
+        <div onclick="goBack()" class="back-btn">
+            <i class="fas fa-chevron-left"></i> <span id="backText">返回终端首页</span>
+        </div>
+    </div>
+    <div class="file-list" id="fileList">
+        <div style="padding:40px; text-align:center; color:#64748b;">
+            <i class="fas fa-circle-notch fa-spin" style="font-size:24px; margin-bottom:10px;"></i>
+            <div>连接高墙数据库...</div>
+        </div>
+    </div>
+</div>
+
+<div class="reader">
+    <div class="mobile-nav">
+        <button class="btn-close" onclick="closeReader()">
+            <i class="fas fa-arrow-left"></i> 返回列表
+        </button>
+        <div style="font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" id="mobileTitle">文档预览</div>
+    </div>
+    <div class="doc-container">
+        <div class="markdown-body" id="docContent">
+            <div style="text-align:center; padding-top:50px; color:#64748b;">
+                <i class="fas fa-file-contract" style="font-size:48px; opacity:0.2;"></i>
+                <p>请选择文件</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast 提示 -->
+<div id="reportToast" class="report-toast"></div>
+
+<!-- 异步加载 Marked，防止阻塞页面 -->
+<script src="/js/marked.min.js"></script>
+
+<script>
+    const token = localStorage.getItem('ta_token');
+    const params = new URLSearchParams(window.location.search);
+    const charId = params.get('charId');  // 从邮箱进入时传递的角色卡ID
+    const fromSheet = params.get('from') === 'sheet';  // 是否从角色卡邮箱进入
+    const fileToOpen = params.get('file');  // 直接打开的文件
+
+    // 1. 强制登录检查
+    if (!token) {
+        alert("未检测到身份令牌，请重新登录");
+        window.location.href = 'login.html';
+    }
+
+    // 设置返回按钮文本
+    if (fromSheet && charId) {
+        document.getElementById('backText').textContent = '返回角色档案';
+    }
+
+    // 返回函数
+    function goBack() {
+        if (fromSheet && charId) {
+            window.location.href = `sheet.html?id=${charId}`;
+        } else {
+            window.location.href = 'dashboard.html';
+        }
+    }
+
+    async function loadFiles() {
+        const listEl = document.getElementById('fileList');
+
+        try {
+            // 设置超时机制，防止一直转圈
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒超时
+
+            // 如果指定了角色卡ID，传递给API进行筛选
+            let apiUrl = '/api/documents/list';
+            if (charId) {
+                apiUrl += `?charId=${encodeURIComponent(charId)}`;
+            }
+
+            const res = await fetch(apiUrl, {
+                headers: { 'Authorization': `Bearer ${token}` },
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+
+            if (res.status === 401 || res.status === 403) {
+                localStorage.clear();
+                alert("登录已过期，请重新接入");
+                window.location.href = 'login.html';
+                return;
+            }
+
+            if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
+
+            const files = await res.json();
+            renderList(files);
+
+        } catch (e) {
+            console.error(e);
+            let errorMsg = "连接失败";
+            if (e.name === 'AbortError') errorMsg = "连接服务器超时";
+            else if (e.message.includes('Failed to fetch')) errorMsg = "网络无法连接 (请检查IP)";
+
+            listEl.innerHTML = `
+                <div class="error-box">
+                    <i class="fas fa-wifi" style="font-size:24px; margin-bottom:10px;"></i>
+                    <div>${errorMsg}</div>
+                    <div style="font-size:11px; margin-top:5px; opacity:0.8;">请确认手机已连接同一局域网，且电脑防火墙已允许端口访问。</div>
+                    <button class="btn-retry" onclick="location.reload()">重试</button>
+                </div>
+            `;
+        }
+    }
+
+    function renderList(files) {
+        const container = document.getElementById('fileList');
+        container.innerHTML = '';
+
+        if (!files || files.length === 0) {
+            container.innerHTML = '<div style="padding:20px;text-align:center;color:#64748b;">暂无文件权限</div>';
+            return;
+        }
+
+        files.forEach(file => {
+            const el = document.createElement('div');
+            el.className = `file-item ${file.allowed ? '' : 'locked'}`;
+            el.innerHTML = `
+                <div style="display:flex;align-items:center;overflow:hidden;">
+                    <i class="fas ${file.allowed ? 'fa-file-alt' : 'fa-lock'}" style="margin-right:10px; width:20px; text-align:center;"></i>
+                    <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${file.title}</span>
+                </div>
+                ${file.allowed ? '<i class="fas fa-chevron-right" style="opacity:0.3;font-size:12px;"></i>' : ''}
+            `;
+            
+            if (file.allowed) {
+                el.onclick = () => loadContent(file.filename, file.title);
+            }
+            container.appendChild(el);
+        });
+    }
+
+    async function loadContent(filename, title) {
+        // 切换到阅读模式
+        document.body.classList.add('reading-mode');
+        document.getElementById('mobileTitle').textContent = title;
+
+        const contentEl = document.getElementById('docContent');
+        contentEl.innerHTML = '<div style="text-align:center;padding:50px;"><i class="fas fa-circle-notch fa-spin"></i><br>正在解密...</div>';
+
+        // 特殊处理 A1.md - 显示只读的任务报告模板（不可编辑，白色背景）
+        if (filename.toLowerCase() === 'a1.md') {
+            renderReportReadOnly(contentEl);
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/documents/read/${filename}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!res.ok) throw new Error('无法读取文件');
+            const data = await res.json();
+
+            // 检查 Marked 是否加载成功
+            if (typeof marked !== 'undefined') {
+                contentEl.innerHTML = marked.parse(data.content);
+            } else {
+                // 如果 CDN 挂了，显示纯文本，不让用户看不了
+                contentEl.innerHTML = `<pre style="white-space:pre-wrap; font-family:sans-serif;">${data.content}</pre>
+                <div style="color:orange;font-size:12px;margin-top:20px;">* Markdown 解析器加载失败，显示原始文本</div>`;
+            }
+
+        } catch (e) {
+            contentEl.innerHTML = `<div class="error-box">读取失败: ${e.message}</div>`;
+        }
+    }
+
+    // ========== A1 任务报告表单 ==========
+    let missionTeammates = []; // 存储任务队友信息
+
+    async function renderReportForm(container) {
+        // 先加载任务队友信息
+        if (charId) {
+            try {
+                const res = await fetch(`/api/character/${charId}/mission`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.inMission && data.teammates) {
+                        missionTeammates = data.teammates;
+                    }
+                }
+            } catch (e) {
+                console.error('获取任务队友失败:', e);
+            }
+        }
+
+        // 生成特工表现行（根据队友数量动态生成）
+        const agentRows = [];
+        const maxAgents = Math.max(4, missionTeammates.length); // 至少4行
+        for (let i = 0; i < maxAgents; i++) {
+            const teammate = missionTeammates[i];
+            const name = teammate ? teammate.characterName : '';
+            agentRows.push(`
+                <tr>
+                    <td><input type="text" id="rpt-agent${i+1}-name" value="${escapeAttr(name)}"></td>
+                    <td><input type="number" id="rpt-agent${i+1}-reward" value="0" min="0"></td>
+                    <td><input type="number" id="rpt-agent${i+1}-penalty" value="0" min="0"></td>
+                    <td><input type="text" id="rpt-agent${i+1}-note"></td>
+                </tr>
+            `);
+        }
+
+        container.innerHTML = `
+            <div class="report-container">
+                <div class="report-header">
+                    <h1><i class="fas fa-file-alt"></i> 任务报告提交系统</h1>
+                    <p>请如实填写任务执行情况，提交后将发送至任务负责经理</p>
+                </div>
+
+                <div class="report-section">
+                    <h3><i class="fas fa-exclamation-triangle"></i> 异常状态</h3>
+                    <div class="report-status-grid">
+                        <label class="report-status-item">
+                            <input type="checkbox" id="rpt-neutralized">
+                            <span class="status-icon">🔫</span>
+                            <div class="status-info"><h4>已中和</h4><small>无影响</small></div>
+                        </label>
+                        <label class="report-status-item">
+                            <input type="checkbox" id="rpt-captured">
+                            <span class="status-icon">💼</span>
+                            <div class="status-info"><h4>已捕获</h4><small>+3 嘉奖</small></div>
+                        </label>
+                        <label class="report-status-item">
+                            <input type="checkbox" id="rpt-escaped">
+                            <span class="status-icon">🚪</span>
+                            <div class="status-info"><h4>已逃脱</h4><small>+3 申诫</small></div>
+                        </label>
+                        <label class="report-status-item">
+                            <input type="checkbox" id="rpt-breach">
+                            <span class="status-icon">💀</span>
+                            <div class="status-info"><h4>收容失效</h4><small>+5 申诫</small></div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="report-section">
+                    <h3><i class="fas fa-info-circle"></i> 异常情报</h3>
+                    <div class="report-row"><label>代号</label><input type="text" id="rpt-codename" placeholder="异常代号"></div>
+                    <div class="report-row"><label>行为</label><input type="text" id="rpt-behavior" placeholder="异常行为描述"></div>
+                    <div class="report-row"><label>焦点</label><input type="text" id="rpt-focus" placeholder="焦点目标"></div>
+                    <div class="report-row"><label>领域</label><input type="text" id="rpt-domain" placeholder="影响领域"></div>
+                </div>
+
+                <div class="report-section">
+                    <h3><i class="fas fa-users"></i> 特工表现</h3>
+                    <table class="report-table">
+                        <thead><tr><th>特工名</th><th>嘉奖</th><th>申诫</th><th>备注</th></tr></thead>
+                        <tbody>
+                            ${agentRows.join('')}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="report-section">
+                    <h3><i class="fas fa-chart-bar"></i> 任务结算（仅供GM使用）</h3>
+                    <div class="report-row"><label>最终评级</label><input type="text" id="rpt-rating" placeholder="S/A/B/C/D/F"></div>
+                    <div class="report-row"><label>混沌池</label><input type="number" id="rpt-chaos"></div>
+                    <div class="report-row"><label>MVP</label><input type="text" id="rpt-mvp" placeholder="本次任务MVP"></div>
+                    <div class="report-row"><label>察看期</label><input type="text" id="rpt-probation" placeholder="需察看的特工"></div>
+                </div>
+
+                <div class="report-section">
+                    <h3><i class="fas fa-box"></i> 收容物处理</h3>
+                    <table class="report-table">
+                        <thead><tr><th>收容物</th><th>处置方式</th><th>经手人</th></tr></thead>
+                        <tbody>
+                            <tr><td><input type="text" id="rpt-item1-name"></td><td><input type="text" id="rpt-item1-dispose"></td><td><input type="text" id="rpt-item1-handler"></td></tr>
+                            <tr><td><input type="text" id="rpt-item2-name"></td><td><input type="text" id="rpt-item2-dispose"></td><td><input type="text" id="rpt-item2-handler"></td></tr>
+                            <tr><td><input type="text" id="rpt-item3-name"></td><td><input type="text" id="rpt-item3-dispose"></td><td><input type="text" id="rpt-item3-handler"></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <button class="btn-submit-report" onclick="submitReport()">
+                    <i class="fas fa-paper-plane"></i> 提交报告
+                </button>
+            </div>
+        `;
+    }
+
+    // 转义HTML属性值
+    function escapeAttr(str) {
+        if (!str) return '';
+        return str.replace(/&/g, '&amp;')
+                  .replace(/"/g, '&quot;')
+                  .replace(/'/g, '&#39;')
+                  .replace(/</g, '&lt;')
+                  .replace(/>/g, '&gt;');
+    }
+
+    // ========== A1 只读显示（不可编辑，白色背景） ==========
+    function renderReportReadOnly(container) {
+        container.innerHTML = `
+            <div class="report-readonly-container">
+                <div class="report-header">
+                    <h1><i class="fas fa-file-alt"></i> 任务报告模板</h1>
+                    <p>A1 - 外勤任务结案报告标准格式</p>
+                </div>
+
+                <div class="readonly-section">
+                    <h3><i class="fas fa-exclamation-triangle"></i> 异常状态</h3>
+                    <div class="readonly-grid">
+                        <div class="readonly-item">
+                            <span class="status-icon">🔫</span>
+                            <div class="status-info"><h4>已中和</h4><small>无影响</small></div>
+                        </div>
+                        <div class="readonly-item">
+                            <span class="status-icon">💼</span>
+                            <div class="status-info"><h4>已捕获</h4><small>+3 嘉奖</small></div>
+                        </div>
+                        <div class="readonly-item">
+                            <span class="status-icon">🚪</span>
+                            <div class="status-info"><h4>已逃脱</h4><small>+3 申诫</small></div>
+                        </div>
+                        <div class="readonly-item">
+                            <span class="status-icon">💀</span>
+                            <div class="status-info"><h4>收容失效</h4><small>+5 申诫</small></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="readonly-section">
+                    <h3><i class="fas fa-info-circle"></i> 异常情报</h3>
+                    <div class="readonly-row"><label>代号</label><span>异常代号</span></div>
+                    <div class="readonly-row"><label>行为</label><span>异常行为描述</span></div>
+                    <div class="readonly-row"><label>焦点</label><span>焦点目标</span></div>
+                    <div class="readonly-row"><label>领域</label><span>影响领域</span></div>
+                </div>
+
+                <div class="readonly-section">
+                    <h3><i class="fas fa-users"></i> 特工表现</h3>
+                    <table class="readonly-table">
+                        <thead><tr><th>特工名</th><th>嘉奖</th><th>申诫</th><th>备注</th></tr></thead>
+                        <tbody>
+                            <tr><td>特工1</td><td>0</td><td>0</td><td>—</td></tr>
+                            <tr><td>特工2</td><td>0</td><td>0</td><td>—</td></tr>
+                            <tr><td>特工3</td><td>0</td><td>0</td><td>—</td></tr>
+                            <tr><td>特工4</td><td>0</td><td>0</td><td>—</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="readonly-section">
+                    <h3><i class="fas fa-chart-bar"></i> 任务结算（仅供GM使用）</h3>
+                    <div class="readonly-row"><label>最终评级</label><span>S/A/B/C/D/F</span></div>
+                    <div class="readonly-row"><label>混沌池</label><span>0</span></div>
+                    <div class="readonly-row"><label>MVP</label><span>本次任务MVP</span></div>
+                    <div class="readonly-row"><label>察看期</label><span>需察看的特工</span></div>
+                </div>
+
+                <div class="readonly-section">
+                    <h3><i class="fas fa-box"></i> 收容物处理</h3>
+                    <table class="readonly-table">
+                        <thead><tr><th>收容物</th><th>处置方式</th><th>经手人</th></tr></thead>
+                        <tbody>
+                            <tr><td>—</td><td>—</td><td>—</td></tr>
+                            <tr><td>—</td><td>—</td><td>—</td></tr>
+                            <tr><td>—</td><td>—</td><td>—</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="readonly-notice">
+                    <i class="fas fa-info-circle"></i>
+                    此为任务报告标准模板，仅供参考查阅。实际报告提交请通过任务面板进行。
+                </div>
+            </div>
+        `;
+    }
+
+    async function submitReport() {
+        if (!charId) {
+            showReportToast('错误：未指定角色卡ID', 'error');
+            return;
+        }
+
+        // 动态收集特工数据（根据实际生成的行数）
+        const agentCount = Math.max(4, missionTeammates.length);
+        const agents = [];
+        for (let i = 1; i <= agentCount; i++) {
+            const nameEl = document.getElementById(`rpt-agent${i}-name`);
+            if (nameEl && nameEl.value.trim()) {
+                agents.push({
+                    name: nameEl.value.trim(),
+                    reward: parseInt(document.getElementById(`rpt-agent${i}-reward`)?.value) || 0,
+                    penalty: parseInt(document.getElementById(`rpt-agent${i}-penalty`)?.value) || 0,
+                    note: document.getElementById(`rpt-agent${i}-note`)?.value || ''
+                });
+            }
+        }
+
+        const reportData = {
+            status: {
+                neutralized: document.getElementById('rpt-neutralized')?.checked || false,
+                captured: document.getElementById('rpt-captured')?.checked || false,
+                escaped: document.getElementById('rpt-escaped')?.checked || false,
+                breach: document.getElementById('rpt-breach')?.checked || false
+            },
+            anomaly: {
+                codename: document.getElementById('rpt-codename')?.value || '',
+                behavior: document.getElementById('rpt-behavior')?.value || '',
+                focus: document.getElementById('rpt-focus')?.value || '',
+                domain: document.getElementById('rpt-domain')?.value || ''
+            },
+            agents: agents,
+            settlement: {
+                rating: document.getElementById('rpt-rating')?.value || '',
+                chaos: parseInt(document.getElementById('rpt-chaos')?.value) || 0,
+                mvp: document.getElementById('rpt-mvp')?.value || '',
+                probation: document.getElementById('rpt-probation')?.value || ''
+            },
+            items: [1,2,3].map(i => ({
+                name: document.getElementById(`rpt-item${i}-name`)?.value || '',
+                dispose: document.getElementById(`rpt-item${i}-dispose`)?.value || '',
+                handler: document.getElementById(`rpt-item${i}-handler`)?.value || ''
+            })).filter(item => item.name.trim())
+        };
+
+        const btn = document.querySelector('.btn-submit-report');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+
+        try {
+            const res = await fetch(`/api/character/${charId}/send-report`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(reportData)
+            });
+
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.error || '提交失败');
+
+            showReportToast('报告已成功提交', 'success');
+
+            // 清空表单
+            setTimeout(() => {
+                renderReportForm(document.getElementById('docContent'));
+            }, 2000);
+
+        } catch (e) {
+            showReportToast('提交失败: ' + e.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane"></i> 提交报告';
+        }
+    }
+
+    function showReportToast(msg, type) {
+        const toast = document.getElementById('reportToast');
+        toast.textContent = msg;
+        toast.className = `report-toast ${type} show`;
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    function closeReader() {
+        document.body.classList.remove('reading-mode');
+    }
+
+    // 启动
+    async function init() {
+        await loadFiles();
+
+        // 如果URL中指定了文件，自动打开它
+        if (fileToOpen) {
+            const title = fileToOpen.replace(/\.md$/i, '');
+            loadContent(fileToOpen, title);
+        }
+    }
+    init();
+</script>
+</body>
+</html>
