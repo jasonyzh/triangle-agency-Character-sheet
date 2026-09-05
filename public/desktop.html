@@ -1,0 +1,1932 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三角机构 // 内网终端</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="stylesheet" href="vendor/cropper/cropper.min.css">
+<link rel="stylesheet" href="css/desktop.css?v=84">
+<link rel="stylesheet" href="css/login-stage.css?v=4">
+<link rel="stylesheet" href="vendor/font-awesome/all.min.css">
+<link rel="stylesheet" href="css/manager.css?v=1">
+<link rel="stylesheet" href="css/desktop-manager.css?v=6">
+<style>
+/* 管理台嵌入覆盖：manager.css 会改写 body，这里还原桌面外观 */
+html, body { background: #f0f1f3; padding: 0; margin: 0; overflow: hidden; }
+.mgr-branch-anchor { display: inline-flex; align-items: center; flex: none; }
+/* 管理台桌面图标：默认隐藏，经理/超管由脚本点亮；设置图标仅超管 */
+.dico.mgr-only, .dico.admin-only { display: none; }
+.dico.mgr-only.granted, .dico.admin-only.granted { display: block; }
+/* 桌面图标换列排布，容纳管理台图标 */
+.dicons { flex-wrap: wrap; max-height: calc(100vh - 190px); align-content: flex-start; }
+</style>
+</head>
+<body>
+<!-- ⚠ 登录层：未登录时覆盖全屏（desktop-login.html 场景融合，样式见 css/login-stage.css） -->
+<div id="loginStage">
+<div class="viewport">
+  <div class="scene" id="scene">
+
+    <!-- 背景：墙与窗户 -->
+    <div class="wall"></div>
+    <div class="window" style="left:88px; top:-10px; width:352px; height:442px;"></div>
+    <div class="win-frame-v" style="left:262px; top:-10px; height:432px;"></div>
+    <div class="win-frame-h" style="left:88px; top:212px; width:352px;"></div>
+    <div class="city" style="left:106px; top:252px; width:64px; height:172px;"></div>
+    <div class="city b2" style="left:176px; top:292px; width:46px; height:132px;"></div>
+    <div class="city" style="left:290px; top:232px; width:74px; height:192px;"></div>
+    <div class="city b2" style="left:370px; top:278px; width:52px; height:146px;"></div>
+    <div class="wall-line" style="left:640px; top:0; height:340px;"></div>
+    <div class="wall-line" style="left:1180px; top:0; height:330px;"></div>
+
+    <!-- 背景道具 -->
+    <svg class="grey-plant" style="left:2px; top:280px;" width="100" height="240" viewBox="0 0 100 240" fill="none">
+      <path d="M50 240 C 48 180 46 130 50 90" stroke="#d3d7db" stroke-width="5" fill="none"/>
+      <ellipse cx="30" cy="120" rx="26" ry="12" fill="#d9dde1" transform="rotate(-28 30 120)"/>
+      <ellipse cx="72" cy="98" rx="26" ry="12" fill="#d9dde1" transform="rotate(24 72 98)"/>
+      <ellipse cx="26" cy="66" rx="24" ry="11" fill="#dfe2e6" transform="rotate(-35 26 66)"/>
+      <ellipse cx="74" cy="44" rx="24" ry="11" fill="#dfe2e6" transform="rotate(30 74 44)"/>
+      <ellipse cx="50" cy="24" rx="22" ry="11" fill="#e2e5e9" transform="rotate(-4 50 24)"/>
+    </svg>
+    <div class="partition" style="left:-10px; top:387px; width:168px; height:180px;"><i class="cap"></i></div>
+
+    <div class="partition" style="left:1042px; top:406px; width:568px; height:128px;"><i class="cap"></i></div>
+    <div class="partition" style="left:1042px; top:548px; width:250px; height:352px; opacity:.92;"><i class="cap"></i></div>
+    <div class="bg-desk" style="left:1042px; top:534px; width:558px; height:16px; border-radius:3px;"></div>
+    <div class="bg-monitor" style="left:1392px; top:338px; width:208px; height:130px;"></div>
+    <div class="bg-monitor-stand" style="left:1478px; top:468px; width:44px; height:66px;"></div>
+    <div class="bg-desk" style="left:1420px; top:534px; width:180px; height:12px;"></div>
+    <div class="bg-chair" style="left:1408px; top:436px; width:150px; height:230px;"></div>
+
+    <!-- 吊灯 ×2 -->
+    <div class="lamp-group" style="left:1388px; top:0;">
+      <div class="lamp-cord" style="left:45px; top:0; height:96px;"></div>
+      <div class="lamp-shade" style="left:0; top:96px; width:94px; height:58px;"></div>
+    </div>
+    <div class="lamp-group l2" style="left:1512px; top:0;">
+      <div class="lamp-cord" style="left:45px; top:0; height:34px;"></div>
+      <div class="lamp-shade" style="left:0; top:34px; width:94px; height:58px;"></div>
+    </div>
+
+    <!-- 前景桌面 -->
+    <div class="desk"></div>
+
+    <!-- 桌面道具：笔筒 / 盆栽 / 马克杯 -->
+    <div class="pen-holder">
+      <i class="pencil p-black"></i><i class="pencil p-grey"></i><i class="pencil p-red"></i><i class="pencil p-white"></i>
+    </div>
+    <svg class="plant-svg" viewBox="0 0 182 148" fill="none">
+      <path d="M91 148 C 89 110 88 80 91 52" stroke="#b8452f" stroke-width="5" fill="none"/>
+      <path d="M91 96 C 70 84 58 66 56 44" stroke="#b8452f" stroke-width="4" fill="none"/>
+      <path d="M91 78 C 112 68 124 52 126 32" stroke="#b8452f" stroke-width="4" fill="none"/>
+      <ellipse cx="91" cy="36" rx="15" ry="26" fill="#d8402f"/>
+      <ellipse cx="52" cy="36" rx="13" ry="21" fill="#c9342b" transform="rotate(-32 52 36)"/>
+      <ellipse cx="130" cy="24" rx="13" ry="21" fill="#c9342b" transform="rotate(28 130 24)"/>
+      <ellipse cx="66" cy="82" rx="12" ry="18" fill="#e2503c" transform="rotate(-46 66 82)"/>
+      <ellipse cx="118" cy="72" rx="12" ry="18" fill="#e2503c" transform="rotate(42 118 72)"/>
+    </svg>
+    <div class="pot"></div>
+    <div class="mug"></div>
+
+    <!-- 键盘 / 鼠标 -->
+    <div class="keyboard">
+      <div class="kb-rows" id="kbRows"></div>
+    </div>
+    <div class="mouse"></div>
+    <div class="obj-shadow" style="left:1132px; top:836px; width:130px; height:26px;"></div>
+
+    <!-- 显示器 -->
+    <div class="monitor">
+      <div class="m-shadow"></div>
+      <div class="m-neck"></div>
+      <div class="m-base"></div>
+      <div class="m-bezel">
+        <div class="m-cam"></div>
+        <div class="m-screen">
+          <!-- 登录表单（叠于背景白色区） -->
+          <div class="tri-content">
+            <h1 class="tri-title">LOGIN</h1>
+            <div class="tri-sub">WELCOME BACK</div>
+            <div class="tri-field">
+              <span class="tf-icon">
+                <svg viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="8.4" r="4"/><path d="M4.5,19.4 C5.6,15.8 8.5,13.8 12,13.8 C15.5,13.8 18.4,15.8 19.5,19.4 C19.7,20 19.2,20.6 18.6,20.6 L5.4,20.6 C4.8,20.6 4.3,20 4.5,19.4 Z"/></svg>
+              </span>
+              <input id="userInput" type="text" placeholder="Username" autocomplete="off" spellcheck="false">
+            </div>
+            <div class="tri-field">
+              <span class="tf-icon">
+                <svg viewBox="0 0 24 24" fill="#fff"><rect x="5" y="10.4" width="14" height="9.6" rx="1"/><path d="M8,10 V8 a4,4 0 0 1 8,0 v2" fill="none" stroke="#fff" stroke-width="2.4"/></svg>
+              </span>
+              <input id="passInput" type="password" placeholder="Password" autocomplete="off">
+            </div>
+            <button class="tri-signin" id="goBtn">SIGN IN
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="M13 5l7 7-7 7"/></svg>
+            </button>
+            <div class="tri-err" id="errTxt"></div>
+          </div>
+          <div class="m-glare"></div>
+          <!-- 登录成功过场层：红色三角从中心填满整个屏幕区域（无 logo，避免衔接跳变感） -->
+          <div class="tri-fill" id="triFill">
+            <div class="tri-shape"></div>
+          </div>
+        </div>
+        <div class="m-led"></div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ================= 手机端手持插画（≤860px 显示，样式与 login.html 手机适配一致） ================= -->
+<div class="bg-deco">
+  <div class="circle-a"></div>
+  <div class="circle-b"></div>
+  <div class="dots-a"></div>
+  <div class="dots-b"></div>
+  <div class="dotspad"></div>
+  <svg class="tri" style="left:6%;top:16%;width:56px;" viewBox="0 0 24 24"><path d="M12 2 L22 22 H2 Z" fill="rgba(211,50,42,.12)"/></svg>
+  <svg class="tri" style="left:4%;bottom:26%;width:44px;transform:rotate(20deg);" viewBox="0 0 24 24"><path d="M12 2 L22 22 H2 Z" fill="none" stroke="rgba(0,0,0,.15)" stroke-width="1.4"/></svg>
+  <svg class="tri" style="right:8%;top:34%;width:64px;" viewBox="0 0 24 24"><path d="M12 2 L22 22 H2 Z" fill="none" stroke="rgba(0,0,0,.12)" stroke-width="1.4"/></svg>
+</div>
+
+<div class="stage" id="stage">
+  <img class="hand" src="img/hand.svg" alt="">
+  <div class="screen">
+    <!-- 屏内背景图：phone-login.svg（img+object-fit 规避无尺寸 svg background 渲染异常） -->
+    <img class="screen-bg" src="img/phone-login.svg" alt="" aria-hidden="true">
+    <div class="logo">
+      <svg viewBox="0 0 24 24"><path d="M12 2.5 L22 22 L2 22 Z" fill="none" stroke="#d3322a" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 9.5 L17 19 L7 19 Z" fill="none" stroke="#d3322a" stroke-width="1.4" stroke-linejoin="round"/></svg>
+    </div>
+    <!-- 手机端过场层：红三角旋转遮盖手机屏幕（大圆角裁切，左/下延展10px顶到边框） -->
+    <div class="tri-fill" id="triFillM">
+      <div class="tri-shape"></div>
+    </div>
+
+    <div class="content">
+      <div class="brand">
+        <h1>LOGIN</h1>
+        <p>Welcome Back</p>
+      </div>
+
+      <div class="field">
+        <div class="field-ico"><i class="fas fa-user"></i></div>
+        <input type="text" id="mUser" autocomplete="off" placeholder="输入账号">
+      </div>
+      <div class="field">
+        <div class="field-ico"><i class="fas fa-lock"></i></div>
+        <input type="password" id="mPass" placeholder="输入密码">
+      </div>
+
+      <button class="btn-verify" id="mBtn">
+        <span>SIGN IN</span>
+        <i class="fas fa-arrow-right"></i>
+      </button>
+
+      <div class="status-msg" id="mMsg"></div>
+      <div class="register-link" id="mRegLink" style="display:none;">
+        <a href="register.html">没有账号？<span>申请入职</span></a>
+      </div>
+
+      <div class="loading-mask" id="mLoadingMask">
+        <i class="fas fa-triangle"></i>
+        <span>接入终端中...</span>
+      </div>
+    </div>
+  </div>
+  <!-- 手指前置层：裁出手图四周条带叠在红色之上（svg 最高层），药丸/边框/手指压住红屏 -->
+  <img class="hand hand-front hand-front-l" src="img/hand.svg" alt="" aria-hidden="true">
+  <img class="hand hand-front hand-front-r" src="img/hand.svg" alt="" aria-hidden="true">
+  <img class="hand hand-front hand-front-t" src="img/hand.svg" alt="" aria-hidden="true">
+  <img class="hand hand-front hand-front-b" src="img/hand.svg" alt="" aria-hidden="true">
+</div>
+
+<!-- 登录成功过场：红色三角填满显示器屏幕区域 → 屏幕放大 → desktop.html 倒放缩小 -->
+
+</div>
+
+  <!-- 背景三层 -->
+  <img class="bg" src="img/desktopbg.webp" alt="">
+  <img class="bg-left" src="img/desktopl.webp" alt="">
+  <img class="bg-right" src="img/desktopr.webp" alt="">
+  <div class="bg-mask"></div>
+
+
+  <!-- 应用窗口：我的文档 -->
+  <div class="appwin" id="winDocs">
+    <div class="dwin-head">
+      <span class="dwin-ico"><svg viewBox="0 0 48 48"><rect x="10" y="6" width="28" height="36" rx="3" fill="#fff"/><g stroke="#e8907f" stroke-width="2.5" stroke-linecap="round"><line x1="16" y1="15" x2="32" y2="15"/><line x1="16" y1="21" x2="32" y2="21"/><line x1="16" y1="27" x2="26" y2="27"/></g></svg></span>
+      <span class="dwin-title">我的档案</span>
+      <button class="dwin-btn" data-maxbtn title="最大化"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="7" width="12" height="12" rx="1.5"/><path d="M8 7 V4.5 h12 v12 H17.5"/></svg></button>
+      <button class="dwin-btn" data-appclose title="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button>
+    </div>
+    <div class="appwin-body docs-body" id="docsBody"></div>
+  </div>
+
+  <!-- 我的文档：编辑角色卡弹窗（不跳 sheet，直接改当前卡并 PUT /api/character/:id） -->
+  <div class="char-mask" id="docEditMask">
+    <div class="char-modal doc-edit-modal">
+      <div class="cm-head">
+        <b>编辑角色卡</b>
+        <span class="cm-close" id="docEditClose" title="关闭">×</span>
+      </div>
+      <div class="em-body" id="docEditBody"></div>
+      <div class="cm-foot"><button class="cm-create" id="docEditSave">保存</button></div>
+    </div>
+  </div>
+  <input type="file" id="deAvaFile" accept="image/*" style="display:none;">
+  <!-- 我的文档：头像裁剪弹窗（Cropper.js 正方形裁剪） -->
+  <div class="char-mask" id="docAvaCropMask">
+    <div class="char-modal doc-crop-modal">
+      <div class="cm-head">
+        <b>裁剪头像</b>
+        <span class="cm-close" id="docCropClose" title="关闭">×</span>
+      </div>
+      <div class="doc-crop-container"><img id="docCropImg" src=""></div>
+      <div class="cm-foot" style="display:flex;gap:10px;justify-content:flex-end;">
+        <button class="cm-create" id="docCropCancel" style="background:#fff;color:#7a6f74;border:1px solid #f0e7e4;">取消</button>
+        <button class="cm-create" id="docCropConfirm">确认裁剪</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 应用窗口：外勤OS（左侧档案面板 + 任务画板） -->
+  <div class="appwin" id="winBoard">
+    <div class="dwin-head">
+      <span class="dwin-ico"><svg viewBox="0 0 48 48"><rect x="6" y="8" width="36" height="26" rx="2" fill="#fff"/><rect x="9" y="11" width="30" height="20" fill="#e8907f"/><rect x="20" y="34" width="8" height="4" fill="#fff"/><rect x="14" y="38" width="20" height="3" rx="1.5" fill="#fff"/></svg></span>
+      <span class="dwin-title">外勤OS</span>
+      <button class="dwin-btn" data-maxbtn title="向下还原"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="7" width="12" height="12" rx="1.5"/><path d="M8 7 V4.5 h12 v12 H17.5"/></svg></button>
+      <button class="dwin-btn" data-appclose title="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button>
+    </div>
+    <div class="appwin-body board-body">
+      <div class="board-side" id="boardSide"></div>
+      <div class="board-main">
+        <div class="board-toolbar">
+          <select id="boardMissionSel"><option value="">-- 选择任务 --</option></select>
+          <span class="dice-bar">
+            <button class="dice-btn" data-roll="4">d4</button>
+            <button class="dice-btn" data-roll="6">d6</button>
+            <button class="dice-btn" data-roll="8">d8</button>
+            <button class="dice-btn" data-roll="10">d10</button>
+            <button class="dice-btn" data-roll="12">d12</button>
+            <button class="dice-btn" data-roll="20">d20</button>
+            <button class="dice-btn" data-roll="100">d%</button>
+            <button class="dice-btn dice-check" data-check>检定</button>
+            <button class="dice-btn" data-hist>历史</button>
+          </span>
+        </div>
+        <div class="board-canvas" id="boardCanvas"><div id="diceResults"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 浮窗：邮箱 -->
+  <div class="dwin dw-mail" id="winMail">
+    <div class="dwin-head">
+      <span class="dwin-ico"><svg viewBox="0 0 48 48"><rect x="7" y="12" width="34" height="24" rx="3" fill="#fff"/><path d="M10 15 L24 27 L38 15" fill="none" stroke="#e8907f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span class="dwin-title">邮箱</span>
+      <button class="dwin-btn" data-close="winMail" title="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button>
+    </div>
+    <div class="mail-float-body">
+      <div class="mail-tabs">
+        <button class="mail-tab active" data-mtab="inbox">收件箱</button>
+        <button class="mail-tab" data-mtab="sent">已发送</button>
+        <button class="mail-tab" data-mtab="compose">写信</button>
+      </div>
+      <div class="mail-list-pane" id="mailList"></div>
+      <div class="mail-compose" id="mailCompose"></div>
+    </div>
+  </div>
+
+  <!-- 应用窗口：高墙文件 -->
+  <div class="appwin" id="winHW">
+    <div class="dwin-head">
+      <span class="dwin-ico"><svg viewBox="0 0 48 48"><rect x="8" y="8" width="32" height="32" rx="4" fill="#fff"/><g stroke="#e8907f" stroke-width="3" stroke-linecap="round"><line x1="17" y1="14" x2="17" y2="34"/><line x1="24" y1="14" x2="24" y2="34"/><line x1="31" y1="14" x2="31" y2="34"/></g></svg></span>
+      <span class="dwin-title">高墙文件</span>
+      <button class="dwin-btn" data-maxbtn title="向下还原"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="7" width="12" height="12" rx="1.5"/><path d="M8 7 V4.5 h12 v12 H17.5"/></svg></button>
+      <button class="dwin-btn" data-appclose title="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button>
+    </div>
+    <div class="appwin-body hw-body">
+      <div class="hw-list" id="hwList"></div>
+      <div class="hw-preview" id="hwPreview"><div class="pane-empty">← 选择文件查看</div></div>
+    </div>
+  </div>
+
+  <!-- 应用窗口：职员内购 -->
+  <div class="appwin" id="winShop">
+    <div class="dwin-head">
+      <span class="dwin-ico"><svg viewBox="0 0 48 48"><path d="M11 17 h26 l-2.6 23 a3 3 0 0 1 -3 2.7 h-14.8 a3 3 0 0 1 -3 -2.7 Z" fill="#fff"/><path d="M17.5 20 v-7 a6.5 6.5 0 0 1 13 0 v7" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg></span>
+      <span class="dwin-title">职员内购</span>
+      <button class="dwin-btn" data-maxbtn title="向下还原"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="7" width="12" height="12" rx="1.5"/><path d="M8 7 V4.5 h12 v12 H17.5"/></svg></button>
+      <button class="dwin-btn" data-appclose title="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button>
+    </div>
+    <div class="appwin-body shop-body">
+      <div class="shop-toolbar">
+        <button class="shop-tab active" data-stab="avail">可购买</button>
+        <button class="shop-tab" data-stab="owned">已购买</button>
+        <span class="shop-bonus" id="shopBonus"></span>
+      </div>
+      <div class="shop-grid" id="shopGrid"></div>
+    </div>
+  </div>
+
+  <!-- 应用窗口：虹吸商店（items.html Siphon商店，X2解锁可入） -->
+  <div class="appwin" id="winSiphonShop">
+    <div class="dwin-head">
+      <span class="dwin-ico"><svg viewBox="0 0 48 48"><path d="M12 8 h24 l-8 13 v14 l-8 5 v-19 Z" fill="#fff"/></svg></span>
+      <span class="dwin-title">虹吸商店</span>
+      <button class="dwin-btn" data-maxbtn title="向下还原"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="7" width="12" height="12" rx="1.5"/><path d="M8 7 V4.5 h12 v12 H17.5"/></svg></button>
+      <button class="dwin-btn" data-appclose title="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button>
+    </div>
+    <div class="appwin-body shop-body">
+      <div class="shop-toolbar">
+        <button class="shop-tab active" data-sscat="avail">可购买</button>
+        <button class="shop-tab" data-sscat="owned">已购买</button>
+        <span class="shop-bonus" id="ssBonus"></span>
+      </div>
+      <div class="shop-grid" id="ssGrid"></div>
+    </div>
+  </div>
+
+  <!-- 应用窗口：管理台 · 角色（manager.html 迁移） -->
+  <div class="appwin mgr-win" id="winMChar" data-appkey="m-char">
+    <div class="dwin-head">
+      <span class="dwin-ico"><svg viewBox="0 0 48 48"><circle cx="18" cy="17" r="7" fill="#fff"/><path d="M6 38 a12 12 0 0 1 24 0 Z" fill="#fff"/><circle cx="33.5" cy="19" r="5.5" fill="#fff" opacity=".72"/><path d="M26.5 38 a11 11 0 0 1 15.5 -8.5 V38 Z" fill="#fff" opacity=".72"/></svg></span>
+      <span class="dwin-title">管理台 · 特工档案</span>
+      
+      <button class="dwin-btn" data-maxbtn title="向下还原"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="7" width="12" height="12" rx="1.5"/><path d="M8 7 V4.5 h12 v12 H17.5"/></svg></button>
+      <button class="dwin-btn" data-appclose title="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button>
+    </div>
+    <div class="appwin-body mgr-body">
+      <!-- 页面1: 已授权角色档案 -->
+      <div class="tab-content active" id="tabCharacters">
+        <div class="section-title">
+          <i class="fas fa-users"></i> 已授权的角色档案
+        </div>
+
+        <div class="search-container">
+          <div class="search-wrapper">
+            <i class="fas fa-search"></i>
+            <input type="text" id="charSearchInput" class="search-input" placeholder="输入角色姓名或特工代号进行搜索..." oninput="handleSearch()">
+          </div>
+        </div>
+
+        <div id="charList" class="char-grid">
+          <div class="loading">
+            <i class="fas fa-circle-notch fa-spin"></i>
+            <p>加载中...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 应用窗口：管理台 · 任务（manager.html 迁移） -->
+  <div class="appwin mgr-win" id="winMMissions" data-appkey="m-missions">
+    <div class="dwin-head">
+      <span class="dwin-ico"><svg viewBox="0 0 48 48"><rect x="8" y="6" width="32" height="36" rx="4" fill="#fff"/><g stroke="#e8907f" stroke-width="3" stroke-linecap="round"><line x1="15" y1="15" x2="33" y2="15"/><line x1="15" y1="23" x2="33" y2="23"/><line x1="15" y1="31" x2="27" y2="31"/></g></svg></span>
+      <span class="dwin-title">管理台 · 外勤任务</span>
+      
+      <button class="dwin-btn" data-maxbtn title="向下还原"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="7" width="12" height="12" rx="1.5"/><path d="M8 7 V4.5 h12 v12 H17.5"/></svg></button>
+      <button class="dwin-btn" data-appclose title="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button>
+    </div>
+    <div class="appwin-body mgr-body">
+      <!-- 页面2: 外勤任务（左列表 + 右详情） -->
+      <div class="tab-content active" id="tabMissions">
+        <div class="mgm-layout">
+          <div class="mgm-left">
+            <div class="mission-panel">
+              <div class="mission-header">
+                <h3><i class="fas fa-tasks"></i> 外勤任务管理</h3>
+                <button class="btn-new-mission" onclick="openMissionModal()"><i class="fas fa-plus"></i> 创建任务</button>
+              </div>
+              <div class="mission-tabs">
+                <button class="active" onclick="switchMissionTab('active')">进行中</button>
+                <button onclick="switchMissionTab('archived')">已归档</button>
+              </div>
+              <div id="missionList" class="mission-list">
+                <div class="mission-empty"><i class="fas fa-clipboard-list"></i><br>暂无外勤任务</div>
+              </div>
+            </div>
+          </div>
+          <div class="mgm-right" id="mMissionDetail">
+            <div class="mgm-detail-empty" id="mgmDetailEmpty">← 从左侧选择任务查看详情</div>
+            <div class="mission-detail-container" style="display:none;" id="mgmDetailWrap">
+      <div class="mission-detail-header">
+        <button class="btn-back" onclick="closeMissionDetail()">
+          <i class="fas fa-arrow-left"></i> 返回任务列表
+        </button>
+        <div class="mission-detail-title">
+          <h2 id="missionDetailName">任务名称</h2>
+          <span class="mission-detail-status" id="missionDetailStatus">进行中</span>
+        </div>
+        <div class="mission-detail-actions">
+          <button class="btn-mission-edit" onclick="editCurrentMission()"><i class="fas fa-edit"></i> 编辑</button>
+          <button class="btn-mission-archive" onclick="archiveCurrentMission()"><i class="fas fa-archive"></i> 归档</button>
+        </div>
+      </div>
+
+      <div class="mission-detail-body">
+        <!-- 任务描述 -->
+        <div class="mission-detail-section">
+          <h3><i class="fas fa-info-circle"></i> 任务描述</h3>
+          <p id="missionDetailDesc" class="mission-desc-text">暂无描述</p>
+        </div>
+
+        <!-- 任务成员 -->
+        <div class="mission-detail-section">
+          <div class="section-header">
+            <h3><i class="fas fa-user-friends"></i> 任务特工</h3>
+            <button class="btn-add-agent" onclick="openAddMemberModal(currentMissionDetailId)">
+              <i class="fas fa-user-plus"></i> 添加特工
+            </button>
+          </div>
+          <div id="missionDetailMembers" class="mission-members-grid">
+            <div class="no-members">暂无成员</div>
+          </div>
+        </div>
+
+        <!-- 任务数值管理 -->
+        <div class="mission-detail-section">
+          <h3><i class="fas fa-chart-line"></i> 任务数值</h3>
+          <div class="mission-values-row">
+            <div class="value-input-group">
+              <label>混沌值</label>
+              <div class="value-input-wrapper">
+                <button class="value-btn" onclick="adjustMissionValue('chaos', -1)"><i class="fas fa-minus"></i></button>
+                <input type="number" id="missionChaosValue" value="0" min="0">
+                <button class="value-btn" onclick="adjustMissionValue('chaos', 1)"><i class="fas fa-plus"></i></button>
+              </div>
+            </div>
+            <div class="value-input-group">
+              <label>散逸端</label>
+              <div class="value-input-wrapper">
+                <button class="value-btn" onclick="adjustMissionValue('scatter', -1)"><i class="fas fa-minus"></i></button>
+                <input type="number" id="missionScatterValue" value="0">
+                <button class="value-btn" onclick="adjustMissionValue('scatter', 1)"><i class="fas fa-plus"></i></button>
+              </div>
+            </div>
+            <button class="btn-save-values" onclick="saveMissionValues()">
+              <i class="fas fa-save"></i> 保存数值
+            </button>
+          </div>
+        </div>
+
+        <!-- 任务报告 -->
+        <div class="mission-detail-section">
+          <div class="section-header">
+            <h3><i class="fas fa-file-alt"></i> 任务报告 <span class="report-status-badge" id="reportStatusBadge"></span></h3>
+            <button class="btn-refresh-inbox" onclick="loadMissionReports(currentMissionDetailId)">
+              <i class="fas fa-sync-alt"></i>
+            </button>
+          </div>
+          <div id="missionReportsList" class="mission-reports-list">
+            <div class="report-empty"><i class="fas fa-file-alt"></i><br>等待特工提交报告...</div>
+          </div>
+        </div>
+
+        <!-- 任务收件箱 -->
+        <div class="mission-detail-section">
+          <div class="section-header">
+            <h3><i class="fas fa-envelope"></i> 任务收件箱 <span class="inbox-badge" id="missionInboxBadge" style="display:none;">0</span></h3>
+            <button class="btn-refresh-inbox" onclick="loadMissionInbox(currentMissionDetailId)">
+              <i class="fas fa-sync-alt"></i>
+            </button>
+          </div>
+          <div id="missionInboxList" class="mission-inbox-list">
+            <div class="inbox-empty"><i class="fas fa-envelope-open"></i><br>暂无邮件</div>
+          </div>
+        </div>
+      </div>
+    </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 应用窗口：管理台 · 申领物（manager.html 迁移） -->
+  <div class="appwin mgr-win" id="winMItems" data-appkey="m-items">
+    <div class="dwin-head">
+      <span class="dwin-ico"><svg viewBox="0 0 48 48"><path d="M7 18 h34 v20 a3 3 0 0 1 -3 3 H10 a3 3 0 0 1 -3 -3 Z" fill="#fff"/><path d="M10 18 v-5 a3 3 0 0 1 3 -3 h22 a3 3 0 0 1 3 3 v5" fill="none" stroke="#fff" stroke-width="3.2"/></svg></span>
+      <span class="dwin-title">管理台 · 申领物</span>
+      
+      <button class="dwin-btn" data-maxbtn title="向下还原"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="7" width="12" height="12" rx="1.5"/><path d="M8 7 V4.5 h12 v12 H17.5"/></svg></button>
+      <button class="dwin-btn" data-appclose title="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button>
+    </div>
+    <div class="appwin-body mgr-body">
+      <!-- 页面3: 申领物管理 -->
+      <div class="tab-content active" id="tabRequisitions">
+        <div class="requisition-panel">
+          <div class="requisition-header">
+            <h3><i class="fas fa-box"></i> 申领物管理</h3>
+            <div class="header-actions">
+              <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="itemSearchInput" placeholder="搜索申领物..." oninput="filterRequisitions()">
+              </div>
+              <button class="btn-new-requisition" onclick="openRequisitionModal()"><i class="fas fa-plus"></i> 新增申领物</button>
+            </div>
+          </div>
+          <div id="requisitionList" class="requisition-grid">
+            <div class="requisition-empty">
+              <i class="fas fa-box-open" style="font-size:48px;margin-bottom:15px;opacity:0.3;"></i>
+              <p>正在加载申领物记录...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 应用窗口：管理台 · Siphon商店（manager.html 迁移） -->
+  <div class="appwin mgr-win" id="winMSiphon" data-appkey="m-siphon">
+    <div class="dwin-head">
+      <span class="dwin-ico"><svg viewBox="0 0 48 48"><path d="M4 24 C11 13 37 13 44 24 C37 35 11 35 4 24 Z" fill="#fff"/><circle cx="24" cy="24" r="6.5" fill="#e8907f"/></svg></span>
+      <span class="dwin-title">管理台 · Siphon商店</span>
+      
+      <button class="dwin-btn" data-maxbtn title="向下还原"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="7" width="12" height="12" rx="1.5"/><path d="M8 7 V4.5 h12 v12 H17.5"/></svg></button>
+      <button class="dwin-btn" data-appclose title="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button>
+    </div>
+    <div class="appwin-body mgr-body">
+      <!-- 页面4: Siphon商店 -->
+      <div class="tab-content active" id="tabSiphon">
+        <div class="requisition-panel">
+          <div class="requisition-header">
+            <h3><i class="fas fa-eye" style="color:var(--accent)"></i> Siphon商店</h3>
+            <div class="header-actions">
+              <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="siphonSearchInput" placeholder="搜索商品..." oninput="filterSiphonProducts()">
+              </div>
+              <button class="btn-new-requisition" onclick="openSiphonModal()"><i class="fas fa-plus"></i> 新增商品</button>
+            </div>
+          </div>
+          <div id="siphonProductList" class="requisition-grid">
+            <div class="requisition-empty">
+              <i class="fas fa-eye" style="font-size:48px;margin-bottom:15px;opacity:0.3;color:var(--accent)"></i>
+              <p>正在加载Siphon商品...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 应用窗口：管理台 · 异常能力模板（manager.html 迁移） -->
+  <div class="appwin mgr-win" id="winMAnomaly" data-appkey="m-anomaly">
+    <div class="dwin-head">
+      <span class="dwin-ico"><svg viewBox="0 0 48 48"><path d="M26 4 L10 28 h9 L17 44 L36 19 h-10 Z" fill="#fff"/></svg></span>
+      <span class="dwin-title">管理台 · 异常能力模板</span>
+      
+      <button class="dwin-btn" data-maxbtn title="向下还原"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="7" width="12" height="12" rx="1.5"/><path d="M8 7 V4.5 h12 v12 H17.5"/></svg></button>
+      <button class="dwin-btn" data-appclose title="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button>
+    </div>
+    <div class="appwin-body mgr-body">
+      <!-- 页面6: 异常能力模板 -->
+      <div class="tab-content active" id="tabAnomaly">
+        <div class="requisition-panel">
+          <div class="requisition-header">
+            <h3><i class="fas fa-bolt"></i> 异常能力模板</h3>
+            <div style="display:flex;gap:8px;">
+              <label class="btn-new-requisition" style="background:#27ae60;cursor:pointer;">
+                <i class="fas fa-file-import"></i> 导入JSON
+                <input type="file" accept=".json,application/json" onchange="importAnomalyJson(event)" style="display:none;">
+              </label>
+              <button class="btn-new-requisition" onclick="openAnomalyTemplateModal()" style="background:#3498db;"><i class="fas fa-plus"></i> 创建模板</button>
+            </div>
+          </div>
+          <div id="anomalyTemplateList" class="requisition-grid">
+            <div class="requisition-empty">
+              <i class="fas fa-bolt" style="font-size:48px;margin-bottom:15px;opacity:0.3;"></i>
+              <p>正在加载...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 应用窗口：管理台 · 破坏条（manager.html 迁移） -->
+  <div class="appwin mgr-win" id="winMDest" data-appkey="m-dest">
+    <div class="dwin-head">
+      <span class="dwin-ico"><svg viewBox="0 0 48 48"><circle cx="20" cy="28" r="12" fill="#fff"/><rect x="26" y="8" width="10" height="10" rx="2" fill="#fff" transform="rotate(20 31 13)"/></svg></span>
+      <span class="dwin-title">管理台 · 破坏条</span>
+      
+      <button class="dwin-btn" data-maxbtn title="向下还原"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="7" width="12" height="12" rx="1.5"/><path d="M8 7 V4.5 h12 v12 H17.5"/></svg></button>
+      <button class="dwin-btn" data-appclose title="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button>
+    </div>
+    <div class="appwin-body mgr-body">
+      <!-- 页面7: 破坏条 -->
+      <div class="tab-content active" id="tabDestruction">
+        <div class="requisition-panel">
+          <div class="requisition-header">
+            <h3><i class="fas fa-bomb"></i> 破坏条</h3>
+            <button class="btn-new-requisition" onclick="saveDestructionTrack()" style="background:#3498db;"><i class="fas fa-save"></i> 保存</button>
+          </div>
+          <div class="destruction-track-container">
+            <div class="track-row-wrap destruction-track-wrap">
+              <svg class="track-svg dest-svg"></svg>
+              <div class="dest-snake" id="destructionGrid"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 应用窗口：管理台 · 入职申请（manager.html 迁移） -->
+  <div class="appwin mgr-win" id="winMApps" data-appkey="m-apps">
+    <div class="dwin-head">
+      <span class="dwin-ico"><svg viewBox="0 0 48 48"><path d="M10 6 h20 l8 8 v28 a2 2 0 0 1 -2 2 H10 a2 2 0 0 1 -2 -2 V8 a2 2 0 0 1 2 -2 Z" fill="#fff"/></svg></span>
+      <span class="dwin-title">管理台 · 入职申请</span>
+      
+      <button class="dwin-btn" data-maxbtn title="向下还原"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="7" width="12" height="12" rx="1.5"/><path d="M8 7 V4.5 h12 v12 H17.5"/></svg></button>
+      <button class="dwin-btn" data-appclose title="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button>
+    </div>
+    <div class="appwin-body mgr-body">
+      <!-- 页面5: 入职申请 -->
+      <div class="tab-content active" id="tabApplications">
+        <div class="requisition-panel">
+          <div class="requisition-header">
+            <h3><i class="fas fa-door-open"></i> 入职申请</h3>
+            <button class="btn-new-requisition" onclick="loadBranchApplications()" style="background:#3498db;"><i class="fas fa-sync-alt"></i> 刷新</button>
+          </div>
+          <div id="applicationList" class="requisition-grid">
+            <div class="requisition-empty">
+              <i class="fas fa-door-open" style="font-size:48px;margin-bottom:15px;opacity:0.3;"></i>
+              <p>正在加载申请...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 应用窗口：管理台 · NPC关系预设（manager.html 迁移） -->
+  <div class="appwin mgr-win" id="winMNpc" data-appkey="m-npc">
+    <div class="dwin-head">
+      <span class="dwin-ico"><svg viewBox="0 0 48 48"><path d="M8 6 h24 l8 8 v20 a4 4 0 0 1 -4 4 H8 a4 4 0 0 1 -4 -4 V10 a4 4 0 0 1 4 -4 Z" fill="#fff" transform="translate(4 2)"/></svg></span>
+      <span class="dwin-title">管理台 · NPC关系预设</span>
+      
+      <button class="dwin-btn" data-maxbtn title="向下还原"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="7" width="12" height="12" rx="1.5"/><path d="M8 7 V4.5 h12 v12 H17.5"/></svg></button>
+      <button class="dwin-btn" data-appclose title="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button>
+    </div>
+    <div class="appwin-body mgr-body">
+      <!-- 页面8: NPC关系模板 -->
+      <div class="tab-content active" id="tabNpc">
+        <div class="requisition-panel">
+          <div class="requisition-header">
+            <h3><i class="fas fa-user-tag" style="color:#f39c12;"></i> NPC 关系预设</h3>
+            <button class="btn-new-requisition" onclick="openNpcTemplateModal()" style="background:#f39c12;"><i class="fas fa-plus"></i> 创建关系</button>
+          </div>
+          <div id="npcTemplateList" class="requisition-grid">
+            <div class="requisition-empty">
+              <i class="fas fa-user-tag" style="font-size:48px;margin-bottom:15px;opacity:0.3;"></i>
+              <p>正在加载...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 应用窗口：办公室（office.html 移植：等距 SVG 平面图 + 工位悬停信息卡） -->
+  <div class="appwin" id="winOffice">
+    <div class="dwin-head">
+      <span class="dwin-ico"><svg viewBox="0 0 48 48"><path d="M9 42 V14 a2 2 0 0 1 2 -2 h12 a2 2 0 0 1 2 2 v28 Z" fill="#fff"/><path d="M25 42 V22 a2 2 0 0 1 2 -2 h11 a2 2 0 0 1 2 2 v20 Z" fill="#fff" opacity=".82"/><g fill="#e8907f"><rect x="13" y="17" width="4" height="4" rx="1"/><rect x="19" y="17" width="4" height="4" rx="1"/><rect x="13" y="24" width="4" height="4" rx="1"/><rect x="19" y="24" width="4" height="4" rx="1"/><rect x="29" y="25" width="3.6" height="3.6" rx="1"/><rect x="34.4" y="25" width="3.6" height="3.6" rx="1"/><rect x="29" y="31" width="3.6" height="3.6" rx="1"/></g><rect x="6" y="42" width="36" height="3" rx="1.5" fill="#fff"/></svg></span>
+      <span class="dwin-title">办公室</span>
+      <button class="dwin-btn" data-maxbtn title="向下还原"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="7" width="12" height="12" rx="1.5"/><path d="M8 7 V4.5 h12 v12 H17.5"/></svg></button>
+      <button class="dwin-btn" data-appclose title="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button>
+    </div>
+    <div class="appwin-body office-body">
+      <div class="office-toolbar">
+        <span class="office-sort-btns">
+          <button class="office-sort-btn active" data-mode="mvp"><i class="fas fa-medal"></i> MVP</button>
+          <button class="office-sort-btn" data-mode="watch"><i class="fas fa-eye"></i> 察看期</button>
+          <button class="office-sort-btn" data-mode="mission"><i class="fas fa-tasks"></i> 出勤</button>
+        </span>
+        <span class="office-flex"></span>
+        <span class="office-branch-selector" id="officeBranchSel"></span>
+        <button class="office-action-btn" id="officeLocate"><i class="fas fa-crosshairs"></i> 定位自己</button>
+        <button class="office-action-btn" id="officeMySig"><i class="fas fa-signature"></i> 我的签名</button>
+      </div>
+      <div class="office-canvas" id="officeCanvas"></div>
+    </div>
+  </div>
+
+  <!-- 应用窗口：系统设置（admin.html 迁移，仅超级管理员） -->
+  <div class="appwin mgr-win" id="winMAdmin" data-appkey="m-admin">
+    <div class="dwin-head">
+      <span class="dwin-ico"><svg viewBox="0 0 48 48"><path d="M40 26.5 v-5 l-5 -1.2 a11 11 0 0 0 -1.3 -3.2 l2.8 -4.3 l-3.5 -3.5 l-4.3 2.8 a11 11 0 0 0 -3.2 -1.3 L24.3 5.5 h-5 l-1.2 5.3 a11 11 0 0 0 -3.2 1.3 L10.6 9.3 l-3.5 3.5 l2.8 4.3 a11 11 0 0 0 -1.3 3.2 L3.3 21.5 v5 l5.3 1.2 a11 11 0 0 0 1.3 3.2 l-2.8 4.3 l3.5 3.5 l4.3 -2.8 a11 11 0 0 0 3.2 1.3 l1.2 5.3 h5 l1.2 -5.3 a11 11 0 0 0 3.2 -1.3 l4.3 2.8 l3.5 -3.5 l-2.8 -4.3 a11 11 0 0 0 1.3 -3.2 Z" fill="#fff" transform="translate(2.2 5.2) scale(.92)"/><circle cx="24" cy="24" r="6.5" fill="#e8907f"/></svg></span>
+      <span class="dwin-title">系统设置</span>
+      <button class="dwin-btn" data-maxbtn title="向下还原"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="7" width="12" height="12" rx="1.5"/><path d="M8 7 V4.5 h12 v12 H17.5"/></svg></button>
+      <button class="dwin-btn" data-appclose title="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button>
+    </div>
+    <div class="appwin-body mgr-body adm-body">
+      <div class="adm-layout">
+        <!-- 左侧导航 -->
+        <div class="adm-nav">
+          <button class="adm-nav-btn active" data-tab="users">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20 a6.5 6.5 0 0 1 13 0 Z"/><circle cx="17" cy="9" r="2.8"/><path d="M14.5 19.5 a5.5 5.5 0 0 1 8 -4.8"/></svg>
+            <span>人员管理</span>
+          </button>
+          <button class="adm-nav-btn" data-tab="branches">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21 V5 a2 2 0 0 1 2 -2 h8 a2 2 0 0 1 2 2 v16"/><path d="M16 9 h3 a1.5 1.5 0 0 1 1.5 1.5 V21"/><path d="M2.5 21 h19"/><path d="M8 7.5 h1.5 M8 11.5 h1.5 M12.5 7.5 h1.5 M12.5 11.5 h1.5"/></svg>
+            <span>分部管理</span>
+          </button>
+          <button class="adm-nav-btn" data-tab="config">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15 a1.65 1.65 0 0 0 .33 1.82 l.06.06 a2 2 0 1 1 -2.83 2.83 l-.06 -.06 a1.65 1.65 0 0 0 -1.82 -.33 a1.65 1.65 0 0 0 -1 1.51 V21 a2 2 0 1 1 -4 0 v-.09 a1.65 1.65 0 0 0 -1 -1.51 a1.65 1.65 0 0 0 -1.82.33 l-.06.06 a2 2 0 1 1 -2.83 -2.83 l.06 -.06 a1.65 1.65 0 0 0 .33 -1.82 a1.65 1.65 0 0 0 -1.51 -1 H3 a2 2 0 1 1 0 -4 h.09 a1.65 1.65 0 0 0 1.51 -1 a1.65 1.65 0 0 0 -.33 -1.82 l-.06 -.06 a2 2 0 1 1 2.83 -2.83 l.06.06 a1.65 1.65 0 0 0 1.82.33 h0 a1.65 1.65 0 0 0 1 -1.51 V3 a2 2 0 1 1 4 0 v.09 a1.65 1.65 0 0 0 1 1.51 h0 a1.65 1.65 0 0 0 1.82 -.33 l.06 -.06 a2 2 0 1 1 2.83 2.83 l-.06.06 a1.65 1.65 0 0 0 -.33 1.82 v0 a1.65 1.65 0 0 0 1.51 1 H21 a2 2 0 1 1 0 4 h-.09 a1.65 1.65 0 0 0 -1.51 1 Z"/></svg>
+            <span>系统设置</span>
+          </button>
+        </div>
+        <!-- 内容区 -->
+        <div class="adm-content">
+          <!-- 人员管理 -->
+          <div class="adm-pane active" data-pane="users">
+            <div class="adm-card">
+              <div class="adm-card-h"><b>入职登记</b><span>创建新的系统用户</span></div>
+              <div class="adm-form-row">
+                <input type="text" id="admNewName" class="adm-input" placeholder="职员姓名">
+                <input type="text" id="admNewUser" class="adm-input" placeholder="登录账号 *">
+                <input type="text" id="admNewPass" class="adm-input" placeholder="登录密码 *">
+                <select id="admNewRole" class="adm-input">
+                  <option value="0">玩家</option>
+                  <option value="1">经理</option>
+                  <option value="2">超级管理员</option>
+                </select>
+                <button class="adm-btn-primary" id="admAddUser">＋ 入职登记</button>
+              </div>
+            </div>
+            <div class="adm-card">
+              <div class="adm-card-h"><b>人员列表</b><span id="admUserCount"></span></div>
+              <div class="adm-toolbar">
+                <div class="adm-filters">
+                  <button class="adm-filter-btn active" data-role="all">全部</button>
+                  <button class="adm-filter-btn" data-role="0">玩家</button>
+                  <button class="adm-filter-btn" data-role="1">经理</button>
+                  <button class="adm-filter-btn" data-role="2">超管</button>
+                </div>
+                <input type="text" id="admUserSearch" class="adm-input adm-search" placeholder="SEARCH... 输入姓名或账号检索">
+              </div>
+              <div id="admUserList" class="adm-list"></div>
+            </div>
+          </div>
+          <!-- 分部管理 -->
+          <div class="adm-pane" data-pane="branches">
+            <div class="adm-card">
+              <div class="adm-card-h"><b>创建分部</b><span>新建一个分部</span></div>
+              <div class="adm-form-row">
+                <input type="text" id="admNewBranchName" class="adm-input" placeholder="分部名称 *">
+                <input type="text" id="admNewBranchDesc" class="adm-input adm-input-wide" placeholder="分部描述（可选）">
+                <button class="adm-btn-primary" id="admAddBranch">＋ 创建分部</button>
+              </div>
+            </div>
+            <div class="adm-card">
+              <div class="adm-card-h"><b>分部列表</b><span>成员与档案统计</span></div>
+              <div id="admBranchList" class="adm-list"></div>
+            </div>
+          </div>
+          <!-- 系统设置 -->
+          <div class="adm-pane" data-pane="config">
+            <div class="adm-card">
+              <div class="adm-card-h"><b>注册设置</b><span>账号注册策略</span></div>
+              <div class="adm-cfg-row">
+                <div><label>开放注册</label><div class="adm-desc">允许新用户自行注册账号</div></div>
+                <label class="adm-switch"><input type="checkbox" id="admCfg_reg_enabled"><span class="adm-slider"></span></label>
+              </div>
+              <div class="adm-cfg-row">
+                <div><label>邮箱验证</label><div class="adm-desc">注册时需要验证邮箱（需配置SMTP）</div></div>
+                <label class="adm-switch"><input type="checkbox" id="admCfg_email_enabled"><span class="adm-slider"></span></label>
+              </div>
+            </div>
+            <div class="adm-card">
+              <div class="adm-card-h"><b>SMTP 邮件配置</b><span>验证码邮件发送</span></div>
+              <div class="adm-form-grid">
+                <div class="adm-field"><label>SMTP 服务器</label><input type="text" id="admCfg_smtp_host" class="adm-input" placeholder="smtp.example.com"></div>
+                <div class="adm-field"><label>端口</label><input type="text" id="admCfg_smtp_port" class="adm-input" placeholder="587"></div>
+                <div class="adm-field"><label>用户名</label><input type="text" id="admCfg_smtp_user" class="adm-input" placeholder="your@email.com"></div>
+                <div class="adm-field"><label>密码</label><input type="password" id="admCfg_smtp_pass" class="adm-input" placeholder="••••••••"></div>
+                <div class="adm-field adm-full"><label>发件人地址</label><input type="text" id="admCfg_smtp_from" class="adm-input" placeholder="Triangle Agency <noreply@example.com>"></div>
+                <div class="adm-cfg-row adm-full" style="background:transparent;border:none;padding:0;">
+                  <div><label>使用 SSL/TLS</label><div class="adm-desc">端口465通常需要开启</div></div>
+                  <label class="adm-switch"><input type="checkbox" id="admCfg_smtp_secure"><span class="adm-slider"></span></label>
+                </div>
+              </div>
+              <div class="adm-btn-row">
+                <button class="adm-btn" id="admTestSmtp">测试连接</button>
+                <button class="adm-btn-primary admSaveCfg">保存配置</button>
+              </div>
+            </div>
+            <div class="adm-card">
+              <div class="adm-card-h"><b>COS 对象存储</b><span>腾讯云图床上传</span></div>
+              <div class="adm-cfg-row">
+                <div><label>启用 COS 上传</label><div class="adm-desc">开启后 mission-panel 图库将上传至腾讯云 COS</div></div>
+                <label class="adm-switch"><input type="checkbox" id="admCfg_cos_enabled"><span class="adm-slider"></span></label>
+              </div>
+              <div class="adm-form-grid">
+                <div class="adm-field"><label>SecretId</label><input type="text" id="admCfg_cos_secret_id" class="adm-input" placeholder="AKID..."></div>
+                <div class="adm-field"><label>SecretKey</label><input type="password" id="admCfg_cos_secret_key" class="adm-input" placeholder="••••••••"></div>
+                <div class="adm-field"><label>Bucket</label><input type="text" id="admCfg_cos_bucket" class="adm-input" placeholder="xxx-1300000000"></div>
+                <div class="adm-field"><label>Region</label><input type="text" id="admCfg_cos_region" class="adm-input" placeholder="ap-guangzhou"></div>
+                <div class="adm-field adm-full"><label>自定义域名 / CDN（可选）</label><input type="text" id="admCfg_cos_domain" class="adm-input" placeholder="https://cdn.example.com"></div>
+              </div>
+              <div class="adm-btn-row">
+                <button class="adm-btn-primary admSaveCfg">保存配置</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 邮件阅读弹窗 -->
+  <div class="char-mask" id="mailViewMask">
+    <div class="char-modal" id="mailViewModal" style="width:500px;max-width:calc(100vw - 48px);">
+      <div class="cm-head"><b id="mvSubject">邮件</b><span class="cm-close" id="mvClose" title="关闭">×</span></div>
+      <div class="mv-body">
+        <div class="mv-meta" id="mvMeta"></div>
+        <div class="mv-content" id="mvContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 写信表单弹窗（点击遮罩不关闭，防误触） -->
+  <div class="char-mask" id="ocMask" style="z-index:60;">
+    <div class="char-modal" id="ocModal" style="width:520px;max-width:calc(100vw - 48px);">
+      <div class="cm-head"><b id="ocTitle">写信</b><span class="cm-close" id="ocClose" title="关闭">×</span></div>
+      <div class="em-body" id="ocBody" style="max-height:64vh;"></div>
+    </div>
+  </div>
+
+  <!-- 应用窗口：生涯（进度追踪，复刻 sheet 轨道） -->
+  <div class="dwin dw-career" id="winCareer">
+    <div class="dwin-head">
+      <span class="dwin-ico"><svg viewBox="0 0 48 48"><g fill="#fff"><rect x="3" y="26" width="7" height="15" rx="1.5"/><rect x="14" y="16" width="7" height="25" rx="1.5"/><rect x="25" y="6" width="7" height="35" rx="1.5"/></g></svg></span>
+      <span class="dwin-title">生涯</span>
+      <button class="dwin-btn" id="careerEditBtn" title="编辑进度"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20 h4.5 L20 8.5 a2.1 2.1 0 0 0 -4.5 -4.5 L4 15.5 Z"/><path d="M13.5 5.5 L18.5 10.5"/></svg></button>
+      <button class="dwin-btn" data-close="winCareer" title="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button>
+    </div>
+    <div class="career-body" id="careerBody">
+<div class="track-sec"><h3 class="c-func" style="font-size:12px; margin:5px 0;">职能</h3><div class="track-row-wrap"><svg class="track-svg" data-type="f"></svg><div class="track-snake" data-type="f"><div class="p-cell f-cell" data-idx="1"></div><div class="p-cell f-cell" data-idx="2"></div><div class="p-cell f-cell" data-idx="3"><span>A3</span></div><div class="p-cell f-cell" data-idx="4"></div><div class="p-cell f-cell" data-idx="5"></div><div class="p-cell f-cell" data-idx="6"><span>D4</span></div><div class="p-cell f-cell" data-idx="7"></div><div class="p-cell f-cell" data-idx="8"></div><div class="p-cell f-cell" data-idx="9"><span>G3</span></div><div class="p-cell f-cell" data-idx="10"></div><div class="p-cell f-cell" data-idx="11"></div><div class="p-cell f-cell" data-idx="12"><span>J3</span></div><div class="p-cell f-cell" data-idx="13"></div><div class="p-cell f-cell" data-idx="14"></div><div class="p-cell f-cell" data-idx="15"><span>N3</span></div><div class="p-cell f-cell" data-idx="30"></div><div class="p-cell f-cell" data-idx="29"></div><div class="p-cell f-cell" data-idx="28"></div><div class="p-cell f-cell" data-idx="27"><span>Y2</span></div><div class="p-cell f-cell" data-idx="26"></div><div class="p-cell f-cell" data-idx="25"></div><div class="p-cell f-cell" data-idx="24"><span>W8</span></div><div class="p-cell f-cell" data-idx="23"></div><div class="p-cell f-cell" data-idx="22"></div><div class="p-cell f-cell" data-idx="21"><span>T3</span></div><div class="p-cell f-cell" data-idx="20"></div><div class="p-cell f-cell" data-idx="19"></div><div class="p-cell f-cell" data-idx="18"><span>Q3</span></div><div class="p-cell f-cell" data-idx="17"></div><div class="p-cell f-cell" data-idx="16"></div></div></div><div class="track-rule">当你获得任务MVP时，在你的职能记录条上标记1格，且无需从其他记录条上移除一格。</div><div class="track-rule">每当你在职能记录条上标记一格时，将任意一项资质的"资质保证上限"提升1点，最高不超过9点。</div></div>
+<div class="track-sec"><h3 class="c-real" style="font-size:12px; margin:5px 0;">现实</h3><div class="track-row-wrap"><svg class="track-svg" data-type="r"></svg><div class="track-snake" data-type="r"><div class="p-cell r-cell" data-idx="1"><span>C4</span></div><div class="p-cell r-cell" data-idx="2"></div><div class="p-cell r-cell" data-idx="3"></div><div class="p-cell r-cell" data-idx="4"><span>L11</span></div><div class="p-cell r-cell" data-idx="5"></div><div class="p-cell r-cell" data-idx="6"></div><div class="p-cell r-cell" data-idx="7"></div><div class="p-cell r-cell" data-idx="8"><span>E2</span></div><div class="p-cell r-cell" data-idx="9"></div><div class="p-cell r-cell" data-idx="10"><span>O4</span></div><div class="p-cell r-cell" data-idx="11"></div><div class="p-cell r-cell" data-idx="12"></div><div class="p-cell r-cell" data-idx="13"></div><div class="p-cell r-cell" data-idx="14"><span>T6</span></div><div class="p-cell r-cell" data-idx="15"></div><div class="p-cell r-cell" data-idx="30"></div><div class="p-cell r-cell" data-idx="29"></div><div class="p-cell r-cell" data-idx="28"></div><div class="p-cell r-cell" data-idx="27"><span>E3</span></div><div class="p-cell r-cell" data-idx="26"></div><div class="p-cell r-cell" data-idx="25"></div><div class="p-cell r-cell" data-idx="24"></div><div class="p-cell r-cell" data-idx="23"></div><div class="p-cell r-cell" data-idx="22"><span>H5</span></div><div class="p-cell r-cell" data-idx="21"></div><div class="p-cell r-cell" data-idx="20"><span>X3</span></div><div class="p-cell r-cell" data-idx="19"></div><div class="p-cell r-cell" data-idx="18"></div><div class="p-cell r-cell" data-idx="17"></div><div class="p-cell r-cell" data-idx="16"><span>V2</span></div></div></div><div class="track-rule">当你既未获得任务MVP也未进入察看期时，你可以将你与任意一段关系的连结提升1点。</div><div class="track-rule">每当你在现实记录条上标记一格时，将你与任意一段"关系"的"连结"提升1点，然后对关系网内的每段关系重复此操作。</div></div>
+<div class="track-sec"><h3 class="c-anom" style="font-size:12px; margin:5px 0;">异常</h3><div class="track-row-wrap"><svg class="track-svg" data-type="a"></svg><div class="track-snake" data-type="a"><div class="p-cell a-cell" data-idx="1"><span>H4</span></div><div class="p-cell a-cell" data-idx="2"><span>H3</span></div><div class="p-cell a-cell" data-idx="3"></div><div class="p-cell a-cell" data-idx="4"></div><div class="p-cell a-cell" data-idx="5"><span>U2</span></div><div class="p-cell a-cell" data-idx="6"></div><div class="p-cell a-cell" data-idx="7"><span>X2</span></div><div class="p-cell a-cell" data-idx="8"></div><div class="p-cell a-cell" data-idx="9"></div><div class="p-cell a-cell" data-idx="10"></div><div class="p-cell a-cell" data-idx="11"><span>N1</span></div><div class="p-cell a-cell" data-idx="12"></div><div class="p-cell a-cell" data-idx="13"><span>Q2</span></div><div class="p-cell a-cell" data-idx="14"></div><div class="p-cell a-cell" data-idx="15"></div><div class="p-cell a-cell" data-idx="30"></div><div class="p-cell a-cell" data-idx="29"></div><div class="p-cell a-cell" data-idx="28"></div><div class="p-cell a-cell" data-idx="27"></div><div class="p-cell a-cell" data-idx="26"></div><div class="p-cell a-cell" data-idx="25"></div><div class="p-cell a-cell" data-idx="24"></div><div class="p-cell a-cell" data-idx="23"><span>A7</span></div><div class="p-cell a-cell" data-idx="22"></div><div class="p-cell a-cell" data-idx="21"></div><div class="p-cell a-cell" data-idx="20"></div><div class="p-cell a-cell" data-idx="19"><span>G8</span></div><div class="p-cell a-cell" data-idx="18"></div><div class="p-cell a-cell" data-idx="17"><span>L10</span></div><div class="p-cell a-cell" data-idx="16"></div></div></div><div class="track-rule">当你进入察看期时，在你的异常记录条上标记1格，且无需从其他记录条上移除一格。</div><div class="track-rule">每当你在异常记录条上标记一格时，选择一项：<br>➤练习：在任意一项异常能力上标记"熟练"。 <br>➤广为人知：从一项异常能力中移除"熟练"标记，并向你的团队提出该能力的问题。在获得最多票数的答案轨道上做标记，然后获得所有已解锁的能力。</div></div>
+    </div>
+  </div>
+
+  <div class="desk-toast" id="deskToast"></div>
+
+  <!-- 经理控制台 toast（manager 模块 showToast 使用） -->
+  <div class="toast" id="toast"></div>
+
+  <!-- 桌面应用图标：点击打开最大化应用窗口 -->
+  <div class="dicons">
+    <div class="dico" data-app="docs" title="基础信息 · 资质保证 · 欢迎你特工">
+      <svg viewBox="0 0 48 48"><rect x="10" y="6" width="28" height="36" rx="3" fill="#fff"/><g stroke="#e8907f" stroke-width="2.5" stroke-linecap="round"><line x1="16" y1="15" x2="32" y2="15"/><line x1="16" y1="21" x2="32" y2="21"/><line x1="16" y1="27" x2="32" y2="27"/><line x1="16" y1="33" x2="26" y2="33"/></g></svg>
+      <span>我的档案</span>
+    </div>
+    <div class="dico" data-app="board" title="任务画板">
+      <svg viewBox="0 0 48 48"><rect x="6" y="8" width="36" height="26" rx="2" fill="#fff"/><rect x="9" y="11" width="30" height="20" fill="#e8907f"/><rect x="20" y="34" width="8" height="4" fill="#fff"/><rect x="14" y="38" width="20" height="3" rx="1.5" fill="#fff"/></svg>
+      <span>外勤OS</span>
+    </div>
+    <div class="dico" data-app="shop" title="申领物商城">
+      <svg viewBox="0 0 48 48"><path d="M11 17 h26 l-2.6 23 a3 3 0 0 1 -3 2.7 h-14.8 a3 3 0 0 1 -3 -2.7 Z" fill="#fff"/><path d="M17.5 20 v-7 a6.5 6.5 0 0 1 13 0 v7" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/><g stroke="#e8907f" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="27" x2="30" y2="27"/><line x1="18" y1="33" x2="30" y2="33"/></g></svg>
+      <span>职员内购</span>
+    </div>
+    <div class="dico" data-app="highwall" title="高墙档案库">
+      <svg viewBox="0 0 48 48"><rect x="8" y="8" width="32" height="32" rx="4" fill="#fff"/><g stroke="#e8907f" stroke-width="3" stroke-linecap="round"><line x1="17" y1="14" x2="17" y2="34"/><line x1="24" y1="14" x2="24" y2="34"/><line x1="31" y1="14" x2="31" y2="34"/></g></svg>
+      <span>高墙文件</span>
+    </div>
+    <div class="dico" data-app="history" title="建设中">
+      <svg viewBox="0 0 48 48"><circle cx="24" cy="25" r="16" fill="none" stroke="#fff" stroke-width="3.5"/><path d="M24 16 v9 l7 5" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 6 L10 12 M31 6 L38 12" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>
+      <span>历史记录</span>
+    </div>
+    <div class="dico" data-app="office" title="分部办公室 · 工位一览">
+      <svg viewBox="0 0 48 48"><path d="M9 42 V14 a2 2 0 0 1 2 -2 h12 a2 2 0 0 1 2 2 v28 Z" fill="#fff"/><path d="M25 42 V22 a2 2 0 0 1 2 -2 h11 a2 2 0 0 1 2 2 v20 Z" fill="#fff" opacity=".82"/><g fill="#e8907f"><rect x="13" y="17" width="4" height="4" rx="1"/><rect x="19" y="17" width="4" height="4" rx="1"/><rect x="13" y="24" width="4" height="4" rx="1"/><rect x="19" y="24" width="4" height="4" rx="1"/><rect x="29" y="25" width="3.6" height="3.6" rx="1"/><rect x="34.4" y="25" width="3.6" height="3.6" rx="1"/><rect x="29" y="31" width="3.6" height="3.6" rx="1"/></g><rect x="6" y="42" width="36" height="3" rx="1.5" fill="#fff"/></svg>
+      <span>办公室</span>
+    </div>
+    <div class="dico x2-only" data-app="siphon-shop" title="虹吸商店（解锁X2可入）">
+      <svg viewBox="0 0 48 48"><path d="M12 8 h24 l-8 13 v14 l-8 5 v-19 Z" fill="#fff"/><path d="M16 10 l4.2 6 h7.6 L32 10 Z" fill="#e8907f"/><path d="M20 21 v14 l4 2.5 l4 -2.5 v-14 h-3 v9 l-2 1.2 l-2 -1.2 v-9 Z" fill="#e8907f"/></svg>
+      <span>虹吸商店</span>
+    </div>
+    <!-- ===== 管理台图标（仅经理/超管可见，class granted 由脚本点亮） ===== -->
+        <div class="dico mgr-only" data-app="m-char" title="管理台 · 特工档案">
+      <svg viewBox="0 0 48 48"><rect x="7" y="6" width="34" height="36" rx="5" fill="#fff"/><circle cx="24" cy="17" r="6" fill="#e8907f"/><path d="M15 31 a9 9 0 0 1 18 0 Z" fill="#e8907f"/><g stroke="#e8907f" stroke-width="2.4" stroke-linecap="round"><line x1="13" y1="37" x2="35" y2="37"/></g></svg>
+      <span>特工档案</span>
+    </div>
+    <div class="dico mgr-only" data-app="m-missions" title="管理台 · 外勤任务">
+      <svg viewBox="0 0 48 48"><rect x="7" y="7" width="34" height="34" rx="5" fill="#fff"/><g stroke="#e8907f" stroke-width="2.4" stroke-linecap="round"><line x1="14" y1="15" x2="34" y2="15"/><line x1="14" y1="21" x2="34" y2="21"/><line x1="14" y1="27" x2="27" y2="27"/></g><path d="M14 31 l5 3 l-5 3 Z" fill="#e8907f"/></svg>
+      <span>外勤任务</span>
+    </div>
+    <div class="dico mgr-only" data-app="m-items" title="管理台 · 申领物">
+      <svg viewBox="0 0 48 48"><path d="M6 17 h36 v20 a3 3 0 0 1 -3 3 H9 a3 3 0 0 1 -3 -3 Z" fill="#fff"/><path d="M10 17 v-4 a3 3 0 0 1 3 -3 h22 a3 3 0 0 1 3 3 v4" fill="none" stroke="#fff" stroke-width="3"/><path d="M6 24 h15 M27 24 h15" stroke="#fff" stroke-width="3" fill="none"/><g stroke="#e8907f" stroke-width="2.2" stroke-linecap="round"><line x1="6" y1="28" x2="19" y2="28"/><line x1="29" y1="28" x2="42" y2="28"/></g></svg>
+      <span>申领物</span>
+    </div>
+    <div class="dico mgr-only" data-app="m-siphon" title="管理台 · Siphon商店">
+      <svg viewBox="0 0 48 48"><path d="M3 24 C12 10 36 10 45 24 C36 38 12 38 3 24 Z" fill="#fff"/><circle cx="24" cy="24" r="12" fill="#d8402f"/><circle cx="24" cy="24" r="6" fill="#fff"/><circle cx="27" cy="19" r="3" fill="#fff"/></svg>
+      <span>Siphon</span>
+    </div>
+    <div class="dico mgr-only" data-app="m-anomaly" title="管理台 · 异常能力模板">
+      <svg viewBox="0 0 48 48"><path d="M27 4 L11 27 h8.5 L17 44 L36 18 h-9.5 Z" fill="#fff"/><path d="M27 4 L11 27 h8.5 L17 44 L36 18 h-9.5 Z" fill="none" stroke="#e8907f" stroke-width="2"/></svg>
+      <span>异常</span>
+    </div>
+    <div class="dico mgr-only" data-app="m-dest" title="管理台 · 破坏条">
+      <svg viewBox="0 0 48 48"><g fill="#fff"><rect x="6" y="8" width="10" height="9" rx="2"/><rect x="16" y="21" width="10" height="9" rx="2"/><rect x="26" y="34" width="10" height="9" rx="2"/></g><g fill="#e8907f"><rect x="20" y="8" width="10" height="9" rx="2"/><rect x="30" y="21" width="10" height="9" rx="2"/></g><g fill="#fff"><rect x="10" y="34" width="10" height="9" rx="2"/><rect x="38" y="8" width="4" height="9" rx="2"/></g></svg>
+      <span>破坏条</span>
+    </div>
+    <div class="dico mgr-only" data-app="m-apps" title="管理台 · 入职申请">
+      <svg viewBox="0 0 48 48"><rect x="9" y="5" width="30" height="38" rx="4" fill="#fff"/><path d="M16 9 h16 v5 a8 8 0 0 1 -16 0 Z" fill="#e8907f"/><circle cx="24" cy="33" r="4.5" fill="none" stroke="#e8907f" stroke-width="2.4"/><path d="M20.5 33 h7 M24 33 v-4" stroke="#e8907f" stroke-width="2.2" stroke-linecap="round"/></svg>
+      <span>申请</span>
+    </div>
+    <div class="dico mgr-only" data-app="m-npc" title="管理台 · NPC关系预设">
+      <svg viewBox="0 0 48 48"><rect x="6" y="8" width="36" height="32" rx="5" fill="#fff"/><circle cx="24" cy="19" r="5.5" fill="#e8907f"/><path d="M16 31 a8 8 0 0 1 16 0 Z" fill="#e8907f"/><path d="M35 10 c2 1.6 3.4 2.6 3.4 4 a2.1 2.1 0 0 1 -3.4 -1 a2.1 2.1 0 0 1 -3.4 1 c0 -1.4 1.4 -2.4 3.4 -4 Z" fill="#e8907f"/></svg>
+      <span>NPC</span>
+    </div>
+    <div class="dico admin-only" data-app="m-admin" title="系统设置（仅超级管理员）">
+      <svg viewBox="0 0 48 48"><g fill="#fff"><rect x="21" y="3" width="6" height="8" rx="2.4"/><rect x="21" y="37" width="6" height="8" rx="2.4"/><rect x="3" y="21" width="8" height="6" rx="2.4"/><rect x="37" y="21" width="8" height="6" rx="2.4"/><circle cx="24" cy="24" r="7"/></g><circle cx="24" cy="24" r="3.2" fill="#e8907f"/><g stroke="#e8907f" stroke-width="1.8" stroke-linecap="round"><line x1="24" y1="3" x2="24" y2="6"/><line x1="24" y1="42" x2="24" y2="45"/><line x1="3" y1="24" x2="6" y2="24"/><line x1="42" y1="24" x2="45" y2="24"/></g></svg>
+      <span>设置</span>
+    </div>
+    <div class="dico mgr-only" data-app="gt-terminal" title="总经理终端">
+      <svg viewBox="0 0 48 48"><rect x="8" y="6" width="32" height="36" rx="4" fill="#fff"/><path d="M13 14 L19 20 L13 26" fill="none" stroke="#e8907f" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><line x1="21" y1="27" x2="30" y2="27" stroke="#e8907f" stroke-width="2.6" stroke-linecap="round"/></svg>
+      <span>总经理终端</span>
+    </div>
+  </div>
+
+    <!-- 卡片行 -->
+  <div class="cards">
+    <div class="wcard" data-app="career" title="打开生涯进度">
+      <div class="wcard-head">
+        <span class="wcard-ico"><svg viewBox="0 0 24 24"><g fill="#fff"><rect x="3" y="13" width="4" height="8" rx="1"/><rect x="10" y="8" width="4" height="13" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></g></svg></span>
+        <b>生涯</b>
+      </div>
+      <div class="wrow"><span>职能</span><i id="careerPctF">0%</i></div>
+      <div class="wbar"><i id="careerBarF" style="width:0%"></i></div>
+      <div class="wrow"><span>现实</span><i id="careerPctR">0%</i></div>
+      <div class="wbar"><i id="careerBarR" style="width:0%"></i></div>
+      <div class="wrow"><span>异常</span><i id="careerPctA">0%</i></div>
+      <div class="wbar"><i id="careerBarA" style="width:0%"></i></div>
+    </div>
+    <div class="wcard">
+      <div class="wcard-head">
+        <span class="wcard-ico"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="17" rx="2" fill="#fff"/><rect x="7" y="2" width="3" height="5" rx="1" fill="#fff"/><rect x="14" y="2" width="3" height="5" rx="1" fill="#fff"/><g fill="#e8907f"><rect x="7" y="10" width="3" height="3"/><rect x="11" y="10" width="3" height="3"/><rect x="15" y="10" width="3" height="3"/><rect x="7" y="15" width="3" height="3"/><rect x="11" y="15" width="3" height="3"/></g></svg></span>
+        <b>考勤</b>
+      </div>
+      <div class="wrow"><span>MVP</span><i id="kqMvp">0</i></div>
+      <div class="wrow"><span>察看期</span><i id="kqWatch">0</i></div>
+      <div class="wrow"><span>嘉奖</span><i id="kqBonus">0</i></div>
+      <div class="wrow"><span>申诫</span><i id="kqRep">0</i></div>
+    </div>
+    <div class="wcard">
+      <div class="wcard-head">
+        <span class="wcard-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="1.6" opacity=".55"/><circle cx="12" cy="12" r="5" fill="none" stroke="#fff" stroke-width="1.6" opacity=".8"/><circle cx="12" cy="12" r="1.6" fill="#fff"/><path d="M12 12 L18.5 5.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        <b>区域监控</b>
+      </div>
+      <div class="wscatter">
+        <div class="wscatter-num" id="wScatterNum">--</div>
+        <div class="wscatter-unit">散 逸 端</div>
+        <div class="wscatter-live"><i></i><span>实时监测中</span></div>
+      </div>
+    </div>
+    <div class="wcard">
+      <div class="wcard-head">
+        <span class="wcard-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5" fill="#fff"/><g stroke="#fff" stroke-width="2" stroke-linecap="round"><line x1="12" y1="2.5" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="21.5"/><line x1="2.5" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="21.5" y2="12"/><line x1="5.2" y1="5.2" x2="7" y2="7"/><line x1="17" y1="17" x2="18.8" y2="18.8"/><line x1="18.8" y1="5.2" x2="17" y2="7"/><line x1="7" y1="17" x2="5.2" y2="18.8"/></g></svg></span>
+        <b>天气</b>
+      </div>
+      <div class="weather-strip" id="weatherStrip"><div class="weather-none">万里无云</div></div>
+    </div>
+  </div>
+
+  <!-- 搜索框：输入高墙文件编号，回车或发送查看 -->
+  <div class="search">
+    <svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="#d8402f" stroke-width="2.2"/><path d="M15.5 15.5 L20 20" stroke="#d8402f" stroke-width="2.2" stroke-linecap="round"/></svg>
+    <input id="hwSearch" placeholder="输入高墙文件编号进行查找..." autocomplete="off">
+    <button id="hwSearchGo" title="查看"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3 L3 10.5 l7 2.5 2.5 7 Z"/><path d="M10 13 L21 3"/></svg></button>
+  </div>
+
+  <!-- 任务栏：logo + 三个应用浮窗（异常/关系/物品） + 时钟 -->
+  <div class="taskbar">
+    <svg class="tb-logo" id="tbLogo" viewBox="0 0 26 24" title="个人资料"><path d="M13 2.5 L24 21.5 L2 21.5 Z" fill="none" stroke="#d8402f" stroke-width="2.2"/></svg>
+    <span class="tb-sep"></span>
+    <button class="tb-app" id="tbAnom" title="异常能力">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#d8402f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2.5 L5.5 13.5 H10 L11 21.5 L18.5 10.5 H14 Z"/></svg>
+    </button>
+    <button class="tb-app" id="tbReal" title="关系网">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#d8402f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20 C6.2 15.4 3.5 12.4 3.5 9 A4.4 4.4 0 0 1 12 6.6 A4.4 4.4 0 0 1 20.5 9 C20.5 12.4 17.8 15.4 12 20 Z"/></svg>
+    </button>
+    <button class="tb-app" id="tbItem" title="申领物">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#d8402f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="11" rx="2"/><path d="M9.5 8 V6.5 A1.5 1.5 0 0 1 11 5 h2 a1.5 1.5 0 0 1 1.5 1.5 V8"/><path d="M4 12.5 h16"/></svg>
+    </button>
+    <button class="tb-app" id="tbCareer" title="生涯"><svg viewBox="0 0 24 24"><g fill="#d8402f"><rect x="4" y="12" width="4" height="8" rx="1"/><rect x="10" y="8" width="4" height="12" rx="1"/><rect x="16" y="4" width="4" height="16" rx="1"/></g></svg></button>
+    <button class="tb-app" id="tbMail" title="邮箱"><i class="tb-mail-badge" id="tbMailBadge" style="display:none;"></i><svg viewBox="0 0 24 24" fill="none" stroke="#d8402f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5 L12 13 L20.5 6.5"/></svg></button>
+    <span class="tb-wins" id="taskWins"></span>
+    <span class="tb-flex"></span>
+        <button class="tb-unlash" id="btnUnlash" style="display:none;" title="修改骰子（消耗3点申诫）">UNL3ASH</button>
+    <span class="tb-clock" id="tbTime">10:30 AM</span>
+  </div>
+
+  <!-- 手机端 Dock：5 快捷应用（角色/异常/关系/物品/邮箱），桌面端隐藏，样式见 desktop.css 手机端块 -->
+  <div id="maDock">
+    <button class="ma-dock-btn" data-ma-app="docs" title="角色">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#d8402f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4.5 20 c1.2-4 4.2-6 7.5-6 s6.3 2 7.5 6"/></svg>
+      <span>角色</span>
+    </button>
+    <button class="ma-dock-btn" data-ma-tb="tbAnom" title="异常">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#d8402f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2.5 L5.5 13.5 H10 L11 21.5 L18.5 10.5 H14 Z"/></svg>
+      <span>异常</span>
+    </button>
+    <button class="ma-dock-btn" data-ma-tb="tbReal" title="关系">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#d8402f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20 C6.2 15.4 3.5 12.4 3.5 9 A4.4 4.4 0 0 1 12 6.6 A4.4 4.4 0 0 1 20.5 9 C20.5 12.4 17.8 15.4 12 20 Z"/></svg>
+      <span>关系</span>
+    </button>
+    <button class="ma-dock-btn" data-ma-tb="tbItem" title="物品">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#d8402f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="11" rx="2"/><path d="M9.5 8 V6.5 A1.5 1.5 0 0 1 11 5 h2 a1.5 1.5 0 0 1 1.5 1.5 V8"/><path d="M4 12.5 h16"/></svg>
+      <span>物品</span>
+    </button>
+    <button class="ma-dock-btn" data-ma-tb="tbMail" title="邮箱">
+      <i class="ma-mail-badge" id="maMailBadge" style="display:none;"></i>
+      <svg viewBox="0 0 24 24" fill="none" stroke="#d8402f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5 L12 13 L20.5 6.5"/></svg>
+      <span>邮箱</span>
+    </button>
+  </div>
+
+  <!-- 角色切换弹窗：点头像弹出；先选分部再选角色（列表按分部过滤）/ 新建角色 / 编辑跳转角色卡 -->
+  <div class="char-mask" id="charMask">
+    <div class="char-modal" id="charModal">
+      <div class="cm-head">
+        <b>选择角色</b>
+        <span class="cm-close" id="cmClose" title="关闭">×</span>
+      </div>
+      <div class="cm-branch">
+        <span>分部</span>
+        <select id="cmBranchSel"><option value="">-- 请先选择分部 --</option></select>
+      </div>
+      <div class="cm-list" id="cmList"></div>
+      <div class="cm-foot">
+        <button class="cm-create" id="cmCreate">＋ 创建新角色</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 删除角色确认弹窗（确认类=最高层；需输入角色名确认） -->
+  <div class="char-mask confirm-mask" id="charDelMask">
+    <div class="char-modal" style="width:380px;max-width:calc(100vw - 48px);">
+      <div class="cm-head"><b>删除角色</b><span class="cm-close" id="charDelClose" title="关闭">×</span></div>
+      <div class="del-body">
+        <p>将永久删除角色 <b id="charDelName"></b> 的全部档案，此操作不可恢复。</p>
+        <p class="del-hint">请输入该角色的名字以确认删除：</p>
+        <input class="em-input" id="charDelInput" placeholder="输入角色名" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="cm-foot" style="display:flex;gap:10px;justify-content:flex-end;">
+        <button class="cm-create" id="charDelCancel" style="background:#fff;color:#7a6f74;border:1px solid #f0e7e4;">取消</button>
+        <button class="cm-create del-go" id="charDelGo" disabled>确认删除</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 浮窗：异常能力 / 关系网 / 物品（只读展示当前激活角色的角色卡数据，编辑跳转 sheet.html） -->
+  <div class="dwin dw-real" id="winReal">
+    <div class="dwin-head">
+      <span class="dwin-ico"><svg viewBox="0 0 24 24" fill="#d8402f"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
+      <span class="dwin-title">关系<small id="realCount"></small></span>
+      <button class="dwin-btn" id="realAdd" title="添加关系"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5 v14 M5 12 h14"/></svg></button>
+      <button class="dwin-btn" data-close="winReal" title="收起"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12 h14"/></svg></button>
+      <button class="dwin-btn" data-close="winReal" title="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button>
+    </div>
+    <div class="dwin-body" id="winRealBody"></div>
+  </div>
+
+  <div class="dwin dw-anom" id="winAnom">
+    <div class="dwin-head">
+      <span class="dwin-ico"><svg viewBox="0 0 24 24"><path d="M13 2.5 L23 20.5 H3 Z" fill="none" stroke="#d8402f" stroke-width="2.2" stroke-linejoin="round"/></svg></span>
+      <span class="dwin-title">异常能力<small>.exe</small></span>
+      <button class="dwin-btn" id="anomAdd" title="添加异常"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5 v14 M5 12 h14"/></svg></button>
+      <button class="dwin-btn" data-close="winAnom" title="收起"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12 h14"/></svg></button>
+      <button class="dwin-btn" data-close="winAnom" title="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button>
+    </div>
+    <div class="dwin-body" id="winAnomBody"></div>
+  </div>
+
+  <div class="dwin dw-item" id="winItem">
+    <div class="dwin-head">
+      <span class="dwin-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#d8402f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M9 8 V6 a2 2 0 0 1 2-2 h2 a2 2 0 0 1 2 2 v2"/></svg></span>
+      <span class="dwin-title">申领物</span>
+      <button class="dwin-btn" id="itemAdd" title="添加物品"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5 v14 M5 12 h14"/></svg></button>
+      <button class="dwin-btn" data-close="winItem" title="收起"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12 h14"/></svg></button>
+      <button class="dwin-btn" data-close="winItem" title="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button>
+    </div>
+    <div class="dwin-body" id="winItemBody"></div>
+  </div>
+
+  <!-- 编辑弹窗：浮窗内直接编辑/新建 异常/关系/物品（保存 → PUT /api/character/:id） -->
+  <div class="char-mask" id="editMask">
+    <div class="char-modal edit-modal" id="editModal">
+      <div class="cm-head">
+        <b id="emTitle">编辑</b>
+        <span class="cm-head-btn" id="emImportBtn" title="从预设库导入">⤓ 导入</span>
+        <span class="cm-close" id="emClose" title="关闭">×</span>
+      </div>
+      <div class="em-body" id="emBody"></div>
+      <div class="em-import" id="emImportPanel">
+        <input class="em-input" id="emImportSearch" placeholder="搜索能力名称...">
+        <div class="em-import-list" id="emImportList"></div>
+      </div>
+      <div class="cm-foot">
+        <button class="cm-create" id="emSave">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 经理控制台弹窗（manager.html 迁移） ================= -->
+
+  <!-- 任务详情全屏覆盖层 -->
+
+  <!-- 外勤任务弹窗 -->
+  <div id="missionModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3><i class="fas fa-tasks"></i> <span id="missionModalTitle">创建任务</span></h3>
+        <button class="modal-close" onclick="closeMissionModal()">&times;</button>
+      </div>
+      <div class="modal-body mission-form">
+        <input type="hidden" id="missionEditId">
+        <label>任务名称 *</label>
+        <input type="text" id="missionName" placeholder="输入任务名称">
+        <label>任务类型 *</label>
+        <select id="missionType" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px;margin-bottom:15px;">
+          <option value="containment">收容任务</option>
+          <option value="sweep">清扫任务</option>
+        </select>
+        <label>任务描述</label>
+        <textarea id="missionDesc" placeholder="输入任务描述（可选）"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal btn-modal-cancel" onclick="closeMissionModal()">取消</button>
+        <button class="btn-modal btn-modal-confirm" onclick="saveMission()"><i class="fas fa-save"></i> 保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 添加成员弹窗 -->
+  <div id="addMemberModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header" style="background: linear-gradient(135deg, #27ae60, #2ecc71);">
+        <h3 style="color:white;"><i class="fas fa-user-plus"></i> 添加成员</h3>
+        <button class="modal-close" style="color:white;" onclick="closeAddMemberModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">选择要添加到任务的角色卡</p>
+        <div style="margin-bottom: 15px;">
+          <input type="text" id="memberSearchInput" placeholder="搜索特工名称..."
+                 style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; font-size:14px;"
+                 oninput="filterAvailableMembers()">
+        </div>
+        <div id="memberSelectList" style="max-height:300px;overflow-y:auto;">
+          <div style="text-align:center;padding:20px;color:#95a5a6;">加载中...</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal btn-modal-cancel" onclick="closeAddMemberModal()">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 邮件详情弹窗 -->
+  <div id="mailDetailModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header" style="background:linear-gradient(135deg,#2c3e50,#34495e);">
+        <h3 style="color:white;"><i class="fas fa-envelope-open-text"></i> 邮件详情</h3>
+        <button class="modal-close" style="color:white;" onclick="closeMailDetailModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <strong id="mailDetailSubject" style="font-size:16px;">标题</strong>
+            <span id="mailDetailType" style="font-size:11px;padding:3px 8px;border-radius:12px;background:#ecf0f1;color:#7f8c8d;">类型</span>
+          </div>
+          <div style="display:flex;gap:15px;font-size:12px;color:#7f8c8d;">
+            <span><i class="fas fa-user"></i> <span id="mailDetailSender">发送者</span></span>
+            <span><i class="fas fa-clock"></i> <span id="mailDetailTime">时间</span></span>
+          </div>
+        </div>
+        <hr style="border:none;border-top:1px solid #ecf0f1;margin:12px 0;">
+        <div id="mailDetailContent" style="font-size:14px;line-height:1.7;color:#333;white-space:pre-wrap;"></div>
+        <div id="mailReportData" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 经理收件箱弹窗 -->
+  <div id="inboxModal" class="modal-overlay">
+    <div class="modal-box" style="max-width:520px;">
+      <div class="modal-header">
+        <h3><i class="fas fa-inbox"></i> 经理收件箱</h3>
+        <button class="modal-close" onclick="closeInboxModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="max-height:65vh;overflow-y:auto;">
+        <div id="inboxList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 申领物编辑模态框 -->
+  <div id="requisitionModal" class="modal-overlay">
+    <div class="modal-box requisition-modal-content">
+      <div class="modal-header">
+        <h3><i class="fas fa-box"></i> <span id="requisitionModalTitle">新增申领物</span></h3>
+        <button class="modal-close" onclick="closeRequisitionModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="requisition-form-row">
+          <div class="requisition-form-group">
+            <label><i class="fas fa-tag"></i> 物品名称</label>
+            <input type="text" id="requisitionItemName" placeholder="输入物品名称，例如：特制装备">
+          </div>
+          <div class="requisition-form-group">
+            <label><i class="fas fa-barcode"></i> 页面/PD码</label>
+            <input type="text" id="requisitionItemPd" placeholder="输入页面或PD码">
+          </div>
+        </div>
+        <div class="requisition-form-row">
+          <div class="requisition-form-group">
+            <label><i class="fas fa-layer-group"></i> 类型</label>
+            <select id="requisitionItemType">
+              <option value="basic">基础 - 所有人可见</option>
+              <option value="permission">权限 - 需要授权</option>
+            </select>
+          </div>
+          <div class="requisition-form-group">
+            <label><i class="fas fa-coins"></i> 默认价格（嘉奖）</label>
+            <input type="number" id="requisitionItemPrice" placeholder="输入价格" min="0" value="0">
+          </div>
+        </div>
+        <div class="requisition-form-row" style="margin-bottom:0;">
+          <div class="requisition-form-group" style="margin-bottom:0;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;">
+              <input type="checkbox" id="requisitionItemOnce" style="width:auto;padding:0;margin:0;">
+              <span><i class="fas fa-fire"></i> 一次性申领物</span>
+              <span style="color:#7f8c8d;font-size:11px;font-weight:normal;text-transform:none;margin-left:4px;">(使用后消失)</span>
+            </label>
+          </div>
+        </div>
+        <div class="requisition-form-group" style="margin-top:20px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+            <label style="margin-bottom: 0;">
+              <i class="fas fa-list-ul"></i> 价格选项
+              <span style="color: #7f8c8d; font-size: 11px; margin-left: 8px; font-weight: normal; text-transform: none;">(可设置多个不同价格)</span>
+            </label>
+            <button type="button" class="btn-add-price" onclick="addPriceOption()" title="添加价格选项">
+              <i class="fas fa-plus"></i> 添加选项
+            </button>
+          </div>
+          <div id="priceOptionsList" class="price-options-list"></div>
+        </div>
+        <div class="requisition-form-group">
+          <label><i class="fas fa-file-alt"></i> 效果描述</label>
+          <div class="rich-editor" id="requisitionItemEffect" contenteditable="true" placeholder="详细描述物品效果和用途..."></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal btn-modal-cancel" onclick="closeRequisitionModal()">
+          <i class="fas fa-times"></i> 取消
+        </button>
+        <button class="btn-modal btn-modal-confirm" onclick="saveRequisitionItem()">
+          <i class="fas fa-save"></i> 保存
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 角色选择模态框 -->
+  <div id="characterSelectModal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3><i class="fas fa-user-check"></i> 选择角色</h3>
+        <button class="modal-close" onclick="closeCharacterSelectModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">批量分配申领物给选中的角色</p>
+        <input type="text" id="characterFilterInput" class="character-filter-input" placeholder="搜索角色或玩家..." oninput="filterCharacterList()">
+        <div class="character-select-list" id="characterSelectList">
+          <div style="text-align:center;padding:20px;color:#999;">
+            <i class="fas fa-circle-notch fa-spin"></i> 加载中...
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal btn-modal-cancel" onclick="closeCharacterSelectModal()">取消</button>
+        <button class="btn-modal btn-modal-confirm" onclick="confirmAssignRequisitions()"><i class="fas fa-check"></i> 确认分配</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Siphon商品编辑模态框 -->
+  <div id="siphonModal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3><i class="fas fa-eye" style="color:var(--accent)"></i> <span id="siphonModalTitle">新增商品</span></h3>
+        <button class="modal-close" onclick="closeSiphonModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="requisition-form-row">
+          <div class="requisition-form-group">
+            <label><i class="fas fa-tag"></i> 商品名称</label>
+            <input type="text" id="siphonProductName" placeholder="输入商品名称">
+          </div>
+          <div class="requisition-form-group">
+            <label><i class="fas fa-coins" style="color:#e74c3c"></i> 价格（申诫）</label>
+            <input type="number" id="siphonProductPrice" placeholder="申诫价格" min="1" value="1">
+          </div>
+        </div>
+        <div class="requisition-form-group">
+          <label><i class="fas fa-file-alt"></i> 商品描述</label>
+          <div class="rich-editor" id="siphonProductDesc" contenteditable="true" placeholder="描述商品效果和用途..."></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal btn-modal-cancel" onclick="closeSiphonModal()">
+          <i class="fas fa-times"></i> 取消
+        </button>
+        <button class="btn-modal btn-modal-confirm" style="background:#2980b9" onclick="saveSiphonProduct()">
+          <i class="fas fa-save"></i> 保存
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 异常能力模板编辑弹窗 -->
+  <div id="anomalyTemplateModal" class="modal-overlay">
+    <div class="modal-box" style="max-width:600px;">
+      <div class="modal-header">
+        <h3><i class="fas fa-bolt" style="color:#9b59b6;"></i> <span id="anomalyModalTitle">创建异常能力模板</span></h3>
+        <button class="modal-close" onclick="closeAnomalyTemplateModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="max-height:65vh;overflow-y:auto;">
+        <input type="hidden" id="anomalyEditId">
+        <div class="requisition-form-row">
+          <div class="requisition-form-group">
+            <label><i class="fas fa-tag"></i> 能力名称</label>
+            <input type="text" id="anomTplName" placeholder="输入能力名称">
+          </div>
+          <div class="requisition-form-group">
+            <label><i class="fas fa-link"></i> 关联高墙文件</label>
+            <select id="anomTplDocFile">
+              <option value="">-- 不关联 --</option>
+            </select>
+          </div>
+        </div>
+        <div class="requisition-form-row">
+          <div class="requisition-form-group">
+            <label><i class="fas fa-star"></i> 资质</label>
+            <input type="text" id="anomTplTrig" placeholder="资质">
+          </div>
+          <div class="requisition-form-group">
+            <label><i class="fas fa-crosshairs"></i> 触发</label>
+            <input type="text" id="anomTplQual" placeholder="触发描述">
+          </div>
+        </div>
+        <div class="requisition-form-group">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+            <input type="checkbox" id="anomTplPassive" onchange="handleAnomTplPassiveChange(this)" style="width:auto;">
+            <span><i class="fas fa-shield-alt" style="color:#7f8c8d;"></i> 被动能力（无成功时/失败时）</span>
+          </label>
+        </div>
+        <div id="anomTplSuccFailGroup">
+          <div class="requisition-form-group">
+            <label><i class="fas fa-check-circle" style="color:#27ae60;"></i> 成功时</label>
+            <div class="rich-editor" id="anomTplSucc" contenteditable="true" placeholder="成功时的效果..."></div>
+          </div>
+          <div class="requisition-form-group">
+            <label><i class="fas fa-times-circle" style="color:#c0392b;"></i> 失败时</label>
+            <div class="rich-editor" id="anomTplFail" contenteditable="true" placeholder="失败时的效果..."></div>
+          </div>
+          <label class="anom-module-toggle"><input type="checkbox" id="anomTplListOn" onchange="document.getElementById('anomTplListWrap').style.display=this.checked?'':'none'"><span data-anom-ico="star"></span><span>列表</span></label>
+          <div id="anomTplListWrap" style="display:none;">
+            <input type="text" id="anomTplListName" placeholder="列表名称（默认：列表）" style="margin-bottom:8px;">
+            <div id="anomTplListRows" class="anom-timeline anom-edit-list-rows"></div>
+            <button type="button" class="anom-edit-add-list" onclick="tplAddListRow()"><i class="fas fa-plus"></i> 添加一项</button>
+          </div>
+          <label class="anom-module-toggle"><input type="checkbox" id="anomTplSubOn" onchange="document.getElementById('anomTplSub').style.display=this.checked?'':'none'"><span data-anom-ico="wave"></span><span>三重升华时</span></label>
+          <div class="requisition-form-group" id="anomTplSubWrap" style="display:none;">
+            <div class="rich-editor" id="anomTplSub" contenteditable="true" placeholder="三重升华效果..."></div>
+          </div>
+        </div>
+        <div class="requisition-form-row">
+          <div class="requisition-form-group">
+            <label><i class="fas fa-question-circle"></i> 问题</label>
+            <input type="text" id="anomTplTdesc" placeholder="问题描述">
+          </div>
+        </div>
+        <div class="requisition-form-row">
+          <div class="requisition-form-group">
+            <label>回答 1</label>
+            <input type="text" id="anomTplT1" placeholder="回答1文本">
+          </div>
+          <div class="requisition-form-group">
+            <label>回答1值</label>
+            <input type="text" id="anomTplT1v" placeholder="值">
+          </div>
+        </div>
+        <div class="requisition-form-row">
+          <div class="requisition-form-group">
+            <label>回答 2</label>
+            <input type="text" id="anomTplT2" placeholder="回答2文本">
+          </div>
+          <div class="requisition-form-group">
+            <label>回答2值</label>
+            <input type="text" id="anomTplT2v" placeholder="值">
+          </div>
+        </div>
+        <div class="requisition-form-row">
+          <div class="requisition-form-group">
+            <label>回答 3（可选）</label>
+            <input type="text" id="anomTplT3" placeholder="回答3文本">
+          </div>
+          <div class="requisition-form-group">
+            <label>回答3值</label>
+            <input type="text" id="anomTplT3v" placeholder="值">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal btn-modal-cancel" onclick="closeAnomalyTemplateModal()">
+          <i class="fas fa-times"></i> 取消
+        </button>
+        <button class="btn-modal btn-modal-confirm" style="background:#8e44ad;" onclick="saveAnomalyTemplate()">
+          <i class="fas fa-save"></i> 保存
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NPC关系模板编辑弹窗 -->
+  <div id="npcTemplateModal" class="modal-overlay">
+    <div class="modal-box" style="max-width:600px;">
+      <div class="modal-header">
+        <h3><i class="fas fa-user-tag" style="color:#f39c12;"></i> <span id="npcModalTitle">创建NPC关系模板</span></h3>
+        <button class="modal-close" onclick="closeNpcTemplateModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="max-height:65vh;overflow-y:auto;">
+        <input type="hidden" id="npcEditId">
+        <div class="requisition-form-row">
+          <div class="requisition-form-group">
+            <label><i class="fas fa-tag"></i> 关系姓名</label>
+            <input type="text" id="npcTplName" placeholder="关系姓名">
+          </div>
+          <div class="requisition-form-group">
+            <label><i class="fas fa-user"></i> 扮演者</label>
+            <input type="text" id="npcTplActor" placeholder="扮演者">
+          </div>
+        </div>
+        <div class="requisition-form-group">
+          <label><i class="fas fa-align-left"></i> 描述</label>
+          <div class="rich-editor" id="npcTplDesc" contenteditable="true" placeholder="关系描述..."></div>
+        </div>
+        <div class="requisition-form-group">
+          <label><i class="fas fa-link" style="color:#f39c12;"></i> 连结加成</label>
+          <div class="hybrid-input-wrapper">
+            <button type="button" class="hybrid-reset-btn" onclick="resetNpcBonus(this)"><i class="fas fa-times"></i></button>
+            <select id="npcTplConnSel" onchange="handleNpcBonusChange(this)">
+              <option value="">-- 选择预设加成 --</option>
+              <option value="__CUSTOM__">自定义...</option>
+            </select>
+            <div class="rich-editor hybrid-text" id="npcTplConn" contenteditable="true" placeholder="连结加成效果..."></div>
+          </div>
+        </div>
+        <div class="requisition-form-group">
+          <label><i class="fas fa-star"></i> 连结等级 <span class="npc-lvl-num" id="npcTplLvlNum" style="margin-left:6px;font-weight:bold;color:#f39c12;">0</span></label>
+          <input type="hidden" id="npcTplLvl" value="0">
+          <div class="npc-lvl-dots" id="npcTplLvlDots">
+            <span class="dot" data-i="1" onclick="clickNpcLvlDot(1)"></span>
+            <span class="dot" data-i="2" onclick="clickNpcLvlDot(2)"></span>
+            <span class="dot" data-i="3" onclick="clickNpcLvlDot(3)"></span>
+            <span class="dot" data-i="4" onclick="clickNpcLvlDot(4)"></span>
+            <span class="dot" data-i="5" onclick="clickNpcLvlDot(5)"></span>
+            <span class="dot" data-i="6" onclick="clickNpcLvlDot(6)"></span>
+            <span class="dot" data-i="7" onclick="clickNpcLvlDot(7)"></span>
+            <span class="dot" data-i="8" onclick="clickNpcLvlDot(8)"></span>
+            <span class="dot" data-i="9" onclick="clickNpcLvlDot(9)"></span>
+          </div>
+        </div>
+        <div class="requisition-form-group">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+            <input type="checkbox" id="npcTplAct" style="width:auto;">
+            <span><i class="fas fa-check-circle" style="color:#27ae60;"></i> 标记为已激活</span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal btn-modal-cancel" onclick="closeNpcTemplateModal()">
+          <i class="fas fa-times"></i> 取消
+        </button>
+        <button class="btn-modal btn-modal-confirm" style="background:#f39c12;" onclick="saveNpcTemplate()">
+          <i class="fas fa-save"></i> 保存
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 系统设置：修改用户角色弹窗 -->
+  <div id="admRoleModal" class="modal-overlay">
+    <div class="modal-box" style="max-width:380px;">
+      <div class="modal-header">
+        <h3><i class="fas fa-user-tag"></i> 修改用户角色</h3>
+        <button class="modal-close" onclick="closeAdminRoleModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">用户: <strong id="admRoleUserName"></strong></p>
+        <select id="admRoleSelect" class="adm-input" style="width:100%;">
+          <option value="0">玩家 - 普通用户，只能管理自己的角色卡</option>
+          <option value="1">经理 - 可以查看/编辑已授权的角色卡</option>
+          <option value="2">超级管理员 - 拥有全部权限</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal btn-modal-cancel" id="admRoleCancel">取消</button>
+        <button class="btn-modal btn-modal-confirm" id="admRoleConfirm">确认修改</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 系统设置：重置密码弹窗 -->
+  <div id="admPasswordModal" class="modal-overlay">
+    <div class="modal-box" style="max-width:380px;">
+      <div class="modal-header">
+        <h3><i class="fas fa-key"></i> 重置密码</h3>
+        <button class="modal-close" onclick="closeAdminPwdModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">用户: <strong id="admPwdUserName"></strong></p>
+        <div class="requisition-form-group">
+          <label>新密码</label>
+          <input type="password" id="admNewPassword" class="adm-input" style="width:100%;" placeholder="输入新密码">
+        </div>
+        <div class="requisition-form-group">
+          <label>确认密码</label>
+          <input type="password" id="admConfirmPassword" class="adm-input" style="width:100%;" placeholder="再次输入新密码">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal btn-modal-cancel" id="admPwdCancel">取消</button>
+        <button class="btn-modal btn-modal-confirm" id="admPwdConfirm">确认重置</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 系统设置：分部详情/成员弹窗 -->
+  <div id="admBranchModal" class="modal-overlay">
+    <div class="modal-box" style="max-width:520px;">
+      <div class="modal-header">
+        <h3><i class="fas fa-building"></i> 分部详情</h3>
+        <button class="modal-close" onclick="closeAdminBranchModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="requisition-form-group">
+          <label>分部名称</label>
+          <input type="text" id="admBranchEditName" class="adm-input" style="width:100%;">
+        </div>
+        <div class="requisition-form-group">
+          <label>分部描述</label>
+          <input type="text" id="admBranchEditDesc" class="adm-input" style="width:100%;">
+        </div>
+        <div class="requisition-form-group" style="margin-bottom:10px;">
+          <label>分部成员</label>
+          <div style="display:flex;gap:8px;">
+            <select id="admBranchAddUser" class="adm-input" style="flex:1;">
+              <option value="">选择用户添加...</option>
+            </select>
+            <button class="adm-btn-primary" id="admAddBranchUser" style="padding:8px 16px;">添加</button>
+          </div>
+        </div>
+        <div id="admBranchMemberList" class="adm-list" style="max-height:200px;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal btn-modal-cancel" id="admBranchCancel">取消</button>
+        <button class="btn-modal btn-modal-confirm" id="admBranchSave">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 槽位管理弹窗 -->
+  <div class="modal-overlay" id="slotModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3><i class="fas fa-unlock-alt"></i> 槽位管理</h3>
+        <button class="modal-close" onclick="closeSlotModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">为 <strong id="modalCharName">角色名</strong> 解锁更多槽位</p>
+
+        <div class="slot-group">
+          <label>异常能力槽位</label>
+          <div class="slot-controls">
+            <button class="slot-btn" onclick="adjustSlot('anom', -1)"><i class="fas fa-minus"></i></button>
+            <span class="slot-value" id="anomSlotValue">3</span>
+            <button class="slot-btn" onclick="adjustSlot('anom', 1)"><i class="fas fa-plus"></i></button>
+          </div>
+          <div class="slot-info">当前已使用: <span id="anomUsed">0</span> 个</div>
+        </div>
+
+        <div class="slot-group">
+          <label>关系网槽位</label>
+          <div class="slot-controls">
+            <button class="slot-btn" onclick="adjustSlot('real', -1)"><i class="fas fa-minus"></i></button>
+            <span class="slot-value" id="realSlotValue">3</span>
+            <button class="slot-btn" onclick="adjustSlot('real', 1)"><i class="fas fa-plus"></i></button>
+          </div>
+          <div class="slot-info">当前已使用: <span id="realUsed">0</span> 个</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal btn-modal-cancel" onclick="closeSlotModal()">取消</button>
+        <button class="btn-modal btn-modal-confirm" onclick="saveSlots()"><i class="fas fa-save"></i> 保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 权限物品授权弹窗 -->
+  <div id="requisitionPermModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header" style="background: #c0392b;">
+        <h3 style="color: white;"><i class="fas fa-gift"></i> 权限物品授权</h3>
+        <button class="modal-close" style="color: white;" onclick="closeRequisitionPermModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="text" id="requisitionPermSearch" class="doc-search" placeholder="搜索权限物品（可搜索名称或PD码）..." oninput="filterRequisitionPerms()">
+        <div id="requisitionPermList" class="doc-list"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal btn-modal-cancel" onclick="closeRequisitionPermModal()">取消</button>
+        <button class="btn-modal btn-modal-confirm" style="background: #c0392b;" onclick="saveRequisitionPerms()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 高墙文件授权弹窗 -->
+  <div id="docAuthModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3><i class="fas fa-file-shield"></i> 高墙文件授权</h3>
+        <button class="modal-close" onclick="closeDocModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">管理 <strong id="docAuthCharName"></strong> 的高墙文件权限</p>
+
+        <input type="text" class="doc-search" id="docSearch" placeholder="搜索文件..." onkeyup="filterDocs()">
+
+        <div class="doc-list" id="docAuthList">
+          <div style="padding:20px;text-align:center;"><i class="fas fa-circle-notch fa-spin"></i></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal btn-modal-cancel" onclick="closeDocModal()">取消</button>
+        <button class="btn-modal btn-modal-confirm" onclick="saveDocPermissions()"><i class="fas fa-save"></i> 保存更改</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 嘉奖/申诫弹窗 -->
+  <div id="recordModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3><i class="fas fa-medal"></i> 职员记录</h3>
+        <button class="modal-close" onclick="closeRecordModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">管理 <strong id="recordCharName"></strong> 的嘉奖与申诫记录</p>
+
+        <!-- 标签切换 -->
+        <div class="record-tabs">
+          <button class="record-tab active-reward" id="tabReward" onclick="switchRecordTab('reward')">
+            <i class="fas fa-award"></i> 嘉奖
+          </button>
+          <button class="record-tab" id="tabReprimand" onclick="switchRecordTab('reprimand')">
+            <i class="fas fa-exclamation-triangle"></i> 申诫
+          </button>
+          <button class="record-tab" id="tabMvp" onclick="switchRecordTab('mvp')">
+            <i class="fas fa-medal"></i> MVP
+          </button>
+          <button class="record-tab" id="tabWatch" onclick="switchRecordTab('watch')">
+            <i class="fas fa-eye"></i> 察看期
+          </button>
+        </div>
+
+        <!-- 添加记录 -->
+        <div class="record-input-area">
+          <textarea id="recordReasonInput" placeholder="输入原因..."></textarea>
+          <div class="record-count-row">
+            <label>数量:</label>
+            <input type="number" id="recordCountInput" class="record-count-input" value="1" min="1" max="99">
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn-add-record reward" id="btnAddRecord" onclick="addRecord('add')" style="flex: 1;">
+              <i class="fas fa-plus"></i> 添加
+            </button>
+            <button id="btnDeductRecord" onclick="addRecord('deduct')"
+                    style="flex: 1; background: #e67e22; border: none; color: white; padding: 10px; border-radius: 6px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 5px;">
+              <i class="fas fa-minus"></i> 扣除
+            </button>
+          </div>
+        </div>
+
+        <!-- 历史记录 -->
+        <div class="record-history">
+          <h4><i class="fas fa-history"></i> 历史记录</h4>
+          <div class="record-list" id="recordList">
+            <div class="record-empty">暂无记录</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 赋予异常能力弹窗 -->
+  <div id="grantAnomalyModal" class="modal-overlay">
+    <div class="modal-box" style="max-width:500px;">
+      <div class="modal-header" style="background: #2980b9;">
+        <h3 style="color: white;"><i class="fas fa-bolt"></i> 赋予异常能力</h3>
+        <button class="modal-close" style="color: white;" onclick="closeGrantAnomalyModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="grantAnomalyCharId">
+        <p class="modal-desc">为 <strong id="grantAnomalyCharName"></strong> 赋予异常能力</p>
+        <input type="text" id="grantAnomalySearch" placeholder="搜索异常能力..." style="width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:4px;font-size:13px;margin-bottom:8px;box-sizing:border-box;outline:none;" oninput="filterGrantAnomaly(this.value)">
+        <div id="grantAnomalyList" class="doc-list"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal btn-modal-cancel" onclick="closeGrantAnomalyModal()">取消</button>
+        <button class="btn-modal btn-modal-confirm" style="background: #2980b9;" onclick="saveGrantedAnomalies()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 赋予NPC关系弹窗 -->
+  <div id="grantNpcModal" class="modal-overlay">
+    <div class="modal-box" style="max-width:500px;">
+      <div class="modal-header" style="background: #f39c12;">
+        <h3 style="color: white;"><i class="fas fa-heart"></i> 添加关系</h3>
+        <button class="modal-close" style="color: white;" onclick="closeGrantNpcModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">为 <strong id="grantNpcCharName"></strong> 添加关系</p>
+        <input type="text" id="grantNpcSearch" placeholder="搜索NPC关系..." style="width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:4px;font-size:13px;margin-bottom:8px;box-sizing:border-box;outline:none;" oninput="filterGrantNpc(this.value)">
+        <div id="grantNpcList" class="doc-list"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal btn-modal-cancel" onclick="closeGrantNpcModal()">取消</button>
+        <button class="btn-modal btn-modal-confirm" style="background: #f39c12;" onclick="saveGrantedNpcs()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 特工详情弹窗 (iframe嵌入) -->
+  <div id="agentDetailModal" class="modal-overlay">
+    <div class="modal-box iframe-modal">
+      <div class="modal-header" style="background: linear-gradient(135deg, #3498db, #2980b9);">
+        <h3 style="color:white;"><i class="fas fa-user-secret"></i> 特工档案</h3>
+        <button class="modal-close" style="color:white;" onclick="closeAgentDetailModal()">&times;</button>
+      </div>
+      <div class="modal-body iframe-container">
+        <iframe id="agentDetailIframe" src="about:blank" frameborder="0"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- 个人资料弹出面板
+       数据来源（登录账号）：/api/verify-token（账号名）+ /api/characters?userId=（角色卡列表）
+       · 头部  → 当前激活角色 pName / pAvatar，点击弹出角色切换弹窗（本页特有概念，存 localStorage.ta_current_char）
+       · 三行  → 异常(pAnom) / 现实(pReal) / 职能(pFunc)
+       · Log out → 登出，返回 desktop-login.html -->
+  <div class="profile-pop" id="profilePop">
+    <div class="pp-head">
+      <div class="pp-ava" id="ppAva" title="切换角色">
+        <svg viewBox="0 0 96 96">
+          <circle cx="48" cy="48" r="48" fill="#f6e3df"/>
+          <path d="M30 30 a18 18 0 0 1 36 0 v4 h-36 Z" fill="#332b36"/>
+          <circle cx="48" cy="42" r="12" fill="#eeb89a"/>
+          <path d="M20 96 a28 26 0 0 1 56 0 Z" fill="#c0392b"/>
+        </svg>
+      </div>
+      <div>
+        <div class="pp-name" id="ppName">--</div>
+        <div class="pp-role" id="ppRole">正在同步档案…</div>
+      </div>
+    </div>
+    <div class="pp-items">
+      <div class="pp-item pp-branch" title="选择分部">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21 V5 a2 2 0 0 1 2 -2 h8 a2 2 0 0 1 2 2 v16"/><path d="M16 9 h3 a1.5 1.5 0 0 1 1.5 1.5 V21"/><path d="M2.5 21 h19"/><path d="M8 7.5 h1.5 M8 11.5 h1.5 M8 15.5 h1.5 M12.5 7.5 h1.5 M12.5 11.5 h1.5 M12.5 15.5 h1.5"/></svg>
+        <span>分部</span>
+        <select id="ppBranchSel" class="pp-branch-sel"><option value="">-- 选择分部 --</option></select>
+      </div>
+      <div class="pp-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2.5 L5.5 13.5 H10 L11 21.5 L18.5 10.5 H14 Z"/></svg>
+        <span>异常</span>
+        <span class="pp-val" id="ppAnom">---</span>
+      </div>
+      <div class="pp-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20 C6.2 15.4 3.5 12.4 3.5 9 A4.4 4.4 0 0 1 12 6.6 A4.4 4.4 0 0 1 20.5 9 C20.5 12.4 17.8 15.4 12 20 Z"/></svg>
+        <span>现实</span>
+        <span class="pp-val" id="ppReal">---</span>
+      </div>
+      <div class="pp-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="11" rx="2"/><path d="M9.5 8 V6.5 A1.5 1.5 0 0 1 11 5 h2 a1.5 1.5 0 0 1 1.5 1.5 V8"/><path d="M4 12.5 h16"/></svg>
+        <span>职能</span>
+        <span class="pp-val" id="ppFunc">---</span>
+      </div>
+    </div>
+    <div class="pp-logout" id="ppLogout">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="1.8" stroke-linecap="round"><path d="M12 3.5 v7"/><path d="M6.8 6.5 a7.2 7.2 0 1 0 10.4 0"/></svg>
+      <span>登出</span>
+    </div>
+  </div>
+
+  <!-- 我的档案：职能自我评估问答（复刻 sheet assessment，提交后资质清零自动分配） -->
+  <div class="char-mask" id="deAssessMask" style="z-index:80;">
+    <div class="char-modal" style="width:480px;max-width:calc(100vw - 48px);">
+      <div class="cm-head"><b>入职自我评估</b><span class="cm-close" id="deAssessClose" title="关闭">×</span></div>
+      <div class="de-assess-body" id="deAssessBody"></div>
+      <div class="cm-foot" style="display:flex;gap:10px;justify-content:flex-end;">
+        <button class="cm-create" id="deAssessCancel" style="background:#fff;color:#7a6f74;border:1px solid #f0e7e4;">取消</button>
+        <button class="cm-create" id="deAssessSubmit">提交评估</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 办公室：签名编辑弹窗（复用 char-modal 体系） -->
+  <div class="char-mask" id="officeSigMask">
+    <div class="char-modal" style="width:380px;max-width:calc(100vw - 48px);">
+      <div class="cm-head"><b>编辑签名</b><span class="cm-close" id="officeSigClose" title="关闭">×</span></div>
+      <div class="office-sig-edit-body">
+        <textarea class="em-input office-sig-input" id="officeSigInput" maxlength="300" placeholder="写一句签名吧（他人可见）..."></textarea>
+        <div class="office-sig-count"><span id="officeSigCount">0</span>/300</div>
+      </div>
+      <div class="cm-foot" style="display:flex;gap:10px;justify-content:flex-end;">
+        <button class="cm-create" id="officeSigCancel" style="background:#fff;color:#7a6f74;border:1px solid #f0e7e4;">取消</button>
+        <button class="cm-create" id="officeSigSave">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 办公室：多角色时选择要编辑签名的角色 -->
+  <div class="char-mask" id="officeSigPickMask">
+    <div class="char-modal" style="width:340px;max-width:calc(100vw - 48px);">
+      <div class="cm-head"><b>选择角色编辑签名</b><span class="cm-close" id="officeSigPickClose" title="关闭">×</span></div>
+      <div class="office-sig-pick-list" id="officeSigPickList"></div>
+    </div>
+  </div>
+
+  <!-- UNL3ASH 使用确认弹窗（确认类=最高层） -->
+  <div class="char-mask confirm-mask" id="unlashMask">
+    <div class="char-modal" style="width:380px;max-width:calc(100vw - 48px);">
+      <div class="cm-head"><b>使用 UNL3ASH？</b><span class="cm-close" id="unlashClose" title="关闭">×</span></div>
+      <div class="unlash-body">
+        <p>消耗 <b>3 点申诫</b>，修改本次任务骰子结果。</p>
+        <p class="unlash-sub">当前申诫余额：<b id="unlashBal">--</b> 点（不足 3 点将使用失败）</p>
+      </div>
+      <div class="cm-foot" style="display:flex;gap:10px;justify-content:flex-end;">
+        <button class="cm-create" id="unlashCancel" style="background:#fff;color:#7a6f74;border:1px solid #f0e7e4;">取消</button>
+        <button class="cm-create unlash-go" id="unlashGo">确认使用</button>
+      </div>
+    </div>
+  </div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="js/board-core.js"></script>
+<script src="js/marked.min.js"></script>
+<script src="vendor/cropper/cropper.min.js"></script>
+<script src="js/desktop/desktop.js?v=67"></script>
+<script src="js/desktop/desktop.apps.js?v=3"></script>
+<script src="js/desktop/desktop.weather.js?v=3"></script>
+<script src="js/desktop/desktop.docs.js?v=7"></script>
+<script src="js/desktop/desktop.board.js?v=7"></script>
+<script src="js/desktop/desktop.mail.js?v=4"></script>
+<script src="js/desktop/desktop.shop.js?v=2"></script>
+<script src="js/desktop/desktop.highwall.js?v=1"></script>
+<script src="js/desktop/desktop.office.js?v=4"></script>
+<script src="js/desktop/desktop.career.js?v=1"></script>
+<script src="js/desktop/desktop.shell.js?v=8"></script>
+<script src="js/desktop/desktop.mobile.js?v=5"></script>
+<script src="js/desktop/desktop.scatter-tips.js?v=4"></script>
+<script src="js/desktop/login-stage.js?v=2"></script>
+<script type="module" src="js/desktop/manager-loader.js?v=2"></script>
+
+<!-- 登录成功过场：登录层三角动画完成后，满屏红三角倒放缩小露出桌面（由 login-stage.js 触发） -->
+<div class="tri-cover" id="triIntro"><div class="tri-shape"></div></div>
+<style>
+/* 登录成功过场缩小段：triIntro 独立全屏三角，show 时满屏无动画，active 缩小露出桌面 */
+#triIntro { display: none; position: fixed; inset: 0; z-index: 2147483000; pointer-events: none; }
+#triIntro.show { display: block; }
+#triIntro .tri-shape {
+  position: absolute; left: 50%; top: 50%;
+  width: 300vmax; height: 300vmax;
+  background: linear-gradient(180deg, #e0503a 0%, #d0402c 100%);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  transform: translate(-50%, -66.7%) rotate(0deg) scale(1.25);
+  transform-origin: 50% 66.7%;
+}
+#triIntro.active .tri-shape { transition: transform 1.5s cubic-bezier(.55,.05,.3,1); transform: translate(-50%, -66.7%) rotate(90deg) scale(0); }
+</style>
+</body>
+</html>
