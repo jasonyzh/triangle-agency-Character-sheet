@@ -63,9 +63,10 @@
     if (e.touches.length !== 1) { tx = null; return; }
     tx = e.touches[0].clientX; ty = e.touches[0].clientY;
   }, { passive: true });
-  /* 水平滑动意图明确时阻止浏览器接管（否则 touchend 不触发，滑回中间失效） */
+  /* 水平滑动意图明确时阻止浏览器接管（否则 touchend 不触发，滑回中间失效）；
+     cancelable=false 说明浏览器已开始滚动、事件不可取消，跳过以免控制台刷 [Intervention] */
   document.addEventListener('touchmove', function (e) {
-    if (tx === null || !e.touches.length) return;
+    if (tx === null || !e.touches.length || !e.cancelable) return;
     var dx = Math.abs(e.touches[0].clientX - tx);
     var dy = Math.abs(e.touches[0].clientY - ty);
     if (dx > dy + 10 && dx > 30) e.preventDefault();
@@ -81,7 +82,7 @@
       if (dx > 0) setScreen('minus');       /* 右滑 → 左侧负一屏拉入 */
       else if (dx < 0) setScreen('profile'); /* 左滑 → 右侧角色屏拉入 */
     } else if (cur === 'minus') {
-      if (dx > 0) setScreen('home');         /* 右滑推回桌面 */
+      if (dx < 0) setScreen('home');         /* 左滑推回桌面（负一屏在左侧，反向推回） */
     } else if (cur === 'profile') {
       if (dx > 0) setScreen('home');         /* 右滑推回桌面（角色屏在右侧） */
     }
