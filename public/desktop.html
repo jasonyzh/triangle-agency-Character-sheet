@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>三角机构 // 内网终端</title>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#d8402f">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="stylesheet" href="vendor/cropper/cropper.min.css">
 <link rel="stylesheet" href="css/desktop.css?v=84">
 <link rel="stylesheet" href="css/login-stage.css?v=4">
@@ -1893,6 +1896,12 @@ html, body { background: #f0f1f3; padding: 0; margin: 0; overflow: hidden; }
   </div>
 
 <script src="/socket.io/socket.io.js"></script>
+<script>
+/* PWA：Service Worker 注册（仅安全上下文；局域网 HTTP 下自动跳过不报错） */
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || ['localhost', '127.0.0.1'].indexOf(location.hostname) >= 0)) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+}
+</script>
 <script src="js/board-core.js"></script>
 <script src="js/marked.min.js"></script>
 <script src="vendor/cropper/cropper.min.js"></script>
@@ -1907,7 +1916,7 @@ html, body { background: #f0f1f3; padding: 0; margin: 0; overflow: hidden; }
 <script src="js/desktop/desktop.office.js?v=4"></script>
 <script src="js/desktop/desktop.career.js?v=1"></script>
 <script src="js/desktop/desktop.shell.js?v=8"></script>
-<script src="js/desktop/desktop.mobile.js?v=5"></script>
+<script src="js/desktop/desktop.mobile.js?v=7"></script>
 <script src="js/desktop/desktop.scatter-tips.js?v=4"></script>
 <script src="js/desktop/login-stage.js?v=2"></script>
 <script type="module" src="js/desktop/manager-loader.js?v=2"></script>
