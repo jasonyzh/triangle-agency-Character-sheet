@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SVG 图标复刻预览 // TRIANGLE AGENCY</title>
+<style>
+    :root {
+        --blue: #2E5EA8;
+        --red: #D22837;
+        --bg: #14181f;
+        --card: #1d232e;
+        --text: #e8ecf2;
+        --sub: #8b96a5;
+    }
+    html.light {
+        --bg: #eef1f5;
+        --card: #ffffff;
+        --text: #1e293b;
+        --sub: #64748b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+        font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        padding: 40px 24px;
+        transition: background 0.3s, color 0.3s;
+    }
+    .header { text-align: center; margin-bottom: 36px; }
+    .header h1 { font-size: 22px; letter-spacing: 2px; }
+    .header p { color: var(--sub); font-size: 13px; margin-top: 8px; }
+    .toolbar { text-align: center; margin-bottom: 28px; }
+    .toolbar button {
+        background: var(--card); color: var(--text);
+        border: 1px solid rgba(128,140,160,0.3);
+        padding: 8px 18px; border-radius: 6px; cursor: pointer;
+        font-size: 13px; font-family: inherit;
+    }
+    .toolbar button:hover { border-color: var(--blue); }
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 20px;
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+    .card {
+        background: var(--card);
+        border-radius: 14px;
+        padding: 28px 20px 20px;
+        display: flex; flex-direction: column; align-items: center;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+    }
+    .card .main svg { width: 160px; height: 160px; display: block; }
+    .card h3 { font-size: 14px; margin-top: 18px; }
+    .card .desc { font-size: 12px; color: var(--sub); margin-top: 4px; text-align: center; }
+    .sizes {
+        display: flex; align-items: flex-end; gap: 18px;
+        margin-top: 16px; padding-top: 14px;
+        border-top: 1px dashed rgba(128,140,160,0.25);
+    }
+    .sizes .sz { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    .sizes .sz span { font-size: 10px; color: var(--sub); }
+    .sizes svg { display: block; }
+    .dl {
+        margin-top: 14px;
+        background: none; border: 1px solid rgba(128,140,160,0.3);
+        color: var(--sub); font-size: 11px; padding: 5px 12px;
+        border-radius: 5px; cursor: pointer; font-family: inherit;
+    }
+    .dl:hover { color: var(--text); border-color: var(--blue); }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>SVG 图标复刻预览</h1>
+    <p>蓝三角对钩 · 红色波纹三角 · 红八角叉 · 蓝三角星 — 纯矢量，任意缩放</p>
+</div>
+
+<div class="toolbar">
+    <button onclick="document.documentElement.classList.toggle('light')">切换明暗背景</button>
+</div>
+
+<div class="grid">
+
+    <!-- 1. 蓝三角 + 白色对钩 -->
+    <div class="card">
+        <div class="main">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" data-name="check-triangle">
+                <path d="M50 10 L92 88 L8 88 Z" fill="#2E5EA8" stroke="#2E5EA8" stroke-width="8" stroke-linejoin="round"/>
+                <path d="M31 57 L46 70 L71 39" fill="none" stroke="#fff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        <h3>对钩三角</h3>
+        <div class="desc">成功 / 检定通过</div>
+        <div class="sizes">
+            <div class="sz"><svg width="48" height="48" viewBox="0 0 100 100"><use href="#ico-check"/></svg><span>48</span></div>
+            <div class="sz"><svg width="32" height="32" viewBox="0 0 100 100"><use href="#ico-check"/></svg><span>32</span></div>
+            <div class="sz"><svg width="20" height="20" viewBox="0 0 100 100"><use href="#ico-check"/></svg><span>20</span></div>
+        </div>
+        <button class="dl" onclick="downloadSvg(this)">下载 SVG</button>
+    </div>
+
+    <!-- 2. 红色波纹三角（实心三角 + 外扩波纹升华轮廓） -->
+    <div class="card">
+        <div class="main">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" data-name="wave-triangle">
+                <defs>
+                    <linearGradient id="tgrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stop-color="#e8504a"/>
+                        <stop offset="0.55" stop-color="#d02b35"/>
+                        <stop offset="1" stop-color="#b31f2c"/>
+                    </linearGradient>
+                    <radialGradient id="wglow" cx="0.5" cy="0.54" r="0.62">
+                        <stop offset="0" stop-color="#e04034" stop-opacity="0.26"/>
+                        <stop offset="1" stop-color="#e04034" stop-opacity="0"/>
+                    </radialGradient>
+                </defs>
+                <circle cx="50" cy="54" r="50" fill="url(#wglow)"/>
+                <path id="waveCore" d="M50 22 L82 82 L18 82 Z" fill="url(#tgrad)" stroke="#a81b28" stroke-width="0.8" stroke-linejoin="round"/>
+                <g id="waves" fill="none" stroke="#d8403a" stroke-width="0.85" stroke-linejoin="round" stroke-linecap="round"></g>
+                <g id="wavesSym" style="display:none"></g>
+            </svg>
+        </div>
+        <h3>波纹三角</h3>
+        <div class="desc">异常 / 波动升华（实心三角 + 17 圈渐隐波纹轮廓）</div>
+        <div class="sizes">
+            <div class="sz"><svg width="48" height="48" viewBox="0 0 100 100"><use href="#ico-wave"/></svg><span>48</span></div>
+            <div class="sz"><svg width="32" height="32" viewBox="0 0 100 100"><use href="#ico-wave"/></svg><span>32</span></div>
+            <div class="sz"><svg width="20" height="20" viewBox="0 0 100 100"><use href="#ico-wave"/></svg><span>20</span></div>
+        </div>
+        <button class="dl" onclick="downloadSvg(this)">下载 SVG</button>
+    </div>
+
+    <!-- 3. 红八角 + 白叉 -->
+    <div class="card">
+        <div class="main">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" data-name="x-octagon">
+                <path d="M88.8 66.07 L66.07 88.8 L33.93 88.8 L11.2 66.07 L11.2 33.93 L33.93 11.2 L66.07 11.2 L88.8 33.93 Z"
+                      fill="#D22837" stroke="#D22837" stroke-width="6" stroke-linejoin="round"/>
+                <path d="M35 35 L65 65 M65 35 L35 65" fill="none" stroke="#fff" stroke-width="14" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <h3>八角叉</h3>
+        <div class="desc">失败 / 禁止</div>
+        <div class="sizes">
+            <div class="sz"><svg width="48" height="48" viewBox="0 0 100 100"><use href="#ico-x"/></svg><span>48</span></div>
+            <div class="sz"><svg width="32" height="32" viewBox="0 0 100 100"><use href="#ico-x"/></svg><span>32</span></div>
+            <div class="sz"><svg width="20" height="20" viewBox="0 0 100 100"><use href="#ico-x"/></svg><span>20</span></div>
+        </div>
+        <button class="dl" onclick="downloadSvg(this)">下载 SVG</button>
+    </div>
+
+    <!-- 4. 蓝三角 + 白星 -->
+    <div class="card">
+        <div class="main">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" data-name="star-triangle">
+                <path d="M50 10 L92 88 L8 88 Z" fill="#2E5EA8" stroke="#2E5EA8" stroke-width="8" stroke-linejoin="round"/>
+                <path d="M50 40 L55.17 54.88 L70.92 55.2 L58.37 64.72 L62.93 79.8 L50 70.8 L37.07 79.8 L41.63 64.72 L29.08 55.2 L44.83 54.88 Z" fill="#fff"/>
+            </svg>
+        </div>
+        <h3>星形三角</h3>
+        <div class="desc">资质 / 评级</div>
+        <div class="sizes">
+            <div class="sz"><svg width="48" height="48" viewBox="0 0 100 100"><use href="#ico-star"/></svg><span>48</span></div>
+            <div class="sz"><svg width="32" height="32" viewBox="0 0 100 100"><use href="#ico-star"/></svg><span>32</span></div>
+            <div class="sz"><svg width="20" height="20" viewBox="0 0 100 100"><use href="#ico-star"/></svg><span>20</span></div>
+        </div>
+        <button class="dl" onclick="downloadSvg(this)">下载 SVG</button>
+    </div>
+
+</div>
+
+<!-- 复用符号定义（小尺寸预览用） -->
+<svg width="0" height="0" style="position:absolute">
+    <defs>
+        <g id="ico-check">
+            <path d="M50 10 L92 88 L8 88 Z" fill="#2E5EA8" stroke="#2E5EA8" stroke-width="8" stroke-linejoin="round"/>
+            <path d="M31 57 L46 70 L71 39" fill="none" stroke="#fff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+        <g id="ico-x">
+            <path d="M88.8 66.07 L66.07 88.8 L33.93 88.8 L11.2 66.07 L11.2 33.93 L33.93 11.2 L66.07 11.2 L88.8 33.93 Z" fill="#D22837" stroke="#D22837" stroke-width="6" stroke-linejoin="round"/>
+            <path d="M35 35 L65 65 M65 35 L35 65" fill="none" stroke="#fff" stroke-width="14" stroke-linecap="round"/>
+        </g>
+        <g id="ico-star">
+            <path d="M50 10 L92 88 L8 88 Z" fill="#2E5EA8" stroke="#2E5EA8" stroke-width="8" stroke-linejoin="round"/>
+            <path d="M50 40 L55.17 54.88 L70.92 55.2 L58.37 64.72 L62.93 79.8 L50 70.8 L37.07 79.8 L41.63 64.72 L29.08 55.2 L44.83 54.88 Z" fill="#fff"/>
+        </g>
+        <g id="ico-wave">
+            <circle cx="50" cy="55" r="48" fill="#e04034" opacity="0.12"/>
+            <path d="M50 12 L90 88 L10 88 Z" fill="#c92736" opacity="0.08"/>
+        </g>
+    </defs>
+</svg>
+
+<script>
+    // ===== 波纹三角：实心三角 + 沿法线外扩的波浪轮廓圈（升华光环） =====
+    (function () {
+        const NS = 'http://www.w3.org/2000/svg';
+        const g = document.getElementById('waves');
+        // 三角顶点（顶 → 左下 → 右下），周向参数化
+        const P = [{ x: 50, y: 22 }, { x: 18, y: 82 }, { x: 82, y: 82 }];
+        const len = [0, 1, 2].map(i => Math.hypot(P[(i + 1) % 3].x - P[i].x, P[(i + 1) % 3].y - P[i].y));
+        const L = len[0] + len[1] + len[2];
+        // 周长 s 处的点与外法线
+        function pt(s) {
+            s = ((s % L) + L) % L;
+            let i = 0;
+            while (s > len[i]) { s -= len[i]; i++; }
+            const a = P[i], b = P[(i + 1) % 3];
+            const dx = (b.x - a.x) / len[i], dy = (b.y - a.y) / len[i];
+            return { x: a.x + dx * s, y: a.y + dy * s, nx: -dy, ny: dx };
+        }
+        const period = L / 7;      // 绕一圈 7 个波
+        const steps = 120;
+        function ring(off, amp, phase, op, w) {
+            let d = '';
+            for (let s = 0; s <= steps; s++) {
+                const sp = L * s / steps;
+                const p = pt(sp);
+                const disp = off + amp * Math.sin(2 * Math.PI * sp / period + phase);
+                const x = p.x + p.nx * disp, y = p.y + p.ny * disp;
+                d += (s ? ' L' : 'M') + x.toFixed(2) + ' ' + y.toFixed(2);
+            }
+            const el = document.createElementNS(NS, 'path');
+            el.setAttribute('d', d + ' Z');
+            el.setAttribute('opacity', op);
+            if (w) el.setAttribute('stroke-width', w);
+            g.appendChild(el);
+        }
+        // 外圈：扩散 + 振幅增大 + 透明度衰减
+        for (let k = 0; k < 17; k++) {
+            ring(1.2 + k * 0.62, 0.7 + k * 0.34, k * 0.85, Math.max(0.06, 0.9 * Math.pow(1 - k / 17, 1.15)).toFixed(3));
+        }
+        // 内圈：贴边的细微纹理
+        for (let k = 1; k <= 3; k++) {
+            ring(-1.4 * k, 0.6, k * 1.1, 0.22 - k * 0.04, 0.7);
+        }
+        // 小尺寸副本：渐变换实色
+        const symRings = g.cloneNode(true);
+        symRings.removeAttribute('id');
+        symRings.setAttribute('stroke', '#cf2f33');
+        const core = document.getElementById('waveCore').cloneNode(false);
+        core.removeAttribute('id');
+        core.setAttribute('fill', '#c92736');
+        core.setAttribute('stroke', 'none');
+        const sym = document.getElementById('ico-wave');
+        sym.innerHTML = '';
+        const glow = document.createElementNS(NS, 'circle');
+        glow.setAttribute('cx', '50'); glow.setAttribute('cy', '54'); glow.setAttribute('r', '48');
+        glow.setAttribute('fill', '#e04034'); glow.setAttribute('opacity', '0.12');
+        sym.appendChild(glow);
+        sym.appendChild(core);
+        sym.appendChild(symRings);
+    })();
+
+    // ===== 下载单个 SVG =====
+    function downloadSvg(btn) {
+        const svg = btn.closest('.card').querySelector('.main svg');
+        const clone = svg.cloneNode(true);
+        clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        const blob = new Blob([clone.outerHTML], { type: 'image/svg+xml' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = (svg.dataset.name || 'icon') + '.svg';
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>办公室 // TRIANGLE AGENCY</title>
+    <link rel="stylesheet" href="vendor/font-awesome/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/office.css">
+</head>
+<body>
+    <div id="transition-overlay">
+        <div class="loader-content">
+            <i class="fas fa-circle-notch fa-spin loader-icon"></i>
+            <div class="loader-text">访问终端中<span class="dots"></span></div>
+        </div>
+    </div>
+
+    <div class="office-wrap">
+        <header class="office-header">
+            <div class="brand-logo">
+                <span class="top">TRIANGLE</span>
+                <span class="btm">AGENCY</span>
+                <div class="page-title">OFFICE // 办公室</div>
+            </div>
+            <div class="btn-group">
+                <button class="btn-icon" onclick="goBack()" title="返回">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- 办公室平面图（SVG 由 office.js 生成） -->
+        <div class="office-canvas" id="officeCanvas"></div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="js/common.js"></script>
+    <script src="js/office-iso.js"></script>
+</body>
+</html>

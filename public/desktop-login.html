@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<script>try { if (localStorage.getItem('ta_token') && localStorage.getItem('ta_uid')) location.replace('desktop.html'); } catch (e) {}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>三角机构 // 登录 · 测试页</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="stylesheet" href="vendor/font-awesome/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- ⚠ 测试页面：可整文件删除，不影响现有系统。登录成功 → desktop.html -->
+<style>
+  html, body { height: 100%; margin: 0; overflow: hidden; background: #eef0f2; }
+  body { font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif; }
+  button { font-family: inherit; border: none; background: none; cursor: pointer; }
+  input { font-family: inherit; }
+
+  .viewport { position: fixed; inset: 0; overflow: hidden; }
+  .scene {
+    position: absolute; left: 50%; top: 50%;
+    width: 1600px; height: 900px;
+    transform: translate(-50%, -50%) scale(var(--s, 1));
+    transform-origin: center;
+  }
+  .scene * { position: absolute; }
+
+  /* ================= 背景 ================= */
+  .wall { inset: 0; background: linear-gradient(180deg, #eef0f2 0%, #e9ebee 55%, #e4e7ea 100%); }
+
+  .window { background: #f8f9fa; border: 3px solid #dde1e5; border-bottom: none; }
+  .win-frame-v { width: 6px; background: #dde1e5; }
+  .win-frame-h { height: 6px; background: #dde1e5; }
+  .city { background: #dfe3e7; }
+  .city.b2 { background: #d7dbdf; }
+
+  .wall-line { width: 5px; background: #dde1e5; opacity: .7; }
+
+  .partition { background: linear-gradient(180deg, #e2503c 0%, #d8402f 100%); }
+  .partition .cap { position: absolute; left: -6px; right: -6px; top: -10px; height: 12px; background: #f4f5f6; border-radius: 3px; box-shadow: 0 2px 4px rgba(0,0,0,.08); }
+  .partition::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,0,0,.05), transparent 30%, rgba(0,0,0,.04)); }
+
+  /* ================= 背景物件 ================= */
+  .grey-plant { filter: blur(.4px); }
+
+  .bg-desk { background: #f6f7f8; box-shadow: 0 -1px 0 #e3e6e9; }
+  .bg-monitor { background: #33373d; border-radius: 8px; }
+  .bg-monitor::before { content: ''; position: absolute; inset: 8px; background: #23262b; border-radius: 4px; }
+  .bg-monitor-stand { background: #e8eaec; }
+
+  .bg-chair { background: #fdfdfe; border-radius: 18px 18px 6px 6px; box-shadow: inset -8px 0 12px rgba(0,0,0,.05), 0 8px 16px rgba(0,0,0,.06); }
+  .bg-chair::before { content: ''; position: absolute; left: 50%; top: 100%; width: 8px; height: 70px; background: #d9dcdf; transform: translateX(-50%); }
+  .bg-chair::after { content: ''; position: absolute; left: 50%; top: calc(100% + 62px); width: 110px; height: 10px; background: #cfd3d7; border-radius: 6px; transform: translateX(-50%); }
+
+  .lamp-cord { width: 3px; background: #c2392b; }
+  .lamp-shade {
+    background: linear-gradient(180deg, #e5533f 0%, #d8402f 70%, #c73725 100%);
+    border-radius: 50% 50% 10px 10px / 72% 72% 10px 10px;
+    box-shadow: inset 0 -6px 0 rgba(0,0,0,.12), inset 0 4px 6px rgba(255,255,255,.25), 0 10px 18px rgba(216,64,47,.25);
+  }
+  .lamp-shade::after { content: ''; position: absolute; left: 12%; right: 12%; bottom: -4px; height: 8px; border-radius: 50%; background: #fff3ef; opacity: .85; }
+  .lamp-group { transform-origin: top center; animation: sway 7s ease-in-out infinite; }
+  .lamp-group.l2 { animation-delay: -3.4s; }
+  @keyframes sway { 0%, 100% { transform: rotate(.8deg); } 50% { transform: rotate(-.8deg); } }
+
+  /* ================= 前景桌面 ================= */
+  .desk {
+    left: -40px; right: -40px; top: 716px; bottom: -20px;
+    background: linear-gradient(180deg, #ffffff 0%, #f5f6f7 12%, #eef0f2 100%);
+    box-shadow: 0 -2px 0 #e6e9ec;
+  }
+  .obj-shadow { background: radial-gradient(ellipse at center, rgba(30,40,60,.16), rgba(30,40,60,0) 70%); }
+
+  /* ================= 显示器 ================= */
+  .monitor { left: 411px; top: 115px; width: 792px; height: 525px; }
+  .m-shadow { left: 150px; right: 150px; top: 612px; height: 40px; background: radial-gradient(ellipse at center, rgba(30,40,60,.16), transparent 70%); }
+  .m-neck {
+    left: 352px; top: 519px; width: 88px; height: 80px;
+    background: linear-gradient(180deg, #c2c7cd 0%, #aab0b7 100%);
+    clip-path: polygon(16% 0, 84% 0, 100% 100%, 0 100%);
+  }
+  .m-base {
+    left: 262px; top: 599px; width: 268px; height: 20px;
+    background: linear-gradient(180deg, #d6dade 0%, #bfc4ca 100%);
+    border-radius: 6px 6px 14px 14px;
+  }
+  .m-bezel {
+    inset: 0;
+    background: linear-gradient(180deg, #33363c 0%, #26292e 60%, #1e2126 100%);
+    border-radius: 26px;
+    box-shadow: 0 24px 50px rgba(25,35,55,.28), inset 0 1px 0 rgba(255,255,255,.14), inset 0 -2px 0 rgba(0,0,0,.35);
+  }
+  .m-screen {
+    left: 24px; top: 22px; right: 24px; bottom: 26px;
+    background: #f4f5f6 url('img/loginbg.webp') center / cover no-repeat;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: inset 0 0 0 2px rgba(0,0,0,.35);
+  }
+  .m-cam { left: 50%; top: 9px; width: 7px; height: 7px; margin-left: -3.5px; border-radius: 50%; background: #4a4f57; box-shadow: inset 0 1px 1px rgba(0,0,0,.6); }
+  .m-led { right: 30px; bottom: 11px; width: 6px; height: 6px; border-radius: 50%; background: #7fe3a0; box-shadow: 0 0 5px rgba(110,240,160,.8); }
+  .m-glare {
+    inset: 0;
+    background: linear-gradient(112deg, rgba(255,255,255,.10) 0%, rgba(255,255,255,.03) 24%, transparent 42%);
+    pointer-events: none;
+  }
+
+  /* ---- 登录表单（叠于背景白色区） ---- */
+  .tri-content { position: absolute; left: 48%; top: 54%; transform: translateY(-50%); width: 40%; }
+  .m-screen .tri-content * { position: static; }
+  .tri-title { font-size: 46px; font-weight: 800; color: #d8402f; letter-spacing: 10px; line-height: 1; }
+  .tri-sub { font-size: 12px; font-weight: 600; color: #3a3f45; letter-spacing: 7px; margin-top: 10px; }
+  .tri-field {
+    position: relative; width: 100%; height: 50px; margin-top: 26px;
+    background: #fff; border: 1px solid #dcdfe4;
+    display: flex;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .tri-sub + .tri-field { margin-top: 38px; }
+  .tri-field:focus-within { border-color: #d8402f; box-shadow: 0 4px 14px rgba(216,64,47,.14); }
+  .tf-icon {
+    width: 50px; height: 100%; flex: none;
+    background: linear-gradient(180deg, #e5533f 0%, #d8402f 100%);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .tf-icon svg { width: 20px; height: 20px; }
+  .tri-field input {
+    flex: 1; min-width: 0; border: none; outline: none;
+    padding: 0 16px; font-size: 14px; color: #333; background: transparent;
+  }
+  .tri-field input::placeholder { color: #b8bec6; }
+  .tri-signin {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 58%; height: 46px; margin: 28px 0 0 auto;
+    background: #d8402f; color: #fff; font-size: 13px; font-weight: 700; letter-spacing: 3px;
+    transition: background .2s, transform .15s, box-shadow .2s;
+  }
+  .tri-signin:hover { background: #c33624; box-shadow: 0 8px 18px rgba(216,64,47,.3); }
+  .tri-signin:active { transform: scale(.98); }
+  .tri-signin:focus-visible { outline: 2px solid #1c1e21; outline-offset: 2px; }
+  .tri-signin svg { width: 20px; height: 20px; }
+  .tri-err { margin-top: 14px; min-height: 18px; text-align: right; font-size: 12px; color: #d8402f; opacity: 0; transition: opacity .2s; }
+  .tri-err.show { opacity: 1; }
+
+  /* ================= 桌面道具 ================= */
+  .keyboard {
+    left: 470px; top: 770px; width: 660px; height: 83px;
+    background: linear-gradient(180deg, #ffffff 0%, #f2f3f5 100%);
+    border-radius: 12px;
+    box-shadow: 0 10px 20px rgba(30,40,60,.10), inset 0 -2px 0 #e0e3e7;
+  }
+  .kb-rows { left: 12px; top: 11px; right: 12px; bottom: 11px; }
+  .kb-row { left: 0; display: flex; gap: 5px; margin-bottom: 5px; }
+  .kb-key { height: 13px; background: #e6e9ed; border-radius: 3px; border: 1px solid #d3d7dc; border-bottom-width: 2px; flex: 1; }
+  .kb-key.space { flex: 5.2; }
+
+  .mouse {
+    left: 1215px; top: 772px; width: 118px; height: 64px;
+    background: linear-gradient(180deg, #ffffff 0%, #eff1f3 100%);
+    border-radius: 50% 50% 46% 46% / 62% 62% 40% 40%;
+    box-shadow: 0 10px 18px rgba(30,40,60,.12), inset 0 -3px 0 #e0e3e7;
+  }
+  .mouse::before { content: ''; position: absolute; left: 50%; top: 8px; width: 2px; height: 22px; background: #dcdfe3; transform: translateX(-50%); }
+
+  .pen-holder {
+    left: 87px; top: 585px; width: 115px; height: 138px;
+    background: linear-gradient(180deg, #e2503c 0%, #d13a28 100%);
+    border-radius: 8px;
+    box-shadow: 0 12px 20px rgba(180, 50, 35, .22), inset -8px 0 12px rgba(0,0,0,.10), inset 4px 4px 8px rgba(255,255,255,.18);
+  }
+  .pencil { width: 13px; border-radius: 3px 3px 0 0; }
+  .pencil::after { content: ''; position: absolute; left: 50%; top: -12px; transform: translateX(-50%); border-left: 6.5px solid transparent; border-right: 6.5px solid transparent; border-bottom: 13px solid #e8c9a0; }
+  .p-black { background: #3a3d42; height: 96px; left: 8px; top: -78px; transform: rotate(-5deg); }
+  .p-grey  { background: #9aa0a8; height: 84px; left: 34px; top: -66px; }
+  .p-red   { background: #e0503c; height: 92px; left: 60px; top: -72px; transform: rotate(4deg); }
+  .p-white { background: #f2f3f5; height: 78px; left: 84px; top: -58px; transform: rotate(7deg); border: 1px solid #e0e3e8; }
+
+  .pot {
+    left: 217px; top: 590px; width: 104px; height: 106px;
+    background: linear-gradient(180deg, #ffffff 0%, #eef0f2 100%);
+    border-radius: 8px 8px 14px 14px;
+    box-shadow: 0 12px 20px rgba(30,40,60,.12), inset -6px 0 10px rgba(0,0,0,.05);
+  }
+  .pot::before { content: ''; position: absolute; left: 50%; top: -8px; width: 84px; height: 12px; background: #e4e7ea; border-radius: 4px; transform: translateX(-50%); }
+  .plant-svg { left: 178px; top: 452px; width: 182px; height: 148px; }
+
+  .mug {
+    left: 1287px; top: 599px; width: 106px; height: 124px;
+    background: linear-gradient(180deg, #ffffff 0%, #f0f2f4 100%);
+    border-radius: 6px 6px 16px 16px;
+    box-shadow: 0 14px 22px rgba(30,40,60,.13), inset -10px 0 14px rgba(0,0,0,.06);
+  }
+  .mug::before {
+    content: ''; position: absolute; left: 6px; right: 6px; top: -8px; height: 18px;
+    border-radius: 50%; background: #d8402f; box-shadow: inset 0 3px 4px rgba(0,0,0,.22);
+  }
+  .mug::after {
+    content: ''; position: absolute; right: -34px; top: 26px;
+    width: 40px; height: 46px;
+    border: 13px solid #f4f5f7; border-radius: 0 22px 22px 0; border-left: none;
+    box-shadow: inset -3px 3px 4px rgba(0,0,0,.05);
+  }
+
+  /* ================= 欢迎过场 ================= */
+  .welcome-overlay {
+    position: fixed; inset: 0; z-index: 50;
+    background: linear-gradient(160deg, #e5533f 0%, #d8402f 55%, #b52e20 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+    opacity: 0; pointer-events: none; transition: opacity .6s ease;
+  }
+  .welcome-overlay.show { opacity: 1; pointer-events: auto; }
+  .welcome-overlay .big { font-size: 42px; color: #fff; font-weight: 300; letter-spacing: .1em; text-shadow: 0 4px 16px rgba(120,20,10,.4); }
+  .welcome-overlay .sub { font-size: 15px; color: rgba(255,255,255,.85); letter-spacing: .2em; }
+  .welcome-overlay .out {
+    margin-top: 26px; padding: 10px 30px; border-radius: 22px;
+    border: 2px solid rgba(255,255,255,.7); color: #fff; font-size: 14px; letter-spacing: .1em;
+    transition: background .2s;
+  }
+  .welcome-overlay .out:hover { background: rgba(255,255,255,.15); }
+
+  /* ================= 登录成功过场：红色三角从中心填满显示器屏幕区域 ================= */
+  .tri-fill { position: absolute; inset: 0; z-index: 9; pointer-events: none; overflow: hidden; }
+  .tri-fill .tri-shape {
+    position: absolute; left: 50%; top: 50%;
+    width: 230%; height: 230%;
+    background: linear-gradient(180deg, #e5533f 0%, #d8402f 100%);
+    clip-path: polygon(50% 0, 100% 100%, 0 100%);
+    transform: translate(-50%, -66.7%) scale(0);
+    transform-origin: 50% 66.7%;
+    transition: transform .55s cubic-bezier(.65,.05,.25,1);
+  }
+  .tri-fill.active .tri-shape { transform: translate(-50%, -66.7%) scale(1); }
+  .tri-fill svg {
+    position: absolute; left: 50%; top: 66.7%; width: 17%; height: 25%;
+    transform: translate(-50%, -50%); opacity: .92;
+  }
+
+  /* ================= 手机端（≤860px）：手持手机插画场景（login.html 手机适配） ================= */
+  .stage, .bg-deco { display: none; }
+  @media (max-width: 860px) {
+    .viewport { display: none !important; }
+    .stage, .bg-deco { display: block !important; }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+        height: 100vh;
+        background: #f0eeec;
+        font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+        overflow: hidden;
+    }
+    /* ===== 背景几何装饰 ===== */
+    .bg-deco { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+    .bg-deco .circle-a { position: absolute; right: -90px; top: -70px; width: 300px; height: 300px; border-radius: 50%; background: #fff; }
+    .bg-deco .circle-b { position: absolute; right: 60px; bottom: 90px; width: 120px; height: 120px; border-radius: 50%; background: #fff; }
+    .bg-deco .dots-a {
+        position: absolute; left: 7%; top: 6%;
+        width: 90px; height: 66px;
+        background-image: radial-gradient(rgba(0,0,0,.10) 2.2px, transparent 2.4px);
+        background-size: 15px 15px;
+    }
+    .bg-deco .dots-b {
+        position: absolute; left: 10%; bottom: 12%;
+        width: 90px; height: 66px;
+        background-image: radial-gradient(rgba(0,0,0,.08) 2.2px, transparent 2.4px);
+        background-size: 15px 15px;
+    }
+    .bg-deco .dotspad {
+        position: absolute; right: 5%; top: 10%;
+        width: 34px; height: 26px;
+        background-image: radial-gradient(#d3322a 2.2px, transparent 2.4px);
+        background-size: 13px 13px;
+    }
+    .bg-deco svg.tri { position: absolute; }
+    @media (max-width: 900px) { .bg-deco { position: absolute; } }
+
+    /* ===== 插画舞台 ===== */
+    .stage {
+        position: absolute;
+        left: 0; bottom: 0;
+        width: min(88vw, 100vh * 0.4761);
+        aspect-ratio: 776 / 1630;
+        z-index: 1;
+    }
+    .stage .hand { display: block; width: 100%; height: 100%; pointer-events: none; }
+    .screen {
+        position: absolute;
+        left: 26%; top: 0.5%;
+        width: 61.7%; height: 67.1%;
+        background: transparent;
+        overflow: hidden;
+        font-size: var(--su, 15.5px);
+        display: flex; align-items: center; justify-content: center;
+        padding-top: 24%; padding-bottom: 3%;
+    }
+    .content { width: 78%; display: block; }
+
+    /* 屏内红对角 + 点阵 */
+    .corner { position: absolute; top: 0; right: 0; width: 46%; height: 27%;
+        background: linear-gradient(215deg, #d3322a 0%, #c12820 52%, #ffffff 52.5%);
+        clip-path: polygon(100% 0, 100% 100%, 0 0); }
+    .corner::after { content: ''; position: absolute; right: 14px; top: 12px; width: 46px; height: 36px;
+        background-image: radial-gradient(#d3322a 2.4px, transparent 2.6px); background-size: 12px 12px; }
+    .corner-b { position: absolute; bottom: 0; left: 0; width: 54%; height: 24%;
+        background: linear-gradient(35deg, #ffffff 47.5%, #c12820 48%, #d3322a 100%);
+        clip-path: polygon(0 0, 100% 100%, 0 100%); }
+    .dots-l { position: absolute; left: -6px; bottom: 54px; width: 62px; height: 46px;
+        background-image: radial-gradient(rgba(120,100,90,.30) 2.2px, transparent 2.4px); background-size: 13px 13px; }
+    .tri-deco { position: absolute; fill: rgba(211,50,42,.16); }
+    .logo { position: absolute; left: 6%; top: 4%; width: 2.3em; height: 2.3em; }
+    .logo svg { width: 100%; height: 100%; display: block; }
+    .brand { text-align: center; margin: 1.7em 0; position: relative; z-index: 2; }
+    .brand h1 { font-size: 2.3em; font-weight: 900; letter-spacing: .25em; text-indent: .25em; color: #d3322a; font-family: 'Roboto Mono', monospace; }
+    .brand p { margin-top: .5em; font-size: .72em; letter-spacing: .38em; text-indent: .38em; color: #9b948e; font-family: 'Roboto Mono', monospace; text-transform: uppercase; }
+    .field { display: flex; align-items: center; margin-bottom: .85em; position: relative; z-index: 2; }
+    .field-ico { width: 2.6em; height: 2.6em; flex: none; background: #d3322a; color: #fff;
+        border-radius: .55em; margin-right: .52em; display: flex; align-items: center; justify-content: center; font-size: .95em; }
+    .field input { flex: 1; min-width: 0; height: 2.6em; border: 1px solid #e7e3df; border-radius: .55em; background: #fff;
+        padding: 0 .85em; font-size: .9em; color: #2b2430; outline: none; font-family: inherit;
+        transition: border-color .15s, box-shadow .15s; }
+    .field input:focus { border-color: #d3322a; box-shadow: 0 0 0 3px rgba(211,50,42,.10); }
+    .btn-verify { width: 100%; height: 2.9em; margin-top: .32em; background: #d3322a; color: #fff; border: none;
+        border-radius: .6em; font-size: .95em; font-weight: 700; letter-spacing: .2em; cursor: pointer;
+        font-family: inherit; position: relative; z-index: 2; display: flex; align-items: center;
+        justify-content: center; gap: 8px; transition: background .15s; box-shadow: 0 8px 18px rgba(211,50,42,.25); }
+    .btn-verify:hover { background: #b92c24; }
+    .btn-verify:active { transform: scale(.985); }
+    .status-msg { margin-top: .8em; text-align: center; font-size: .8em; color: #a33; display: none; position: relative; z-index: 2; }
+    .status-msg.show { display: block; }
+    .status-msg.ok { color: #1e8e4e; }
+    .register-link { margin-top: .8em; text-align: center; font-size: .8em; color: #8f8880; position: relative; z-index: 2; }
+    .register-link a { color: #8f8880; text-decoration: none; }
+    .register-link span { color: #d3322a; font-weight: 700; }
+    .loading-mask { position: absolute; inset: 0; background: #fdfbfa; z-index: 5; border-radius: 0;
+        display: flex; flex-direction: column; gap: 12px; align-items: center; justify-content: center;
+        opacity: 0; pointer-events: none; transition: opacity .4s; }
+    .loading-mask.show { opacity: 1; pointer-events: auto; }
+    .loading-mask i { color: #d3322a; font-size: 2em; }
+    .loading-mask span { font-size: .85em; color: #9b948e; letter-spacing: .1em; }
+  }
+</style>
+</head>
+<body>
+<div class="viewport">
+  <div class="scene" id="scene">
+
+    <!-- 背景：墙与窗户 -->
+    <div class="wall"></div>
+    <div class="window" style="left:88px; top:-10px; width:352px; height:442px;"></div>
+    <div class="win-frame-v" style="left:262px; top:-10px; height:432px;"></div>
+    <div class="win-frame-h" style="left:88px; top:212px; width:352px;"></div>
+    <div class="city" style="left:106px; top:252px; width:64px; height:172px;"></div>
+    <div class="city b2" style="left:176px; top:292px; width:46px; height:132px;"></div>
+    <div class="city" style="left:290px; top:232px; width:74px; height:192px;"></div>
+    <div class="city b2" style="left:370px; top:278px; width:52px; height:146px;"></div>
+    <div class="wall-line" style="left:640px; top:0; height:340px;"></div>
+    <div class="wall-line" style="left:1180px; top:0; height:330px;"></div>
+
+    <!-- 背景道具 -->
+    <svg class="grey-plant" style="left:2px; top:280px;" width="100" height="240" viewBox="0 0 100 240" fill="none">
+      <path d="M50 240 C 48 180 46 130 50 90" stroke="#d3d7db" stroke-width="5" fill="none"/>
+      <ellipse cx="30" cy="120" rx="26" ry="12" fill="#d9dde1" transform="rotate(-28 30 120)"/>
+      <ellipse cx="72" cy="98" rx="26" ry="12" fill="#d9dde1" transform="rotate(24 72 98)"/>
+      <ellipse cx="26" cy="66" rx="24" ry="11" fill="#dfe2e6" transform="rotate(-35 26 66)"/>
+      <ellipse cx="74" cy="44" rx="24" ry="11" fill="#dfe2e6" transform="rotate(30 74 44)"/>
+      <ellipse cx="50" cy="24" rx="22" ry="11" fill="#e2e5e9" transform="rotate(-4 50 24)"/>
+    </svg>
+    <div class="partition" style="left:-10px; top:387px; width:168px; height:180px;"><i class="cap"></i></div>
+
+    <div class="partition" style="left:1042px; top:406px; width:568px; height:128px;"><i class="cap"></i></div>
+    <div class="partition" style="left:1042px; top:548px; width:250px; height:352px; opacity:.92;"><i class="cap"></i></div>
+    <div class="bg-desk" style="left:1042px; top:534px; width:558px; height:16px; border-radius:3px;"></div>
+    <div class="bg-monitor" style="left:1392px; top:338px; width:208px; height:130px;"></div>
+    <div class="bg-monitor-stand" style="left:1478px; top:468px; width:44px; height:66px;"></div>
+    <div class="bg-desk" style="left:1420px; top:534px; width:180px; height:12px;"></div>
+    <div class="bg-chair" style="left:1408px; top:436px; width:150px; height:230px;"></div>
+
+    <!-- 吊灯 ×2 -->
+    <div class="lamp-group" style="left:1388px; top:0;">
+      <div class="lamp-cord" style="left:45px; top:0; height:96px;"></div>
+      <div class="lamp-shade" style="left:0; top:96px; width:94px; height:58px;"></div>
+    </div>
+    <div class="lamp-group l2" style="left:1512px; top:0;">
+      <div class="lamp-cord" style="left:45px; top:0; height:34px;"></div>
+      <div class="lamp-shade" style="left:0; top:34px; width:94px; height:58px;"></div>
+    </div>
+
+    <!-- 前景桌面 -->
+    <div class="desk"></div>
+
+    <!-- 桌面道具：笔筒 / 盆栽 / 马克杯 -->
+    <div class="pen-holder">
+      <i class="pencil p-black"></i><i class="pencil p-grey"></i><i class="pencil p-red"></i><i class="pencil p-white"></i>
+    </div>
+    <svg class="plant-svg" viewBox="0 0 182 148" fill="none">
+      <path d="M91 148 C 89 110 88 80 91 52" stroke="#b8452f" stroke-width="5" fill="none"/>
+      <path d="M91 96 C 70 84 58 66 56 44" stroke="#b8452f" stroke-width="4" fill="none"/>
+      <path d="M91 78 C 112 68 124 52 126 32" stroke="#b8452f" stroke-width="4" fill="none"/>
+      <ellipse cx="91" cy="36" rx="15" ry="26" fill="#d8402f"/>
+      <ellipse cx="52" cy="36" rx="13" ry="21" fill="#c9342b" transform="rotate(-32 52 36)"/>
+      <ellipse cx="130" cy="24" rx="13" ry="21" fill="#c9342b" transform="rotate(28 130 24)"/>
+      <ellipse cx="66" cy="82" rx="12" ry="18" fill="#e2503c" transform="rotate(-46 66 82)"/>
+      <ellipse cx="118" cy="72" rx="12" ry="18" fill="#e2503c" transform="rotate(42 118 72)"/>
+    </svg>
+    <div class="pot"></div>
+    <div class="mug"></div>
+
+    <!-- 键盘 / 鼠标 -->
+    <div class="keyboard">
+      <div class="kb-rows" id="kbRows"></div>
+    </div>
+    <div class="mouse"></div>
+    <div class="obj-shadow" style="left:1132px; top:836px; width:130px; height:26px;"></div>
+
+    <!-- 显示器 -->
+    <div class="monitor">
+      <div class="m-shadow"></div>
+      <div class="m-neck"></div>
+      <div class="m-base"></div>
+      <div class="m-bezel">
+        <div class="m-cam"></div>
+        <div class="m-screen">
+          <!-- 登录表单（叠于背景白色区） -->
+          <div class="tri-content">
+            <h1 class="tri-title">LOGIN</h1>
+            <div class="tri-sub">WELCOME BACK</div>
+            <div class="tri-field">
+              <span class="tf-icon">
+                <svg viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="8.4" r="4"/><path d="M4.5,19.4 C5.6,15.8 8.5,13.8 12,13.8 C15.5,13.8 18.4,15.8 19.5,19.4 C19.7,20 19.2,20.6 18.6,20.6 L5.4,20.6 C4.8,20.6 4.3,20 4.5,19.4 Z"/></svg>
+              </span>
+              <input id="userInput" type="text" placeholder="Username" autocomplete="off" spellcheck="false">
+            </div>
+            <div class="tri-field">
+              <span class="tf-icon">
+                <svg viewBox="0 0 24 24" fill="#fff"><rect x="5" y="10.4" width="14" height="9.6" rx="1"/><path d="M8,10 V8 a4,4 0 0 1 8,0 v2" fill="none" stroke="#fff" stroke-width="2.4"/></svg>
+              </span>
+              <input id="passInput" type="password" placeholder="Password" autocomplete="off">
+            </div>
+            <button class="tri-signin" id="goBtn">SIGN IN
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="M13 5l7 7-7 7"/></svg>
+            </button>
+            <div class="tri-err" id="errTxt"></div>
+          </div>
+          <div class="m-glare"></div>
+          <!-- 登录成功过场层：红色三角从中心填满整个屏幕区域 -->
+          <div class="tri-fill" id="triFill">
+            <div class="tri-shape">
+              <svg viewBox="0 0 24 24"><path d="M12 2.5 L22 22 L2 22 Z" fill="none" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="m-led"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 欢迎过场 -->
+  <div class="welcome-overlay" id="welcomeOverlay">
+    <div class="big">欢迎回来，<b id="wName">Admin</b></div>
+    <div class="sub">登录成功 · 正在进入内网终端</div>
+    <button class="out" onclick="resetLogin()">退出登录</button>
+  </div>
+</div>
+
+<!-- ================= 手机端手持插画（≤860px 显示，样式与 login.html 手机适配一致） ================= -->
+<div class="bg-deco">
+  <div class="circle-a"></div>
+  <div class="circle-b"></div>
+  <div class="dots-a"></div>
+  <div class="dots-b"></div>
+  <div class="dotspad"></div>
+  <svg class="tri" style="left:6%;top:16%;width:56px;" viewBox="0 0 24 24"><path d="M12 2 L22 22 H2 Z" fill="rgba(211,50,42,.12)"/></svg>
+  <svg class="tri" style="left:4%;bottom:26%;width:44px;transform:rotate(20deg);" viewBox="0 0 24 24"><path d="M12 2 L22 22 H2 Z" fill="none" stroke="rgba(0,0,0,.15)" stroke-width="1.4"/></svg>
+  <svg class="tri" style="right:8%;top:34%;width:64px;" viewBox="0 0 24 24"><path d="M12 2 L22 22 H2 Z" fill="none" stroke="rgba(0,0,0,.12)" stroke-width="1.4"/></svg>
+</div>
+
+<div class="stage" id="stage">
+  <img class="hand" src="img/hand.svg" alt="">
+  <div class="screen">
+    <div class="logo">
+      <svg viewBox="0 0 24 24"><path d="M12 2.5 L22 22 L2 22 Z" fill="none" stroke="#d3322a" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 9.5 L17 19 L7 19 Z" fill="none" stroke="#d3322a" stroke-width="1.4" stroke-linejoin="round"/></svg>
+    </div>
+
+    <div class="content">
+      <div class="brand">
+        <h1>LOGIN</h1>
+        <p>Welcome Back</p>
+      </div>
+
+      <div class="field">
+        <div class="field-ico"><i class="fas fa-user"></i></div>
+        <input type="text" id="mUser" autocomplete="off" placeholder="输入账号">
+      </div>
+      <div class="field">
+        <div class="field-ico"><i class="fas fa-lock"></i></div>
+        <input type="password" id="mPass" placeholder="输入密码">
+      </div>
+
+      <button class="btn-verify" id="mBtn">
+        <span>SIGN IN</span>
+        <i class="fas fa-arrow-right"></i>
+      </button>
+
+      <div class="status-msg" id="mMsg"></div>
+      <div class="register-link" id="mRegLink" style="display:none;">
+        <a href="register.html">没有账号？<span>申请入职</span></a>
+      </div>
+
+      <div class="loading-mask" id="mLoadingMask">
+        <i class="fas fa-triangle"></i>
+        <span>接入终端中...</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 登录成功过场：红色三角填满显示器屏幕区域 → 屏幕放大 → desktop.html 倒放缩小 -->
+<script src="js/desktop/login.js"></script>
+<script>
+/* 手机端（≤860px）：手持插画场景的登录逻辑（与 login.html 手机适配一致） */
+(function () {
+  var mUser = document.getElementById('mUser');
+  var mPass = document.getElementById('mPass');
+  var mBtn = document.getElementById('mBtn');
+  var mMsg = document.getElementById('mMsg');
+
+  function isMobile() { return window.matchMedia('(max-width: 860px)').matches; }
+  function showErr(msg) {
+    mMsg.textContent = msg;
+    mMsg.classList.add('show');
+    clearTimeout(showErr.t);
+    showErr.t = setTimeout(function () { mMsg.classList.remove('show'); }, 2600);
+  }
+
+  function mLogin() {
+    if (!isMobile()) return;
+    var u = mUser.value.trim();
+    var p = mPass.value;
+    if (!u) { showErr('Please enter your username'); return; }
+    if (!p) { showErr('Please enter your password'); return; }
+    mMsg.classList.remove('show');
+    mBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>';
+    mBtn.setAttribute('disabled', 'disabled');
+
+    fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: u, password: p })
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (!data.success) {
+        showErr(data.message || '账号或密码错误');
+        mBtn.innerHTML = '<span>SIGN IN</span><i class="fas fa-arrow-right"></i>';
+        mBtn.removeAttribute('disabled');
+        return;
+      }
+      localStorage.setItem('ta_uid', data.userId);
+      localStorage.setItem('ta_token', data.token);
+      localStorage.setItem('ta_role', data.role);
+      if (data.isAdmin) localStorage.setItem('ta_is_admin', 'true'); else localStorage.removeItem('ta_is_admin');
+      if (data.isManager) localStorage.setItem('ta_is_manager', 'true'); else localStorage.removeItem('ta_is_manager');
+      if (data.branches && data.branches.length && !localStorage.getItem('ta_current_branch')) {
+        localStorage.setItem('ta_current_branch', data.branches[0].id);
+      }
+      document.getElementById('mLoadingMask').classList.add('show');
+      setTimeout(function () {
+        window.location.href = 'desktop.html';
+      }, 900);
+    })
+    .catch(function () {
+      showErr('Server connection failed');
+      mBtn.innerHTML = '<span>SIGN IN</span><i class="fas fa-arrow-right"></i>';
+      mBtn.removeAttribute('disabled');
+    });
+  }
+
+  mBtn.addEventListener('click', mLogin);
+  mUser.addEventListener('keydown', function (e) { if (e.key === 'Enter') mLogin(); });
+  mPass.addEventListener('keydown', function (e) { if (e.key === 'Enter') mLogin(); });
+
+  /* 与 login.html 手机端一致：注册开启时显示"申请入职"链接 */
+  fetch('/api/register/status')
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (data.registrationEnabled) document.getElementById('mRegLink').style.display = 'block';
+    })
+    .catch(function () {});
+})();
+</script>
+</body>
+</html>

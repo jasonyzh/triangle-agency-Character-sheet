@@ -1,0 +1,5 @@
+{
+  "watch": ["server.js", "constants.js", "utils.js", "db/", "middleware/", "routes/"],
+  "ignore": ["public/", "data/", "node_modules/", "docs/"],
+  "ext": "js"
+}

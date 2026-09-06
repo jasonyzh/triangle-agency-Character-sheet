@@ -1,0 +1,237 @@
+/* ===== 办公室实验页：白色背景 + 红三角 ===== */
+html, body {
+    height: 100%;
+    margin: 0;
+    background: #f5f5f5;
+    overflow: hidden;
+}
+
+.office-wrap {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* 防止子项撑宽 */
+}
+
+/* 顶栏：白底，沿用 brand-logo */
+.office-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 22px;
+    background: #ffffff;
+    border-bottom: 2px solid #e63946;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    flex-shrink: 0;
+    z-index: 10;
+}
+.brand-logo { color: #1a1a1a; }
+.brand-logo .top, .brand-logo .btm { color: #1a1a1a; }
+.page-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #e63946;
+    margin-top: 2px;
+}
+.office-header .btn-icon {
+    color: #1a1a1a;
+    border: 1px solid #ddd;
+    background: #fff;
+}
+
+/* 画布区：背景图铺底，纵向滚动 */
+.office-canvas {
+    flex: 1;
+    min-width: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: #1a1010 url('../img/square/plazabg.webp') center top / cover no-repeat fixed;
+    position: relative;
+    -webkit-overflow-scrolling: touch;
+    padding: 8px;
+    box-sizing: border-box;
+}
+.office-canvas::-webkit-scrollbar { width: 6px; }
+.office-canvas::-webkit-scrollbar-thumb { background: rgba(230,57,70,0.3); border-radius: 4px; }
+
+/* SVG：按真实像素尺寸居中，max-width 防溢出（SCALE 直接控制大小） */
+.office-svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+    touch-action: pan-y;
+}
+.ws-tile { transition: opacity 0.15s; }
+.ws-group { cursor: default; }
+
+/* 工位上的角色头像（首字圆框）：事件由 JS 绑定，不用 CSS hover 避免位移跳动 */
+.ws-avatar { cursor: pointer; }
+
+/* 空工位标记（虚线，表示空闲） */
+.ws-empty .ws-desk { fill: #fafafa; stroke: #e63946; stroke-dasharray: 4 3; }
+
+/* 浮窗（悬停工位显示信息） */
+.office-tooltip {
+    display: none;
+    position: fixed;
+    z-index: 200;
+    width: 220px;
+    background: #fff;
+    border: 2px solid #e63946;
+    border-radius: 8px;
+    padding: 12px 14px;
+    box-shadow: 0 8px 24px rgba(230,57,70,0.18);
+    color: #1a1a1a;
+    font-family: inherit;
+}
+.office-tooltip.show { display: block; }
+.office-tooltip { width: 260px; max-height: 70vh; overflow-y: auto; }
+
+.office-tip-name { font-size: 16px; font-weight: 800; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #eee; }
+
+/* 三轴属性行 */
+.office-axis-row { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+.office-axis {
+    font-size: 10px; font-weight: 700; padding: 2px 6px;
+    border-left: 3px solid #ccc; background: #f7f7f7; border-radius: 0 3px 3px 0;
+    display: inline-flex; align-items: center; gap: 3px;
+}
+.office-axis i { font-size: 9px; }
+
+/* 统计三栏 */
+.office-stats { display: flex; gap: 6px; margin-bottom: 10px; }
+.office-stat {
+    flex: 1; text-align: center; background: #f5f5f5; border-radius: 6px; padding: 5px 2px;
+}
+.office-stat .v { font-size: 16px; font-weight: 800; display: block; color: #1a1a1a; }
+.office-stat .l { font-size: 9px; color: #999; text-transform: uppercase; letter-spacing: 1px; }
+
+/* 模组标签 */
+.office-tip-label { font-size: 9px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 1px; margin: 6px 0 4px; position: relative; }
+.office-missions { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 6px; }
+.office-mission-tag {
+    font-size: 10px; padding: 2px 6px; border-radius: 8px;
+    background: rgba(230,57,70,0.1); color: #c1121f; font-weight: 600;
+}
+.office-missions-empty { font-size: 11px; color: #bbb; font-style: italic; margin-bottom: 6px; }
+
+/* 签名 */
+.office-sig {
+    font-size: 12px; line-height: 1.5; color: #444;
+    background: #fafafa; border-left: 3px solid #e63946;
+    padding: 6px 8px; border-radius: 0 4px 4px 0;
+    white-space: pre-wrap; word-break: break-word;
+}
+.office-sig-empty { color: #bbb; font-style: italic; border-left-color: #ddd; }
+.office-sig-edit {
+    position: absolute; right: 0; top: -2px;
+    width: 20px; height: 20px; border: 1px solid #ddd; background: #fff;
+    border-radius: 4px; color: #e63946; cursor: pointer; font-size: 10px;
+    display: inline-flex; align-items: center; justify-content: center;
+}
+.office-sig-edit:hover { background: rgba(230,57,70,0.1); }
+.office-tooltip-empty { font-size: 12px; color: #999; font-style: italic; }
+
+/* 排序按钮（取代旧图例） */
+.office-legend {
+    position: fixed; bottom: 16px; left: 16px;
+    background: rgba(255,255,255,0.96); border: 1px solid #eee;
+    border-left: 3px solid #e63946; border-radius: 8px;
+    padding: 8px 10px; box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    z-index: 50;
+}
+.office-legend-title { font-weight: 800; color: #1a1a1a; font-size: 11px; margin-bottom: 6px; letter-spacing: 1px; }
+.office-sort-btns { display: flex; gap: 4px; }
+.office-sort-btn {
+    padding: 5px 9px; font-size: 11px; font-weight: 700; cursor: pointer;
+    border: 1px solid #ddd; background: #fff; color: #888; border-radius: 5px;
+    display: inline-flex; align-items: center; gap: 4px; transition: all 0.15s;
+}
+.office-sort-btn:hover { color: #e63946; border-color: #e63946; }
+.office-sort-btn.active { background: #e63946; color: #fff; border-color: #e63946; }
+.office-sort-btn i { font-size: 10px; }
+
+/* 分部选择器 */
+.office-branch-selector { position: relative; }
+.office-branch-btn {
+    width: 100%; box-sizing: border-box;
+    padding: 6px 8px; font-size: 11px; font-weight: 700; cursor: pointer;
+    border: 1px solid #ddd; background: #fff; color: #1a1a1a; border-radius: 5px;
+    display: flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.15s;
+}
+.office-branch-btn:hover { border-color: #e63946; color: #e63946; }
+.office-branch-btn i { font-size: 10px; }
+.office-branch-dropdown {
+    display: none; position: absolute; bottom: 100%; left: 0; right: 0;
+    background: #fff; border: 1px solid #ddd; border-radius: 5px;
+    box-shadow: 0 -4px 14px rgba(0,0,0,0.12); margin-bottom: 4px;
+    max-height: 200px; overflow-y: auto; z-index: 100;
+}
+.office-branch-item {
+    padding: 7px 10px; font-size: 11px; font-weight: 600; color: #555; cursor: pointer;
+}
+.office-branch-item:hover { background: #f5f5f5; color: #e63946; }
+.office-branch-item.active { background: rgba(230,57,70,0.1); color: #e63946; }
+
+/* 功能按钮（定位自己 / 我的签名） */
+.office-action-btns { display: flex; gap: 4px; margin-top: 8px; }
+.office-action-btn {
+    flex: 1; padding: 6px 4px; font-size: 10px; font-weight: 700; cursor: pointer;
+    border: 1px solid #ddd; background: #fff; color: #555; border-radius: 5px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.15s;
+}
+.office-action-btn:hover { border-color: #e63946; color: #e63946; background: rgba(230,57,70,0.05); }
+.office-action-btn i { font-size: 11px; }
+
+/* 定位高亮闪烁 */
+@keyframes ws-avatar-flash-anim {
+    0%, 100% { filter: drop-shadow(0 0 0 transparent); }
+    50% { filter: drop-shadow(0 0 12px #e63946) drop-shadow(0 0 6px #e63946); }
+}
+.ws-avatar-flash { animation: ws-avatar-flash-anim 0.5s ease-in-out 3; }
+
+/* 签名角色选择列表 */
+.office-sig-pick-list { max-height: 300px; overflow-y: auto; margin-bottom: 12px; }
+.office-sig-pick {
+    padding: 10px 12px; border: 1px solid #eee; border-radius: 6px; margin-bottom: 6px;
+    cursor: pointer; transition: all 0.15s;
+}
+.office-sig-pick:hover { border-color: #e63946; background: rgba(230,57,70,0.05); }
+.office-sig-pick-name { display: block; font-size: 13px; font-weight: 700; color: #1a1a1a; margin-bottom: 3px; }
+.office-sig-pick-sig { display: block; font-size: 11px; color: #888; }
+
+/* 签名编辑弹窗 */
+.office-modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 300;
+    background: rgba(0,0,0,0.5); align-items: center; justify-content: center;
+}
+.office-modal-overlay.show { display: flex; }
+.office-modal {
+    width: 90%; max-width: 380px; background: #fff;
+    border: 2px solid #e63946; border-radius: 10px; padding: 16px;
+}
+.office-modal-title { font-size: 15px; font-weight: 800; margin-bottom: 10px; color: #1a1a1a; }
+.office-modal-input {
+    width: 100%; box-sizing: border-box; min-height: 90px; resize: vertical;
+    border: 1px solid #ddd; border-radius: 6px; padding: 8px;
+    font-size: 13px; font-family: inherit; outline: none; color: #1a1a1a;
+}
+.office-modal-input:focus { border-color: #e63946; }
+.office-modal-hint { text-align: right; font-size: 10px; color: #aaa; margin: 4px 2px 10px; }
+.office-modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.office-modal-btn {
+    padding: 6px 16px; border-radius: 6px; border: 1px solid #ddd;
+    background: #fff; color: #555; font-size: 12px; font-weight: 700; cursor: pointer;
+}
+.office-modal-btn.cancel:hover { background: #f5f5f5; }
+.office-modal-btn.save { background: #e63946; color: #fff; border-color: #e63946; }
+.office-modal-btn.save:hover { background: #c1121f; }
+
+@media (max-width: 600px) {
+    .office-header { padding: 10px 14px; }
+    .office-legend { bottom: 10px; left: 10px; padding: 6px 8px; }
+    .office-sort-btn { padding: 4px 7px; font-size: 10px; }
+    .office-tooltip { width: 230px; }
+}
